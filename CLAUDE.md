@@ -1,116 +1,222 @@
-# Circuit Simulation Platform - AI Assistant Context
+# Circuit Simulation Library - Development Guide
+
+## Project Mission
+Build a production-ready Python library for circuit simulation that professionals can depend on.
+
+## Core Principles
+- **Reliability First**: Every feature must be thoroughly tested
+- **Professional Quality**: Code that's ready for enterprise use  
+- **Clean Architecture**: Maintainable, extensible design
+- **User-Focused**: Easy to use, hard to misuse
 
 ## Project Overview
 **Name**: circuit-simulation  
-**Description**: Modern Python-based circuit simulation platform with interactive reporting and AI-ready architecture  
+**Type**: Python Library  
 **Phase**: MVP Development  
 **Target Users**: Professional engineers and students  
-**Success Metric**: Easy simulation of common circuits with awesome interactive and useful output reports  
+**Success Metric**: Reliable simulation of common circuits with interactive reports
 
 ## Technical Stack
 - **Language**: Python 3.10+
-- **Simulation Backends**: Ngspice (primary), Xyce (large circuits)
+- **Simulation**: Ngspice (primary), Xyce (large circuits)
 - **Visualization**: Plotly for interactive reports
-- **Deployment**: Docker (Ubuntu base)
-- **API**: FastAPI
-- **Queue**: Redis/Celery
-- **Testing**: pytest
-- **Documentation**: Google style docstrings
+- **API Framework**: FastAPI
+- **Testing**: pytest with >85% coverage
+- **Type Checking**: mypy --strict
+- **Formatting**: black
+- **Linting**: ruff
+
+## Development Standards
+
+### Before Writing Code
+1. Check if similar functionality exists: `grep -r "pattern" src/`
+2. Review existing patterns in the codebase
+3. Understand the module's architecture
+4. Read relevant tests to understand expected behavior
+
+### Code Requirements
+- Every public function needs type hints
+- Every module needs a docstring explaining its purpose
+- Every class needs clear documentation
+- Handle errors explicitly, never silent failures
+- Use logging instead of print statements
+- Follow existing patterns in the codebase
+
+### Testing is Mandatory
+- Write tests BEFORE implementation (TDD)
+- Test the happy path AND edge cases
+- Test error conditions explicitly
+- Aim for >85% code coverage
+- Run: `pytest --cov=src --cov-report=term-missing`
+
+## Quality Assurance
+
+### Pre-Commit Checklist
+ALWAYS run these before committing:
+```bash
+# Format and lint
+black src/ tests/
+ruff check src/ tests/
+
+# Type checking  
+mypy src/ --strict
+
+# Run all tests
+pytest -v
+
+# Check coverage
+pytest --cov=src --cov-report=term-missing
+```
+
+### Code Review Focus
+- Is the code solving the right problem?
+- Are errors handled properly?
+- Is the code testable?
+- Will this scale to 10,000 components?
+- Is the API intuitive?
+
+## Library Architecture
+
+### Core Modules
+- `src/core/`: Circuit simulation engine (keep pure, no external dependencies)
+- `src/models/`: Data models with validation (use Pydantic)
+- `src/api/`: Public API layer (user-facing, stable interfaces)
+- `src/reports/`: Report generation (Plotly visualizations)
+- `src/utils/`: Shared utilities (keep minimal)
+
+### Design Patterns
+- Use dependency injection for flexibility
+- Keep interfaces small and focused
+- Prefer composition over inheritance
+- Make illegal states unrepresentable
+- Follow SOLID principles
+
+### Performance Considerations
+- Profile before optimizing: `python -m cProfile -s cumtime`
+- Document algorithmic complexity in docstrings
+- Use generators for large datasets
+- Cache expensive computations with `functools.lru_cache`
+
+## Development Workflow
+
+### Adding a New Feature
+1. **Understand**: Read related code and tests first
+2. **Design**: Sketch the API in a comment or markdown
+3. **Test**: Write tests that define the behavior
+4. **Implement**: Write the minimum code to pass tests
+5. **Refactor**: Clean up while tests still pass
+6. **Document**: Add docstrings and update README
+7. **Verify**: Run full quality checks
+
+### Fixing a Bug
+1. **Reproduce**: Write a failing test that demonstrates the bug
+2. **Fix**: Make the minimal change to pass the test
+3. **Verify**: Ensure no other tests break
+4. **Document**: Add comment explaining the fix if non-obvious
+
+### Common Commands
+```bash
+# Run a specific test
+pytest tests/test_module.py::test_function -v
+
+# Check what's not covered by tests
+pytest --cov=src --cov-report=html
+open htmlcov/index.html
+
+# Find TODO items
+grep -r "TODO\|FIXME\|XXX" src/
+
+# Check for security issues
+bandit -r src/
+safety check
+```
+
+## Documentation Standards
+
+### Code Documentation Example
+```python
+def simulate_circuit(
+    circuit: Circuit,
+    duration: float,
+    timestep: float = 1e-6
+) -> SimulationResult:
+    """Simulate a circuit over time.
+    
+    Args:
+        circuit: Circuit to simulate
+        duration: Simulation duration in seconds
+        timestep: Time increment for simulation (default: 1μs)
+    
+    Returns:
+        SimulationResult containing voltages and currents
+    
+    Raises:
+        ConvergenceError: If simulation fails to converge
+        ValueError: If duration or timestep is invalid
+    
+    Example:
+        >>> circuit = Circuit.from_netlist("amplifier.cir")
+        >>> result = simulate_circuit(circuit, duration=0.001)
+        >>> result.plot()
+    """
+```
+
+### API Documentation
+- Every public function must have examples
+- Document common use cases
+- Explain error conditions
+- Provide performance characteristics when relevant
+
+## Production Checklist
+
+### Before Release
+- [ ] All tests passing
+- [ ] Documentation complete
+- [ ] Examples working
+- [ ] Performance benchmarks met
+- [ ] Security scan clean (bandit, safety)
+- [ ] Change log updated
+- [ ] Version bumped appropriately
+
+### Performance Targets
+- Parse 10,000 component netlist: < 1 second
+- Simulate 1000 components for 1ms: < 5 seconds
+- Generate report with 10 plots: < 2 seconds
+- API response time: < 100ms (p95)
+
+### Error Handling
+- Never crash on invalid input
+- Provide helpful error messages
+- Log errors with context
+- Gracefully degrade when possible
 
 ## Memory Bank System
 
-### CRITICAL: Memory persists between sessions via documentation
-
-The AI assistant's memory resets between sessions. The Memory Bank ensures continuity by maintaining comprehensive project documentation. **ALWAYS read ALL memory bank files at the start of EVERY session.**
-
-### Memory Bank Structure
+### Structure
 ```
 memory-bank/
 ├── projectbrief.md       # Core requirements and goals
 ├── productContext.md     # Why project exists, problems solved
-├── activeContext.md      # Current focus, recent changes, next steps
-├── systemPatterns.md     # Architecture, design patterns, components
+├── activeContext.md      # Current focus, recent changes
+├── systemPatterns.md     # Architecture, design patterns
 ├── techContext.md        # Technologies, setup, constraints
 ├── progress.md          # What works, what's left, known issues
-└── prds/                # Product Requirements Documents for features
-    └── *.md             # Individual PRD files for each feature
+└── prds/                # Product Requirements Documents
+    └── *.md            # Feature-specific PRDs
 ```
 
 ### Memory Bank Workflow
 1. **Start of Session**: Read ALL memory bank files
-2. **During Work**: Update activeContext.md with decisions/insights
+2. **During Work**: Update activeContext.md with decisions
 3. **After Features**: Update systemPatterns.md and progress.md
-4. **On "update memory bank"**: Review and update ALL files
-
-## Development Workflow
-
-### CRITICAL: Follow this workflow strictly
-
-1. **Research Phase**
-   - Thoroughly research the problem/feature
-   - Understand existing solutions and best practices
-   - Document findings
-
-2. **Requirements Gathering**
-   - Ask user clarifying questions
-   - Understand success criteria
-   - Identify edge cases
-
-3. **PRD Creation**
-   - Create detailed Product Requirements Document
-   - Save PRD as markdown in `memory-bank/prds/` folder
-   - Include acceptance criteria
-   - Define scope clearly
-
-4. **User Review**
-   - Present PRD to user
-   - Incorporate feedback
-   - Get explicit approval before proceeding
-
-5. **Task Breakdown**
-   - Break PRD into ~15 minute tasks
-   - Create todo list
-   - Prioritize tasks
-
-6. **Feature Branch Development**
-   ```bash
-   git checkout develop
-   git pull
-   git checkout -b feature/<feature-name>
-   ```
-
-7. **Test-Driven Development**
-   - Write comprehensive unit tests FIRST
-   - Cover edge cases
-   - Aim for >80% coverage
-
-8. **Implementation**
-   - Develop working code
-   - Follow existing patterns
-   - Keep changes focused
-
-9. **Quality Checks**
-   ```bash
-   # Always run before committing:
-   black .  # formatter
-   ruff check .  # linter
-   pytest  # tests
-   ```
-
-10. **Manual Testing**
-    - Have user test manually
-    - Document test results
-    - Gather feedback
-
-11. **Merge Process**
-    - Fix any issues from feedback
-    - Merge to feature branch
-    - Eventually merge feature → develop → main
+4. **On completion**: Document in progress.md
 
 ## Git Workflow
-- **main**: Production-ready releases only
-- **develop**: Integration branch for features
-- **feature/\***: Individual feature branches
+
+### Branch Strategy
+- `main`: Production-ready releases only
+- `develop`: Integration branch for features
+- `feature/*`: Individual feature branches
 
 ### Commit Messages
 ```
@@ -120,146 +226,103 @@ memory-bank/
 
 [optional footer]
 ```
-
 Types: feat, fix, docs, style, refactor, test, chore
+
+### Before Creating PR
+1. Rebase on latest develop
+2. Ensure all tests pass
+3. Update documentation
+4. Add to CHANGELOG.md
 
 ## Project Structure
 ```
 circuit-simulation/
-├── docs/                 # Documentation
-│   ├── PRD.md
-│   ├── RESEARCH_NOTES.md
-│   ├── SIMULATOR_COMPARISON.md
-│   └── EDUCATION_CONTENT.md
 ├── src/                  # Source code
-│   ├── api/             # FastAPI application
-│   ├── core/            # Core simulation logic
+│   ├── __init__.py
+│   ├── core/            # Simulation engine
 │   ├── models/          # Data models
+│   ├── api/             # FastAPI application
 │   ├── reports/         # Report generation
 │   └── utils/           # Utilities
-├── tests/               # Test files
+├── tests/               # Test files (mirrors src/)
 ├── examples/            # Example circuits
-├── submodules/          # Git submodules
-│   ├── circuit-synth/
-│   ├── KiCad-Spice-Library/
-│   └── wingel-simulation/
-├── docker/              # Docker configurations
-├── requirements.txt     # Python dependencies
-└── CLAUDE.md           # This file
+├── docs/               # Documentation
+├── docker/             # Docker configurations
+├── memory-bank/        # Project memory
+├── .github/            # GitHub workflows
+├── requirements.txt    # Production dependencies
+├── requirements-dev.txt # Development dependencies
+├── pyproject.toml      # Project configuration
+├── README.md          # User documentation
+└── CLAUDE.md          # This file
 ```
 
-## Current Priorities (MVP Phase)
+## Current Priorities (MVP)
 
 ### Immediate Goals
-1. Docker container with PySpice + Ngspice
-2. Basic Python API for circuit definition
-3. Simple CLI interface
+1. Core simulation engine with Ngspice
+2. Python API for circuit definition
+3. CLI interface with progress bars
 4. 10 working example circuits
-5. Basic Plotly report generation
+5. Interactive Plotly reports
 
-### Next Phase
-1. REST API with FastAPI
-2. Job queue system
-3. Model library integration
-4. Professional report templates
-5. Educational content
+### Quality Gates
+- Test coverage > 85%
+- Type checking passing
+- No security vulnerabilities
+- Documentation complete
+- Examples working
 
-## Key Design Decisions
-- **Dual Backend**: Ngspice for <10k components, Xyce for larger
-- **API First**: All features accessible via API
-- **Docker Primary**: Ensures consistency and portability
-- **MCP Ready**: Architecture supports future MCP integration
-- **Open Core Model**: Basic features free, premium additions later
+## Common Tasks for AI
 
-## Common Tasks for AI Assistance
-1. Implement new circuit analysis types
-2. Create example circuits
-3. Develop report visualizations
-4. Write unit tests
-5. Optimize simulation performance
-6. Create educational content
-7. Document APIs
-8. Debug convergence issues
+### Priority Tasks
+1. **Circuit Implementation**: Follow patterns in `examples/`
+2. **API Development**: FastAPI with Pydantic models
+3. **Report Generation**: Interactive Plotly visualizations
+4. **Testing**: pytest with fixtures and parametrization
+5. **Documentation**: Docstrings and README updates
 
-## Code Style Guidelines
-- Use type hints for function signatures
-- Google style docstrings
-- Descriptive variable names
-- Keep functions small and focused
-- DRY (Don't Repeat Yourself)
-- SOLID principles where applicable
-
-## Testing Requirements
-- Write tests BEFORE implementation
-- Use pytest fixtures for common setups
-- Mock external dependencies
-- Test edge cases and error conditions
-- Aim for >80% code coverage
-
-## Important Commands
-```bash
-# Development setup
-pip install -r requirements-dev.txt
-
-# Quality checks (run before EVERY commit)
-black .                    # Format code
-ruff check .              # Lint code  
-pytest                    # Run tests
-pytest --cov=src          # Check coverage
-
-# Docker operations
-docker build -t circuit-simulation .
-docker run -p 8000:8000 circuit-simulation
-
-# Git workflow
-git checkout develop
-git pull
-git checkout -b feature/new-feature
-# ... make changes ...
-git add .
-git commit -m "feat: add new feature"
-git push -u origin feature/new-feature
-```
+### Task Approach
+- Always search existing code for patterns first
+- Ask for clarification if requirements are unclear
+- Write tests before implementation
+- Keep changes focused and reviewable
+- Run quality checks before committing
 
 ## External Resources
 - [PySpice Documentation](https://pyspice.fabrice-salvaire.fr/)
 - [Ngspice Manual](http://ngspice.sourceforge.net/docs.html)
 - [Plotly Python](https://plotly.com/python/)
-- [MCP Specification](https://modelcontextprotocol.io/)
+- [FastAPI](https://fastapi.tiangolo.com/)
+- [pytest](https://docs.pytest.org/)
 
-## Notes for AI Assistants
+## AI Assistant Guidelines
 
-### DO:
-- Always follow the development workflow
-- Ask for clarification when requirements are ambiguous
-- Write tests before code
+### DO
+- Follow TDD (Test-Driven Development)
+- Ask for clarification when needed
+- Check existing patterns before implementing
 - Run quality checks before committing
-- Break complex tasks into small chunks
-- Document your design decisions
-- Consider both professional and educational use cases
+- Keep functions small and focused
+- Document design decisions
+- Handle errors explicitly
 
-### DON'T:
-- Skip the research phase
-- Implement without tests
-- Merge directly to main
-- Make large, unfocused changes
-- Ignore user feedback
-- Assume requirements - always confirm
+### DON'T
+- Skip tests
+- Ignore linting errors
+- Use print() for debugging (use logging)
+- Make assumptions about requirements
+- Create large, monolithic functions
+- Leave TODO comments without tickets
+- Commit broken code
 
-### Remember:
-- This is both a professional tool and educational platform
-- Reports should be beautiful AND functional
-- Performance matters but correctness is critical
-- We're building for MCP integration from day one
-- User experience is paramount - make it easy!
-
-## Contact & Support
-- Primary Use: Circuit simulation for professionals and students
-- Timeline: ASAP delivery for MVP
-- Business Model: TBD (considering open core)
-
-## Last Updated
-August 26, 2025
+### Remember
+- This is a professional library for production use
+- Quality is more important than quantity
+- User experience matters
+- Performance requirements are real constraints
+- Documentation is part of the feature
 
 ---
-*This file helps AI assistants understand the project context and work effectively. Update it as the project evolves.*
+*Last Updated: August 26, 2025*
+*This file guides AI assistants in building a robust, production-ready circuit simulation library.*
