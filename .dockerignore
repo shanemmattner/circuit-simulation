@@ -1,0 +1,82 @@
+# Git files
+.git
+.gitignore
+.gitmodules
+
+# Python cache
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info
+.pytest_cache
+.mypy_cache
+.coverage
+htmlcov
+*.cover
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Documentation build
+docs/_build/
+docs/.doctrees/
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# Docker files (don't copy into image)
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+.travis.yml
+
+# Temporary files
+*.tmp
+*.bak
+*.log
+tmp/
+temp/
+
+# Build artifacts
+build/
+dist/
+*.so
+*.dll
+*.dylib
+
+# Node modules (if any)
+node_modules/
+
+# Data files (if large)
+*.csv
+*.dat
+*.db
+*.sqlite
+
+# Archives
+*.zip
+*.tar
+*.tar.gz
+*.rar
+
+# OS specific
+Thumbs.db
+.Trash-*

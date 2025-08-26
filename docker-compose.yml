@@ -1,0 +1,60 @@
+version: '3.8'
+
+services:
+  circuit-sim:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: circuit-simulation:latest
+    container_name: circuit-sim
+    volumes:
+      # Mount the project directory
+      - .:/workspace
+      # Mount for X11 forwarding (for matplotlib plots)
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+    environment:
+      # For matplotlib GUI
+      - DISPLAY=${DISPLAY}
+      # PySpice ngspice configuration
+      - PYSPICE_NGSPICE_LIBRARY=/usr/lib/x86_64-linux-gnu/libngspice.so.0
+      - PYTHONPATH=/workspace
+    working_dir: /workspace
+    stdin_open: true
+    tty: true
+    # Network mode for better performance
+    network_mode: host
+    # Add capabilities for better debugging
+    cap_add:
+      - SYS_PTRACE
+    command: /bin/bash
+
+  # Jupyter notebook service (optional)
+  notebook:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: circuit-simulation:latest
+    container_name: circuit-notebook
+    volumes:
+      - .:/workspace
+      - ./notebooks:/workspace/notebooks
+    environment:
+      - PYTHONPATH=/workspace
+    working_dir: /workspace
+    ports:
+      - "8888:8888"
+    command: jupyter notebook --ip=0.0.0.0 --no-browser --allow-root --NotebookApp.token=''
+
+  # Test runner service
+  test:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: circuit-simulation:latest
+    container_name: circuit-test
+    volumes:
+      - .:/workspace
+    environment:
+      - PYTHONPATH=/workspace
+    working_dir: /workspace
+    command: pytest -v --cov=src --cov-report=term-missing

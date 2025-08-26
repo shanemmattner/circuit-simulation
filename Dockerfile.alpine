@@ -1,0 +1,47 @@
+# Lightweight Circuit Simulation Docker Container
+# Based on Alpine Linux with ngspice and PySpice
+
+FROM python:3.11-alpine
+
+# Install build dependencies and ngspice
+RUN apk add --no-cache \
+    # Build dependencies
+    gcc \
+    g++ \
+    make \
+    musl-dev \
+    linux-headers \
+    # Libraries
+    libffi-dev \
+    openblas-dev \
+    lapack-dev \
+    # Ngspice and dependencies
+    ngspice \
+    ngspice-dev \
+    # Additional tools
+    bash \
+    git
+
+# Install Python packages
+RUN pip install --no-cache-dir \
+    numpy \
+    scipy \
+    matplotlib \
+    PySpice \
+    plotly \
+    pytest \
+    pytest-cov
+
+# Set working directory
+WORKDIR /workspace
+
+# Copy project files
+COPY . /workspace/
+
+# Install the circuit-sim package
+RUN pip install -e .
+
+# Set the ngspice library path
+ENV PYSPICE_NGSPICE_LIBRARY=/usr/lib/libngspice.so.0
+
+CMD ["/bin/bash"]

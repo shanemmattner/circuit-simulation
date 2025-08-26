@@ -31,21 +31,42 @@ results.plot()
 
 ## Installation
 
-### Using pip (coming soon)
+### Option 1: Using Docker (Recommended - No System Conflicts!)
 ```bash
-pip install circuit-sim
-```
-
-### From source
-```bash
+# Clone the repository
 git clone https://github.com/circuit-synth/circuit-simulation.git
 cd circuit-simulation
-pip install -e .
+
+# Build and run with Docker
+./docker/run_simulation.sh build
+./docker/run_simulation.sh demo
+
+# Or use docker-compose directly
+docker-compose build
+docker-compose run circuit-sim python examples/quick_start.py
 ```
 
-### Using Docker (coming soon)
+### Option 2: Local Installation
 ```bash
-docker run -p 8000:8000 circuit-simulation
+# Clone the repository
+git clone https://github.com/circuit-synth/circuit-simulation.git
+cd circuit-simulation
+
+# Install with pip
+pip install -e .
+
+# Or use uv (faster)
+uv pip install -e .
+
+# Install ngspice (required for simulations)
+# Ubuntu/Debian: sudo apt-get install ngspice libngspice0-dev
+# macOS: brew install ngspice
+# Windows: Download from http://ngspice.sourceforge.net/
+```
+
+### Option 3: Using pip (coming soon)
+```bash
+pip install circuit-sim
 ```
 
 ## Documentation
