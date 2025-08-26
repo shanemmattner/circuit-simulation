@@ -31,7 +31,9 @@ memory-bank/
 ├── activeContext.md      # Current focus, recent changes, next steps
 ├── systemPatterns.md     # Architecture, design patterns, components
 ├── techContext.md        # Technologies, setup, constraints
-└── progress.md          # What works, what's left, known issues
+├── progress.md          # What works, what's left, known issues
+└── prds/                # Product Requirements Documents for features
+    └── *.md             # Individual PRD files for each feature
 ```
 
 ### Memory Bank Workflow
@@ -56,6 +58,7 @@ memory-bank/
 
 3. **PRD Creation**
    - Create detailed Product Requirements Document
+   - Save PRD as markdown in `memory-bank/prds/` folder
    - Include acceptance criteria
    - Define scope clearly
 
