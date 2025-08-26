@@ -24,10 +24,12 @@ print("\n" + "=" * 50)
 print("Test 2: Voltage Divider (Method Chaining)")
 print("=" * 50)
 
-divider = (Circuit("Voltage Divider")
+divider = (
+    Circuit("Voltage Divider")
     .add_voltage_source("V1", 1, 0, "10V")
     .add_resistor("R1", 1, 2, "10k")
-    .add_resistor("R2", 2, 0, "10k"))
+    .add_resistor("R2", 2, 0, "10k")
+)
 
 print(f"Circuit: {divider}")
 for i, comp in enumerate(divider.components):
@@ -46,11 +48,11 @@ rc_filter.add_capacitor("C1", node1=2, node2="gnd", capacitance="1u")
 print(f"Circuit: {rc_filter}")
 print("Components:")
 for comp in rc_filter.components:
-    if comp['type'] == 'voltage_source':
+    if comp["type"] == "voltage_source":
         print(f"  {comp['name']}: {comp['positive']} -> {comp['negative']}, {comp['dc_value']}")
-    elif comp['type'] == 'resistor':
+    elif comp["type"] == "resistor":
         print(f"  {comp['name']}: {comp['node1']} -> {comp['node2']}, {comp['resistance']}")
-    elif comp['type'] == 'capacitor':
+    elif comp["type"] == "capacitor":
         print(f"  {comp['name']}: {comp['node1']} -> {comp['node2']}, {comp['capacitance']}")
 
 # Test 4: RLC Circuit with all component types
