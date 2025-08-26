@@ -327,20 +327,20 @@ async def get_circuit(args: Dict[str, Any]) -> Dict[str, Any]:
     components = []
     for comp in circuit.components:
         comp_dict = {
-            "type": comp.component_type,
-            "name": comp.name,
+            "type": comp.get("type"),
+            "name": comp.get("name"),
         }
         
         # Extract node connections
-        if hasattr(comp, 'positive') and hasattr(comp, 'negative'):
-            comp_dict["nodes"] = {"positive": comp.positive, "negative": comp.negative}
-        elif hasattr(comp, 'node1') and hasattr(comp, 'node2'):
-            comp_dict["nodes"] = {"node1": comp.node1, "node2": comp.node2}
+        if "positive" in comp and "negative" in comp:
+            comp_dict["nodes"] = {"positive": comp["positive"], "negative": comp["negative"]}
+        elif "node1" in comp and "node2" in comp:
+            comp_dict["nodes"] = {"node1": comp["node1"], "node2": comp["node2"]}
         
         # Add value
         for attr in ['resistance', 'capacitance', 'inductance', 'dc_value', 'dc_current']:
-            if hasattr(comp, attr):
-                comp_dict["value"] = getattr(comp, attr)
+            if attr in comp:
+                comp_dict["value"] = comp[attr]
                 break
         
         components.append(comp_dict)
@@ -376,7 +376,7 @@ async def validate_circuit(args: Dict[str, Any]) -> Dict[str, Any]:
     
     # Check if circuit has at least one source
     has_source = any(
-        comp.component_type in ["voltage_source", "current_source"]
+        comp.get("type") in ["voltage_source", "current_source"]
         for comp in circuit.components
     )
     if not has_source:
