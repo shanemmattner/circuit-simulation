@@ -1,0 +1,34 @@
+{
+  "name": "circuit-simulation-server",
+  "version": "1.0.0",
+  "description": "MCP server for electronic circuit simulation",
+  "author": "Circuit Simulation Team",
+  "transport": "stdio",
+  "capabilities": {
+    "tools": true,
+    "resources": true,
+    "prompts": true
+  },
+  "limits": {
+    "max_circuit_size": 1000,
+    "max_simulation_time": 10,
+    "max_memory_mb": 100,
+    "rate_limit_per_second": 10
+  },
+  "security": {
+    "require_authentication": false,
+    "allowed_component_types": [
+      "resistor",
+      "capacitor", 
+      "inductor",
+      "voltage_source",
+      "current_source"
+    ],
+    "max_node_value": 10000,
+    "min_node_value": 0
+  },
+  "logging": {
+    "level": "INFO",
+    "file": "mcp_server.log"
+  }
+}

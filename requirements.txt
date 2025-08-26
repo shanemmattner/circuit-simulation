@@ -2,6 +2,7 @@
 PySpice>=1.5
 numpy>=1.24.0
 matplotlib>=3.6.0
+mcp>=1.0.0
 
 # Future dependencies (commented for now)
 # plotly>=5.18.0

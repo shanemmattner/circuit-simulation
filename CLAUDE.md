@@ -99,6 +99,14 @@ pytest --cov=src --cov-report=term-missing
 
 ## Development Workflow
 
+### CRITICAL REQUIREMENT: PRD First! 🚨
+**BEFORE implementing ANY new feature or major change:**
+1. **Create a Product Requirements Document (PRD)** in `memory-bank/prds/`
+2. **Get explicit user approval** before proceeding with implementation
+3. **Reference the approved PRD** in all commits related to that feature
+
+⚠️ **NO CODE WITHOUT PRD APPROVAL** ⚠️
+
 ### Adding a New Feature
 1. **Understand**: Read related code and tests first
 2. **Design**: Sketch the API in a comment or markdown
