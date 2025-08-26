@@ -126,8 +126,8 @@ class PySpiceBuilder:
         if name.upper().startswith("V"):
             name = name[1:]  # Remove V prefix
 
-        # Use multiplication instead of @ for compatibility
-        pyspice_circuit.V(name, node1, node2, voltage * u_V)
+        # Use PySpice units correctly (using @ operator with unit objects)
+        pyspice_circuit.V(name, node1, node2, voltage @ u_V)
 
     def _add_current_source(self, pyspice_circuit: Any, comp: Dict, counts: Dict[str, int]):
         """Add current source to PySpice circuit."""
@@ -144,8 +144,8 @@ class PySpiceBuilder:
         if name.upper().startswith("I"):
             name = name[1:]  # Remove I prefix
 
-        # Use multiplication instead of @ for compatibility
-        pyspice_circuit.I(name, node1, node2, current * u_A)
+        # Use PySpice units correctly  
+        pyspice_circuit.I(name, node1, node2, current @ u_A)
 
     def _add_resistor(self, pyspice_circuit: Any, comp: Dict, counts: Dict[str, int]):
         """Add resistor to PySpice circuit."""
@@ -162,8 +162,8 @@ class PySpiceBuilder:
         if name.upper().startswith("R"):
             name = name[1:]  # Remove R prefix
 
-        # Use multiplication instead of @ for compatibility
-        pyspice_circuit.R(name, node1, node2, resistance * u_Ohm)
+        # Use PySpice units correctly
+        pyspice_circuit.R(name, node1, node2, resistance @ u_Ohm)
 
     def _add_capacitor(self, pyspice_circuit: Any, comp: Dict, counts: Dict[str, int]):
         """Add capacitor to PySpice circuit."""
@@ -180,8 +180,8 @@ class PySpiceBuilder:
         if name.upper().startswith("C"):
             name = name[1:]  # Remove C prefix
 
-        # Use multiplication instead of @ for compatibility
-        pyspice_circuit.C(name, node1, node2, capacitance * u_F)
+        # Use PySpice units correctly
+        pyspice_circuit.C(name, node1, node2, capacitance @ u_F)
 
     def _add_inductor(self, pyspice_circuit: Any, comp: Dict, counts: Dict[str, int]):
         """Add inductor to PySpice circuit."""
@@ -198,5 +198,5 @@ class PySpiceBuilder:
         if name.upper().startswith("L"):
             name = name[1:]  # Remove L prefix
 
-        # Use multiplication instead of @ for compatibility
-        pyspice_circuit.L(name, node1, node2, inductance * u_H)
+        # Use PySpice units correctly
+        pyspice_circuit.L(name, node1, node2, inductance @ u_H)
