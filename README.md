@@ -8,6 +8,7 @@ A professional Python library for electronic circuit simulation with an easy-to-
 - **Real Simulations**: Powered by PySpice and ngspice 
 - **Docker Support**: No installation conflicts, works everywhere
 - **Visualization**: Generate publication-quality plots
+- **MCP Integration**: AI assistant ready via Model Context Protocol
 - **Comprehensive Testing**: 76% code coverage
 - **Production Ready**: Type hints, formatting, linting configured
 
@@ -167,15 +168,59 @@ circuit-simulation/
 └── notebooks/          # Jupyter notebooks
 ```
 
+## MCP Server (AI Integration) 🤖
+
+The library includes a Model Context Protocol server for AI assistant integration:
+
+### Start MCP Server
+```bash
+# Start the server
+python3 run_mcp_server.py
+
+# Or with Docker
+docker-compose run circuit-sim python3 run_mcp_server.py
+```
+
+### Connect to Claude Desktop
+Add to your Claude Desktop configuration:
+```json
+{
+  "mcpServers": {
+    "circuit-simulation": {
+      "command": "python3", 
+      "args": ["run_mcp_server.py"],
+      "cwd": "/path/to/circuit-simulation"
+    }
+  }
+}
+```
+
+### Test MCP Server
+```bash
+# Test core functions
+python3 test_circuit_functions.py
+
+# Test in Docker
+docker-compose run circuit-sim python3 test_circuit_functions.py
+```
+
+### Available MCP Tools
+- `circuit.create` - Create new circuits
+- `circuit.add_component` - Add R, L, C, voltage/current sources
+- `circuit.validate` - Check circuit topology
+- `simulation.run_dc` - DC operating point analysis
+- `simulation.run_transient` - Time-domain simulation
+- `analysis.get_results` - Retrieve simulation data
+
 ## Roadmap 🗺️
 
 - [x] Basic circuit API
-- [x] DC analysis
+- [x] DC analysis  
 - [x] Transient analysis
 - [x] Plotting support
 - [x] Docker environment
+- [x] **MCP server integration** ✅ NEW!
 - [ ] AC frequency analysis
-- [ ] MCP server integration
 - [ ] Web UI
 - [ ] Parameter sweeping
 - [ ] Monte Carlo analysis
