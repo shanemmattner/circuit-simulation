@@ -3,6 +3,10 @@ __pycache__/
 *.py[codz]
 *$py.class
 
+# IDE and tool caches
+.ropeproject/
+.ruff_cache/
+
 # C extensions
 *.so
 

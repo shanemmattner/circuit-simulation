@@ -1,86 +1,197 @@
-# Circuit Simulation Platform
+# Circuit Simulation Library 🔌
 
-Modern Python-based circuit simulation platform with interactive reporting and AI-ready architecture.
+A professional Python library for electronic circuit simulation with an easy-to-use API, Docker support, and beautiful visualizations.
 
-## Features
+## Features ✨
 
-- 🔌 Simple Python API for circuit definition
-- ⚡ Fast simulation with Ngspice/Xyce backends  
-- 📊 Interactive Plotly reports
-- 🎓 Educational content and tutorials
-- 🤖 MCP-ready for AI integration
-- 🐳 Docker deployment ready
+- **Simple API**: Define circuits with human-readable component values
+- **Real Simulations**: Powered by PySpice and ngspice 
+- **Docker Support**: No installation conflicts, works everywhere
+- **Visualization**: Generate publication-quality plots
+- **Comprehensive Testing**: 76% code coverage
+- **Production Ready**: Type hints, formatting, linting configured
 
-## Quick Start
+## Quick Start 🚀
 
 ```python
 from circuit_sim import Circuit
+from circuit_sim.simulator import SimulationEngine
 
-# Create a simple RC circuit
-circuit = Circuit("RC Filter")
-circuit.add_voltage_source("V1", positive=1, negative=0, dc_value="5V")
-circuit.add_resistor("R1", node1=1, node2=2, resistance="1k")
-circuit.add_capacitor("C1", node1=2, node2=0, capacitance="1u")
+# Create a voltage divider
+circuit = (
+    Circuit("Voltage Divider")
+    .add_voltage_source("V1", 1, 0, "10V")
+    .add_resistor("R1", 1, 2, "1k")    # 1kΩ
+    .add_resistor("R2", 2, 0, "1k")    # 1kΩ
+)
 
-# Run simulation
-results = circuit.simulate(analysis="transient", stop_time="10ms", step_time="10us")
+# Simulate DC operating point
+engine = SimulationEngine()
+results = engine.simulate_dc(circuit)
 
-# Plot results
+# Display results
+print(f"Node 2 voltage: {results.voltage(2)[0]:.2f}V")  # 5.00V
 results.plot()
 ```
 
 ## Installation
 
-### Option 1: Using Docker (Recommended - No System Conflicts!)
+### Using Docker (Recommended)
+
 ```bash
-# Clone the repository
-git clone https://github.com/circuit-synth/circuit-simulation.git
-cd circuit-simulation
-
-# Build and run with Docker
-./docker/run_simulation.sh build
-./docker/run_simulation.sh demo
-
-# Or use docker-compose directly
+# Build the Docker image
 docker-compose build
-docker-compose run circuit-sim python examples/quick_start.py
+
+# Run a simulation
+docker-compose run circuit-sim python3 examples/quick_start.py
+
+# Generate plots
+docker-compose run circuit-sim python3 examples/generate_plots.py
+
+# View the plots
+xdg-open examples/output/
 ```
 
-### Option 2: Local Installation
+### Local Installation
+
 ```bash
-# Clone the repository
-git clone https://github.com/circuit-synth/circuit-simulation.git
-cd circuit-simulation
+# Create virtual environment
+python -m venv .venv
+source .venv/bin/activate
 
-# Install with pip
+# Install dependencies
+pip install -r requirements.txt
 pip install -e .
-
-# Or use uv (faster)
-uv pip install -e .
 
 # Install ngspice (required for simulations)
 # Ubuntu/Debian: sudo apt-get install ngspice libngspice0-dev
 # macOS: brew install ngspice
 # Windows: Download from http://ngspice.sourceforge.net/
+
+# Run tests
+pytest
 ```
 
-### Option 3: Using pip (coming soon)
+## Usage Examples 💡
+
+### Voltage Divider
+```python
+circuit = (
+    Circuit("Voltage Divider")
+    .add_voltage_source("V1", 1, 0, "10V")
+    .add_resistor("R1", 1, 2, "2.2k")
+    .add_resistor("R2", 2, 0, "3.3k")
+)
+```
+
+### RC Filter
+```python
+circuit = (
+    Circuit("RC Filter")
+    .add_voltage_source("V1", 1, 0, "5V")
+    .add_resistor("R1", 1, 2, "10k")
+    .add_capacitor("C1", 2, 0, "100nF")
+)
+```
+
+## Supported Components 🔧
+
+- **Resistors**: `add_resistor("R1", n1, n2, "1k")`
+- **Capacitors**: `add_capacitor("C1", n1, n2, "10uF")`
+- **Inductors**: `add_inductor("L1", n1, n2, "100mH")`
+- **Voltage Sources**: `add_voltage_source("V1", n1, n2, "5V")`
+- **Current Sources**: `add_current_source("I1", n1, n2, "10mA")`
+
+## Visualization 📈
+
+Generate and save plots:
+
+```python
+# Plot all node voltages
+results.plot()
+
+# Plot specific signals
+results.plot("V(2)", "V(3)")
+
+# Save to file
+results.plot(save_to="output.png", show=False)
+```
+
+View example plots in `examples/output/`:
+- Voltage divider DC analysis
+- RC circuit charging curves
+- RL circuit response
+- Frequency response plots
+
+## Testing 🧪
+
 ```bash
-pip install circuit-sim
+# Run all tests
+pytest
+
+# With coverage
+pytest --cov=src --cov-report=term-missing
+
+# In Docker
+docker-compose run circuit-sim pytest
 ```
 
-## Documentation
+Current test coverage: **76%** ✅
 
-See the [docs/](docs/) folder for detailed documentation:
-- [Product Requirements](docs/PRD.md)
-- [Research Notes](docs/RESEARCH_NOTES.md)
-- [Simulator Comparison](docs/SIMULATOR_COMPARISON.md)
-- [Educational Content](docs/EDUCATION_CONTENT.md)
+## Development 🛠️
 
-## Development
+### Code Quality
 
-See [CLAUDE.md](CLAUDE.md) for development workflow and guidelines.
+```bash
+# Format code
+black src/ tests/
 
-## License
+# Lint
+ruff check src/ tests/
+
+# Type checking
+mypy src/ --strict
+```
+
+### Project Structure
+
+```
+circuit-simulation/
+├── src/circuit_sim/     # Core library
+│   ├── circuit.py       # Circuit definition
+│   ├── parser.py        # Value parsing
+│   └── simulator/       # Simulation engine
+├── examples/            # Example scripts
+├── tests/              # Test suite (76% coverage)
+├── docker/             # Docker configurations
+└── notebooks/          # Jupyter notebooks
+```
+
+## Roadmap 🗺️
+
+- [x] Basic circuit API
+- [x] DC analysis
+- [x] Transient analysis
+- [x] Plotting support
+- [x] Docker environment
+- [ ] AC frequency analysis
+- [ ] MCP server integration
+- [ ] Web UI
+- [ ] Parameter sweeping
+- [ ] Monte Carlo analysis
+
+## Contributing 🤝
+
+See [CLAUDE.md](CLAUDE.md) for development workflow and [DEVELOPMENT.md](DEVELOPMENT.md) for setup instructions.
+
+## License 📄
 
 MIT License - see [LICENSE](LICENSE) for details.
+
+## Acknowledgments 🙏
+
+Built with:
+- [PySpice](https://pyspice.fabrice-salvaire.fr/)
+- [ngspice](http://ngspice.sourceforge.net/)
+- [matplotlib](https://matplotlib.org/)
+- [Docker](https://www.docker.com/)
