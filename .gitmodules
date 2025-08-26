@@ -1,0 +1,9 @@
+[submodule "submodules/circuit-synth"]
+	path = submodules/circuit-synth
+	url = https://github.com/circuit-synth/circuit-synth.git
+[submodule "submodules/KiCad-Spice-Library"]
+	path = submodules/KiCad-Spice-Library
+	url = https://github.com/kicad-spice-library/KiCad-Spice-Library.git
+[submodule "submodules/wingel-simulation"]
+	path = submodules/wingel-simulation
+	url = https://github.com/wingel/simulation.git
