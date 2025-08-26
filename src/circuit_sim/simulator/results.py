@@ -118,12 +118,14 @@ class SimulationResults:
         """Get list of components with current data."""
         return list(self._branch_currents.keys())
 
-    def plot(self, *signals: str):
+    def plot(self, *signals: str, save_to: Optional[str] = None, show: bool = True):
         """
         Plot simulation results.
 
         Args:
             signals: Signal names to plot (e.g., "V(2)", "I(R1)")
+            save_to: Optional file path to save the plot
+            show: Whether to display the plot (default True)
         """
         try:
             import matplotlib.pyplot as plt
@@ -188,7 +190,11 @@ class SimulationResults:
         ax.legend()
         ax.grid(True)
 
-        plt.show()
+        if save_to:
+            plt.savefig(save_to, dpi=150, bbox_inches="tight")
+
+        if show:
+            plt.show()
 
     def __repr__(self) -> str:
         """String representation."""

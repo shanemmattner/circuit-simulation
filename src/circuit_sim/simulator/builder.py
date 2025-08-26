@@ -21,7 +21,7 @@ class PySpiceBuilder:
         """Check if PySpice is available."""
         try:
             import importlib.util
-            
+
             # Check if PySpice can be imported
             spec = importlib.util.find_spec("PySpice")
             return spec is not None
@@ -144,7 +144,7 @@ class PySpiceBuilder:
         if name.upper().startswith("I"):
             name = name[1:]  # Remove I prefix
 
-        # Use PySpice units correctly  
+        # Use PySpice units correctly
         pyspice_circuit.I(name, node1, node2, current @ u_A)
 
     def _add_resistor(self, pyspice_circuit: Any, comp: Dict, counts: Dict[str, int]):

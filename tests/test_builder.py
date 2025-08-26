@@ -36,12 +36,22 @@ class TestPySpiceBuilder:
 
         mock_pyspice = MagicMock()
         mock_pyspice.Spice.Netlist.Circuit = MagicMock()
-        # Mock units to return a value when multiplied
-        mock_pyspice.Unit.u_V = 1  # Just use 1 for testing
-        mock_pyspice.Unit.u_A = 1
-        mock_pyspice.Unit.u_Ohm = 1
-        mock_pyspice.Unit.u_F = 1
-        mock_pyspice.Unit.u_H = 1
+
+        # Mock units to support @ operator (matrix multiplication in Python 3.5+)
+        # Create mock unit objects that return the numeric value when used with @
+        class MockUnit:
+            def __init__(self, multiplier=1):
+                self.multiplier = multiplier
+
+            def __rmatmul__(self, other):
+                # This is called for: value @ unit
+                return other * self.multiplier
+
+        mock_pyspice.Unit.u_V = MockUnit()
+        mock_pyspice.Unit.u_A = MockUnit()
+        mock_pyspice.Unit.u_Ohm = MockUnit()
+        mock_pyspice.Unit.u_F = MockUnit()
+        mock_pyspice.Unit.u_H = MockUnit()
 
         with patch.dict(
             "sys.modules",
@@ -77,11 +87,16 @@ class TestPySpiceBuilder:
 
         mock_pyspice = MagicMock()
         mock_pyspice.Spice.Netlist.Circuit = MagicMock()
-        mock_pyspice.Unit.u_V = 1
-        mock_pyspice.Unit.u_A = 1
-        mock_pyspice.Unit.u_Ohm = 1
-        mock_pyspice.Unit.u_F = 1
-        mock_pyspice.Unit.u_H = 1
+
+        class MockUnit:
+            def __rmatmul__(self, other):
+                return other
+
+        mock_pyspice.Unit.u_V = MockUnit()
+        mock_pyspice.Unit.u_A = MockUnit()
+        mock_pyspice.Unit.u_Ohm = MockUnit()
+        mock_pyspice.Unit.u_F = MockUnit()
+        mock_pyspice.Unit.u_H = MockUnit()
 
         with patch.dict(
             "sys.modules",
@@ -122,11 +137,16 @@ class TestPySpiceBuilder:
 
         mock_pyspice = MagicMock()
         mock_pyspice.Spice.Netlist.Circuit = MagicMock()
-        mock_pyspice.Unit.u_V = 1
-        mock_pyspice.Unit.u_A = 1
-        mock_pyspice.Unit.u_Ohm = 1
-        mock_pyspice.Unit.u_F = 1
-        mock_pyspice.Unit.u_H = 1
+
+        class MockUnit:
+            def __rmatmul__(self, other):
+                return other
+
+        mock_pyspice.Unit.u_V = MockUnit()
+        mock_pyspice.Unit.u_A = MockUnit()
+        mock_pyspice.Unit.u_Ohm = MockUnit()
+        mock_pyspice.Unit.u_F = MockUnit()
+        mock_pyspice.Unit.u_H = MockUnit()
 
         with patch.dict(
             "sys.modules",
@@ -164,11 +184,16 @@ class TestPySpiceBuilder:
 
         mock_pyspice = MagicMock()
         mock_pyspice.Spice.Netlist.Circuit = MagicMock()
-        mock_pyspice.Unit.u_V = 1
-        mock_pyspice.Unit.u_A = 1
-        mock_pyspice.Unit.u_Ohm = 1
-        mock_pyspice.Unit.u_F = 1
-        mock_pyspice.Unit.u_H = 1
+
+        class MockUnit:
+            def __rmatmul__(self, other):
+                return other
+
+        mock_pyspice.Unit.u_V = MockUnit()
+        mock_pyspice.Unit.u_A = MockUnit()
+        mock_pyspice.Unit.u_Ohm = MockUnit()
+        mock_pyspice.Unit.u_F = MockUnit()
+        mock_pyspice.Unit.u_H = MockUnit()
 
         with patch.dict(
             "sys.modules",
@@ -206,11 +231,16 @@ class TestPySpiceBuilder:
 
         mock_pyspice = MagicMock()
         mock_pyspice.Spice.Netlist.Circuit = MagicMock()
-        mock_pyspice.Unit.u_V = 1
-        mock_pyspice.Unit.u_A = 1
-        mock_pyspice.Unit.u_Ohm = 1
-        mock_pyspice.Unit.u_F = 1
-        mock_pyspice.Unit.u_H = 1
+
+        class MockUnit:
+            def __rmatmul__(self, other):
+                return other
+
+        mock_pyspice.Unit.u_V = MockUnit()
+        mock_pyspice.Unit.u_A = MockUnit()
+        mock_pyspice.Unit.u_Ohm = MockUnit()
+        mock_pyspice.Unit.u_F = MockUnit()
+        mock_pyspice.Unit.u_H = MockUnit()
 
         with patch.dict(
             "sys.modules",
@@ -248,11 +278,16 @@ class TestPySpiceBuilder:
         mock_pyspice.Spice.Netlist.Circuit = MagicMock()
         mock_gnd = Mock()
         mock_pyspice.Spice.Netlist.Circuit.return_value.gnd = mock_gnd
-        mock_pyspice.Unit.u_V = 1
-        mock_pyspice.Unit.u_A = 1
-        mock_pyspice.Unit.u_Ohm = 1
-        mock_pyspice.Unit.u_F = 1
-        mock_pyspice.Unit.u_H = 1
+
+        class MockUnit:
+            def __rmatmul__(self, other):
+                return other
+
+        mock_pyspice.Unit.u_V = MockUnit()
+        mock_pyspice.Unit.u_A = MockUnit()
+        mock_pyspice.Unit.u_Ohm = MockUnit()
+        mock_pyspice.Unit.u_F = MockUnit()
+        mock_pyspice.Unit.u_H = MockUnit()
 
         with patch.dict(
             "sys.modules",
@@ -292,11 +327,16 @@ class TestPySpiceBuilder:
 
         mock_pyspice = MagicMock()
         mock_pyspice.Spice.Netlist.Circuit = MagicMock()
-        mock_pyspice.Unit.u_V = 1
-        mock_pyspice.Unit.u_A = 1
-        mock_pyspice.Unit.u_Ohm = 1
-        mock_pyspice.Unit.u_F = 1
-        mock_pyspice.Unit.u_H = 1
+
+        class MockUnit:
+            def __rmatmul__(self, other):
+                return other
+
+        mock_pyspice.Unit.u_V = MockUnit()
+        mock_pyspice.Unit.u_A = MockUnit()
+        mock_pyspice.Unit.u_Ohm = MockUnit()
+        mock_pyspice.Unit.u_F = MockUnit()
+        mock_pyspice.Unit.u_H = MockUnit()
 
         with patch.dict(
             "sys.modules",
