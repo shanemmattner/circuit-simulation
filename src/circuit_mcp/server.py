@@ -5,24 +5,22 @@ Main MCP server implementation for circuit simulation.
 import asyncio
 import json
 import logging
-from typing import Any, Dict, List, Optional
+import uuid
+from typing import Any, Dict, List, Optional, Sequence
 from dataclasses import dataclass
 from datetime import datetime
-
-from mcp.server import Server
-from mcp.types import Tool, TextContent, Resource, Prompt
 
 import sys
 from pathlib import Path
 # Add parent src directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
+from mcp.server import Server
+from mcp.server.stdio import stdio_server
+from mcp.types import Tool, TextContent, ImageContent, EmbeddedResource
+
 from circuit_sim import Circuit
 from circuit_sim.simulator import SimulationEngine, SimulationResults
-
-from .tools.circuit_tools import CircuitTools
-from .tools.simulation_tools import SimulationTools
-from .tools.analysis_tools import AnalysisTools
 
 
 logger = logging.getLogger(__name__)
@@ -38,50 +36,19 @@ class CircuitSession:
     simulations: Dict[str, SimulationResults]
 
 
-class CircuitSimulationMCPServer:
-    """MCP server for circuit simulation capabilities."""
+# Global storage for circuit sessions
+SESSIONS: Dict[str, CircuitSession] = {}
+ENGINE = SimulationEngine()
+
+
+async def serve() -> None:
+    """Main server function."""
+    server = Server("circuit-simulation-server")
     
-    def __init__(self, name: str = "circuit-simulation-server"):
-        """
-        Initialize the MCP server.
-        
-        Args:
-            name: Server name for identification
-        """
-        self.server = Server(name)
-        self.sessions: Dict[str, CircuitSession] = {}
-        self.engine = SimulationEngine()
-        
-        # Initialize tool handlers
-        self.circuit_tools = CircuitTools(self)
-        self.simulation_tools = SimulationTools(self)
-        self.analysis_tools = AnalysisTools(self)
-        
-        # Register handlers
-        self._register_handlers()
-        
-        logger.info(f"MCP server '{name}' initialized")
-    
-    def _register_handlers(self):
-        """Register all MCP handlers."""
-        # Register tool handlers
-        self.server.add_list_tools(self._list_tools)
-        self.server.add_call_tool(self._call_tool)
-        
-        # Register resource handlers
-        self.server.add_list_resources(self._list_resources)
-        self.server.add_read_resource(self._read_resource)
-        
-        # Register prompt handlers
-        self.server.add_list_prompts(self._list_prompts)
-        self.server.add_get_prompt(self._get_prompt)
-    
-    async def _list_tools(self) -> List[Tool]:
+    @server.list_tools()
+    async def list_tools() -> List[Tool]:
         """List all available tools."""
-        tools = []
-        
-        # Circuit management tools
-        tools.extend([
+        return [
             Tool(
                 name="circuit.create",
                 description="Create a new circuit",
@@ -113,10 +80,7 @@ class CircuitSimulationMCPServer:
             Tool(
                 name="circuit.list",
                 description="List all active circuits",
-                inputSchema={
-                    "type": "object",
-                    "properties": {}
-                }
+                inputSchema={"type": "object", "properties": {}}
             ),
             Tool(
                 name="circuit.get",
@@ -140,10 +104,6 @@ class CircuitSimulationMCPServer:
                     "required": ["circuit_id"]
                 }
             ),
-        ])
-        
-        # Simulation tools
-        tools.extend([
             Tool(
                 name="simulation.run_dc",
                 description="Run DC operating point analysis",
@@ -168,10 +128,6 @@ class CircuitSimulationMCPServer:
                     "required": ["circuit_id", "stop_time"]
                 }
             ),
-        ])
-        
-        # Analysis tools
-        tools.extend([
             Tool(
                 name="analysis.get_results",
                 description="Get simulation results",
@@ -184,33 +140,19 @@ class CircuitSimulationMCPServer:
                     "required": ["circuit_id", "simulation_type"]
                 }
             ),
-            Tool(
-                name="analysis.plot",
-                description="Generate plot of simulation results",
-                inputSchema={
-                    "type": "object",
-                    "properties": {
-                        "circuit_id": {"type": "string", "description": "Circuit ID"},
-                        "simulation_type": {"type": "string", "enum": ["dc", "transient", "ac"]},
-                        "signals": {"type": "array", "items": {"type": "string"}, "description": "Signals to plot (e.g., ['V(2)', 'I(R1)'])"}
-                    },
-                    "required": ["circuit_id", "simulation_type"]
-                }
-            ),
-        ])
-        
-        return tools
-    
-    async def _call_tool(self, name: str, arguments: Dict[str, Any]) -> List[TextContent]:
+        ]
+
+    @server.call_tool()
+    async def call_tool(name: str, arguments: Dict[str, Any]) -> Sequence[TextContent | ImageContent | EmbeddedResource]:
         """Execute a tool and return results."""
         try:
             # Route to appropriate handler
             if name.startswith("circuit."):
-                result = await self.circuit_tools.handle(name, arguments)
+                result = await handle_circuit_tool(name, arguments)
             elif name.startswith("simulation."):
-                result = await self.simulation_tools.handle(name, arguments)
+                result = await handle_simulation_tool(name, arguments)
             elif name.startswith("analysis."):
-                result = await self.analysis_tools.handle(name, arguments)
+                result = await handle_analysis_tool(name, arguments)
             else:
                 raise ValueError(f"Unknown tool: {name}")
             
@@ -224,238 +166,379 @@ class CircuitSimulationMCPServer:
             
         except Exception as e:
             logger.error(f"Tool execution failed: {e}")
-            error_msg = f"Error executing {name}: {str(e)}"
-            return [TextContent(type="text", text=error_msg)]
-    
-    async def _list_resources(self) -> List[Resource]:
-        """List available resources."""
-        resources = [
-            Resource(
-                uri="circuits://examples/voltage_divider",
-                name="Voltage Divider Example",
-                description="Simple voltage divider circuit",
-                mimeType="application/json"
-            ),
-            Resource(
-                uri="circuits://examples/rc_filter",
-                name="RC Filter Example",
-                description="RC low-pass filter circuit",
-                mimeType="application/json"
-            ),
-            Resource(
-                uri="circuits://docs/components",
-                name="Component Reference",
-                description="Documentation for available components",
-                mimeType="text/markdown"
-            ),
-            Resource(
-                uri="circuits://docs/simulation",
-                name="Simulation Guide",
-                description="Guide to running simulations",
-                mimeType="text/markdown"
-            ),
-        ]
-        return resources
-    
-    async def _read_resource(self, uri: str) -> TextContent:
-        """Read a resource by URI."""
-        if uri == "circuits://examples/voltage_divider":
-            example = {
-                "name": "Voltage Divider",
-                "components": [
-                    {"type": "voltage_source", "name": "V1", "value": "10V", "positive": 1, "negative": 0},
-                    {"type": "resistor", "name": "R1", "value": "1k", "positive": 1, "negative": 2},
-                    {"type": "resistor", "name": "R2", "value": "1k", "positive": 2, "negative": 0}
-                ],
-                "expected_output": {
-                    "V(2)": "5V"
-                }
+            error_result = {
+                "status": "error",
+                "message": f"Error executing {name}: {str(e)}",
+                "tool": name
             }
-            return TextContent(type="text", text=json.dumps(example, indent=2))
+            return [TextContent(type="text", text=json.dumps(error_result, indent=2))]
+
+    # Run the server
+    options = server.create_initialization_options()
+    async with stdio_server() as (read_stream, write_stream):
+        await server.run(read_stream, write_stream, options)
+
+
+async def handle_circuit_tool(tool_name: str, arguments: Dict[str, Any]) -> Dict[str, Any]:
+    """Handle circuit-related tools."""
+    action = tool_name.replace("circuit.", "")
+    
+    if action == "create":
+        return await create_circuit(arguments)
+    elif action == "add_component":
+        return await add_component(arguments)
+    elif action == "list":
+        return await list_circuits()
+    elif action == "get":
+        return await get_circuit(arguments)
+    elif action == "validate":
+        return await validate_circuit(arguments)
+    else:
+        raise ValueError(f"Unknown circuit action: {action}")
+
+
+async def handle_simulation_tool(tool_name: str, arguments: Dict[str, Any]) -> Dict[str, Any]:
+    """Handle simulation-related tools."""
+    action = tool_name.replace("simulation.", "")
+    
+    if action == "run_dc":
+        return await run_dc_simulation(arguments)
+    elif action == "run_transient":
+        return await run_transient_simulation(arguments)
+    else:
+        raise ValueError(f"Unknown simulation action: {action}")
+
+
+async def handle_analysis_tool(tool_name: str, arguments: Dict[str, Any]) -> Dict[str, Any]:
+    """Handle analysis-related tools."""
+    action = tool_name.replace("analysis.", "")
+    
+    if action == "get_results":
+        return await get_results(arguments)
+    else:
+        raise ValueError(f"Unknown analysis action: {action}")
+
+
+async def create_circuit(args: Dict[str, Any]) -> Dict[str, Any]:
+    """Create a new circuit."""
+    name = args.get("name", "Untitled Circuit")
+    description = args.get("description", "")
+    
+    circuit_id = str(uuid.uuid4())[:8]
+    
+    session = CircuitSession(
+        circuit_id=circuit_id,
+        circuit=Circuit(name),
+        created_at=datetime.now(),
+        last_modified=datetime.now(),
+        simulations={}
+    )
+    
+    SESSIONS[circuit_id] = session
+    logger.info(f"Created circuit '{name}' with ID: {circuit_id}")
+    
+    return {
+        "status": "success",
+        "circuit_id": circuit_id,
+        "name": name,
+        "description": description,
+        "created_at": datetime.now().isoformat()
+    }
+
+
+async def add_component(args: Dict[str, Any]) -> Dict[str, Any]:
+    """Add a component to a circuit."""
+    circuit_id = args.get("circuit_id")
+    component_type = args.get("type")
+    name = args.get("name")
+    value = args.get("value")
+    positive = args.get("positive")
+    negative = args.get("negative")
+    
+    # Get circuit
+    session = SESSIONS.get(circuit_id)
+    if not session:
+        return {"status": "error", "message": f"Circuit {circuit_id} not found"}
+    
+    circuit = session.circuit
+    
+    # Add component based on type
+    try:
+        if component_type == "resistor":
+            circuit.add_resistor(name, positive, negative, value)
+        elif component_type == "capacitor":
+            circuit.add_capacitor(name, positive, negative, value)
+        elif component_type == "inductor":
+            circuit.add_inductor(name, positive, negative, value)
+        elif component_type == "voltage_source":
+            circuit.add_voltage_source(name, positive, negative, value)
+        elif component_type == "current_source":
+            circuit.add_current_source(name, positive, negative, value)
+        else:
+            return {"status": "error", "message": f"Unknown component type: {component_type}"}
         
-        elif uri == "circuits://examples/rc_filter":
-            example = {
-                "name": "RC Low-Pass Filter",
-                "components": [
-                    {"type": "voltage_source", "name": "V1", "value": "5V", "positive": 1, "negative": 0},
-                    {"type": "resistor", "name": "R1", "value": "10k", "positive": 1, "negative": 2},
-                    {"type": "capacitor", "name": "C1", "value": "100nF", "positive": 2, "negative": 0}
-                ],
-                "cutoff_frequency": "159.15 Hz"
+        # Update session
+        session.last_modified = datetime.now()
+        
+        return {
+            "status": "success",
+            "message": f"Added {component_type} {name} to circuit",
+            "component": {
+                "type": component_type,
+                "name": name,
+                "value": value,
+                "nodes": {"positive": positive, "negative": negative}
             }
-            return TextContent(type="text", text=json.dumps(example, indent=2))
+        }
         
-        elif uri == "circuits://docs/components":
-            docs = """# Component Reference
+    except Exception as e:
+        return {"status": "error", "message": f"Failed to add component: {str(e)}"}
 
-## Resistor
-- Type: `resistor`
-- Value format: `1k`, `10k`, `1M`
-- Nodes: positive, negative
 
-## Capacitor
-- Type: `capacitor`
-- Value format: `10uF`, `100nF`, `1pF`
-- Nodes: positive, negative
+async def list_circuits() -> Dict[str, Any]:
+    """List all active circuits."""
+    circuits = []
+    
+    for circuit_id, session in SESSIONS.items():
+        circuits.append({
+            "circuit_id": circuit_id,
+            "name": session.circuit.name,
+            "components": len(session.circuit.components),
+            "nodes": len(session.circuit.nodes),
+            "created_at": session.created_at.isoformat(),
+            "last_modified": session.last_modified.isoformat(),
+            "simulations": list(session.simulations.keys())
+        })
+    
+    return {"status": "success", "count": len(circuits), "circuits": circuits}
 
-## Inductor
-- Type: `inductor`
-- Value format: `100mH`, `10uH`, `1H`
-- Nodes: positive, negative
 
-## Voltage Source
-- Type: `voltage_source`
-- Value format: `5V`, `3.3V`, `-12V`
-- Nodes: positive, negative
-
-## Current Source
-- Type: `current_source`
-- Value format: `10mA`, `1A`
-- Nodes: positive, negative
-"""
-            return TextContent(type="text", text=docs)
+async def get_circuit(args: Dict[str, Any]) -> Dict[str, Any]:
+    """Get details of a specific circuit."""
+    circuit_id = args.get("circuit_id")
+    
+    session = SESSIONS.get(circuit_id)
+    if not session:
+        return {"status": "error", "message": f"Circuit {circuit_id} not found"}
+    
+    circuit = session.circuit
+    
+    # Format components
+    components = []
+    for comp in circuit.components:
+        comp_dict = {
+            "type": comp.component_type,
+            "name": comp.name,
+        }
         
-        else:
-            return TextContent(type="text", text=f"Resource not found: {uri}")
+        # Extract node connections
+        if hasattr(comp, 'positive') and hasattr(comp, 'negative'):
+            comp_dict["nodes"] = {"positive": comp.positive, "negative": comp.negative}
+        elif hasattr(comp, 'node1') and hasattr(comp, 'node2'):
+            comp_dict["nodes"] = {"node1": comp.node1, "node2": comp.node2}
+        
+        # Add value
+        for attr in ['resistance', 'capacitance', 'inductance', 'dc_value', 'dc_current']:
+            if hasattr(comp, attr):
+                comp_dict["value"] = getattr(comp, attr)
+                break
+        
+        components.append(comp_dict)
     
-    async def _list_prompts(self) -> List[Prompt]:
-        """List available prompts."""
-        prompts = [
-            Prompt(
-                name="circuit_design",
-                description="Help me design a circuit",
-                arguments=[
-                    {"name": "requirements", "description": "Circuit requirements", "required": True},
-                    {"name": "constraints", "description": "Design constraints", "required": False}
-                ]
-            ),
-            Prompt(
-                name="debug_circuit",
-                description="Help me debug a circuit problem",
-                arguments=[
-                    {"name": "circuit_id", "description": "Circuit to debug", "required": True},
-                    {"name": "problem", "description": "Description of the problem", "required": True}
-                ]
-            ),
-            Prompt(
-                name="learn_electronics",
-                description="Teach me about electronic circuits",
-                arguments=[
-                    {"name": "topic", "description": "Topic to learn", "required": True},
-                    {"name": "level", "description": "Experience level (beginner/intermediate/advanced)", "required": False}
-                ]
-            ),
-        ]
-        return prompts
-    
-    async def _get_prompt(self, name: str, arguments: Dict[str, str]) -> Prompt:
-        """Get a prompt template with filled arguments."""
-        if name == "circuit_design":
-            requirements = arguments.get("requirements", "")
-            constraints = arguments.get("constraints", "none specified")
-            
-            messages = [
-                {
-                    "role": "user",
-                    "content": f"""Please help me design a circuit with these requirements:
-                    
-Requirements: {requirements}
-Constraints: {constraints}
+    return {
+        "status": "success",
+        "circuit": {
+            "id": circuit_id,
+            "name": circuit.name,
+            "components": components,
+            "nodes": list(circuit.nodes),
+            "created_at": session.created_at.isoformat(),
+            "last_modified": session.last_modified.isoformat()
+        }
+    }
 
-Please:
-1. Suggest appropriate components
-2. Provide the circuit topology
-3. Calculate component values
-4. Explain the design choices
-5. Simulate the circuit to verify it meets requirements"""
+
+async def validate_circuit(args: Dict[str, Any]) -> Dict[str, Any]:
+    """Validate circuit connectivity and components."""
+    circuit_id = args.get("circuit_id")
+    
+    session = SESSIONS.get(circuit_id)
+    if not session:
+        return {"status": "error", "message": f"Circuit {circuit_id} not found"}
+    
+    circuit = session.circuit
+    issues = []
+    warnings = []
+    
+    # Check if circuit has components
+    if not circuit.components:
+        issues.append("Circuit has no components")
+    
+    # Check if circuit has at least one source
+    has_source = any(
+        comp.component_type in ["voltage_source", "current_source"]
+        for comp in circuit.components
+    )
+    if not has_source:
+        issues.append("Circuit has no voltage or current sources")
+    
+    # Check for ground connection (node 0)
+    if 0 not in circuit.nodes:
+        warnings.append("Circuit has no explicit ground (node 0)")
+    
+    valid = len(issues) == 0
+    
+    return {
+        "status": "success",
+        "valid": valid,
+        "issues": issues,
+        "warnings": warnings,
+        "summary": {
+            "components": len(circuit.components),
+            "nodes": len(circuit.nodes),
+            "has_ground": 0 in circuit.nodes,
+            "has_source": has_source
+        }
+    }
+
+
+async def run_dc_simulation(args: Dict[str, Any]) -> Dict[str, Any]:
+    """Run DC operating point analysis."""
+    circuit_id = args.get("circuit_id")
+    
+    session = SESSIONS.get(circuit_id)
+    if not session:
+        return {"status": "error", "message": f"Circuit {circuit_id} not found"}
+    
+    circuit = session.circuit
+    
+    try:
+        # Run simulation
+        results = ENGINE.simulate_dc(circuit)
+        
+        # Store results in session
+        session.simulations["dc"] = results
+        session.last_modified = datetime.now()
+        
+        # Extract node voltages
+        node_voltages = {}
+        for node in results.nodes:
+            voltage = results.voltage(node)
+            if voltage is not None:
+                node_voltages[str(node)] = float(voltage[0])
+        
+        # Extract branch currents if available
+        branch_currents = {}
+        for component in results.components:
+            current = results.current(component)
+            if current is not None:
+                branch_currents[component] = float(current[0])
+        
+        return {
+            "status": "success",
+            "simulation_type": "dc",
+            "circuit_id": circuit_id,
+            "circuit_name": circuit.name,
+            "results": {
+                "node_voltages": node_voltages,
+                "branch_currents": branch_currents,
+                "convergence": True
+            },
+            "timestamp": datetime.now().isoformat()
+        }
+        
+    except Exception as e:
+        logger.error(f"DC simulation failed: {e}")
+        return {"status": "error", "message": f"DC simulation failed: {str(e)}", "circuit_id": circuit_id}
+
+
+async def run_transient_simulation(args: Dict[str, Any]) -> Dict[str, Any]:
+    """Run transient analysis."""
+    circuit_id = args.get("circuit_id")
+    stop_time = args.get("stop_time", 0.001)
+    step_time = args.get("step_time", stop_time / 1000)
+    
+    session = SESSIONS.get(circuit_id)
+    if not session:
+        return {"status": "error", "message": f"Circuit {circuit_id} not found"}
+    
+    circuit = session.circuit
+    
+    try:
+        results = ENGINE.simulate_transient(circuit, stop_time=stop_time, step_time=step_time)
+        
+        session.simulations["transient"] = results
+        session.last_modified = datetime.now()
+        
+        # Get time vector
+        time_points = []
+        if results.time is not None:
+            time_points = results.time.tolist()
+        
+        # Extract node voltages over time
+        node_voltages = {}
+        for node in results.nodes:
+            voltage = results.voltage(node)
+            if voltage is not None:
+                node_voltages[str(node)] = {
+                    "min": float(voltage.min()),
+                    "max": float(voltage.max()),
+                    "final": float(voltage[-1]),
+                    "points": len(voltage)
                 }
-            ]
-            
-            return Prompt(
-                name="circuit_design",
-                description="Circuit design assistant",
-                arguments=[],
-                messages=messages
-            )
         
-        elif name == "debug_circuit":
-            circuit_id = arguments.get("circuit_id", "")
-            problem = arguments.get("problem", "")
-            
-            messages = [
-                {
-                    "role": "user", 
-                    "content": f"""Help me debug this circuit problem:
-
-Circuit ID: {circuit_id}
-Problem: {problem}
-
-Please:
-1. Analyze the circuit configuration
-2. Run appropriate simulations
-3. Identify potential issues
-4. Suggest fixes
-5. Verify the solution works"""
+        return {
+            "status": "success",
+            "simulation_type": "transient",
+            "circuit_id": circuit_id,
+            "circuit_name": circuit.name,
+            "parameters": {
+                "stop_time": stop_time,
+                "step_time": step_time,
+                "time_points": len(time_points)
+            },
+            "results": {
+                "node_voltages": node_voltages,
+                "time_range": {
+                    "start": time_points[0] if time_points else 0,
+                    "stop": time_points[-1] if time_points else 0
                 }
-            ]
-            
-            return Prompt(
-                name="debug_circuit",
-                description="Circuit debugging assistant",
-                arguments=[],
-                messages=messages
-            )
+            },
+            "timestamp": datetime.now().isoformat()
+        }
         
-        else:
-            return Prompt(
-                name=name,
-                description="Unknown prompt",
-                arguments=[],
-                messages=[]
-            )
-    
-    def create_circuit(self, name: str, description: str = "") -> str:
-        """Create a new circuit and return its ID."""
-        import uuid
-        circuit_id = str(uuid.uuid4())[:8]
-        
-        session = CircuitSession(
-            circuit_id=circuit_id,
-            circuit=Circuit(name),
-            created_at=datetime.now(),
-            last_modified=datetime.now(),
-            simulations={}
-        )
-        
-        self.sessions[circuit_id] = session
-        logger.info(f"Created circuit '{name}' with ID: {circuit_id}")
-        
-        return circuit_id
-    
-    def get_circuit(self, circuit_id: str) -> Optional[Circuit]:
-        """Get a circuit by ID."""
-        session = self.sessions.get(circuit_id)
-        return session.circuit if session else None
-    
-    def get_session(self, circuit_id: str) -> Optional[CircuitSession]:
-        """Get a circuit session by ID."""
-        return self.sessions.get(circuit_id)
-    
-    async def run(self):
-        """Run the MCP server."""
-        logger.info("Starting MCP server...")
-        async with self.server.run_stdio():
-            # Keep server running
-            await asyncio.Event().wait()
+    except Exception as e:
+        logger.error(f"Transient simulation failed: {e}")
+        return {"status": "error", "message": f"Transient simulation failed: {str(e)}", "circuit_id": circuit_id}
 
 
-async def main():
-    """Main entry point for the MCP server."""
-    logging.basicConfig(level=logging.INFO)
+async def get_results(args: Dict[str, Any]) -> Dict[str, Any]:
+    """Get detailed simulation results."""
+    circuit_id = args.get("circuit_id")
+    simulation_type = args.get("simulation_type", "dc")
     
-    server = CircuitSimulationMCPServer()
-    await server.run()
-
-
-if __name__ == "__main__":
-    asyncio.run(main())
+    session = SESSIONS.get(circuit_id)
+    if not session:
+        return {"status": "error", "message": f"Circuit {circuit_id} not found"}
+    
+    results = session.simulations.get(simulation_type)
+    if not results:
+        return {"status": "error", "message": f"No {simulation_type} simulation results for circuit {circuit_id}"}
+    
+    # Format results
+    if simulation_type == "dc":
+        node_voltages = {}
+        for node in results.nodes:
+            voltage = results.voltage(node)
+            if voltage is not None:
+                node_voltages[f"V({node})"] = {"value": float(voltage[0]), "unit": "V"}
+        
+        return {
+            "status": "success",
+            "circuit_id": circuit_id,
+            "circuit_name": session.circuit.name,
+            "simulation_type": "dc",
+            "results": {"node_voltages": node_voltages}
+        }
+    
+    return {"status": "error", "message": f"Analysis for {simulation_type} not yet implemented"}

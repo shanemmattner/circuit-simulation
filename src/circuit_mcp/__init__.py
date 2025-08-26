@@ -5,7 +5,7 @@ This module provides an MCP interface to the circuit simulation library,
 enabling AI assistants to design, simulate, and analyze circuits.
 """
 
-from .server import CircuitSimulationMCPServer
+from .server import serve
 
-__all__ = ["CircuitSimulationMCPServer"]
+__all__ = ["serve"]
 __version__ = "1.0.0"

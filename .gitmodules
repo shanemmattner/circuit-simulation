@@ -7,3 +7,6 @@
 [submodule "submodules/wingel-simulation"]
 	path = submodules/wingel-simulation
 	url = https://github.com/wingel/simulation.git
+[submodule "submodules/mcp-servers"]
+	path = submodules/mcp-servers
+	url = https://github.com/modelcontextprotocol/servers.git
