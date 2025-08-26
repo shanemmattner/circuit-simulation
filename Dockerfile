@@ -33,7 +33,8 @@ RUN apt-get update && apt-get install -y \
     libngspice0-dev \
     # Additional tools
     vim \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* \
+    && ln -s /usr/bin/python3 /usr/bin/python
 
 # Create a non-root user
 RUN useradd -m -s /bin/bash simulator && \
