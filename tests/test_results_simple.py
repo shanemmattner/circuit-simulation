@@ -3,7 +3,6 @@ Simplified tests for the simulation results class.
 Focus on core functionality without complex mocking.
 """
 
-
 import numpy as np
 
 from circuit_sim.simulator.results import SimulationResults

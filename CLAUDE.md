@@ -54,18 +54,22 @@ Build a production-ready Python library for circuit simulation that professional
 ### Pre-Commit Checklist
 ALWAYS run these before committing:
 ```bash
-# Format and lint
-black src/ tests/
-ruff check src/ tests/
+# Using uv for consistency on macOS
+uv run black src/ tests/
+uv run ruff check src/ tests/ --fix
 
 # Type checking  
-mypy src/ --strict
+uv run mypy src/ --strict
 
 # Run all tests
-pytest -v
+uv run pytest -v
 
 # Check coverage
-pytest --cov=src --cov-report=term-missing
+uv run pytest --cov=src --cov-report=term-missing
+
+# Test MCP server
+uv run python test_circuit_functions.py
+uv run python test_mcp_server.py
 ```
 
 ### Code Review Focus
@@ -304,14 +308,27 @@ The project includes a fully functional MCP (Model Context Protocol) server that
 - `simulation.run_transient`: Run transient (time-domain) analysis
 - `analysis.get_results`: Get simulation results with plotting
 
-### Usage with Claude Desktop
+### Usage with Claude Code
+Connect the MCP server to Claude Code:
+```bash
+# Add MCP server to Claude Code
+claude mcp add circuit-simulation -- uv run python run_mcp_server.py
+
+# Verify connection
+claude mcp list
+
+# Test functionality  
+uv run python test_mcp_server.py
+```
+
+### Usage with Claude Desktop (Optional)
 Add to your Claude Desktop configuration:
 ```json
 {
   "mcpServers": {
     "circuit-simulation": {
-      "command": "python3",
-      "args": ["run_mcp_server.py"],
+      "command": "uv",
+      "args": ["run", "python", "run_mcp_server.py"],
       "cwd": "/path/to/circuit-simulation"
     }
   }

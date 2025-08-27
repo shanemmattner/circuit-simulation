@@ -1,19 +1,15 @@
 # Circuit Simulation Docker Container
-# Based on Ubuntu with ngspice and PySpice for electronic circuit simulation
+# Multi-architecture support for both x86_64 and ARM64 (Apple Silicon)
 
-FROM ubuntu:22.04
+FROM python:3.11-slim
 
 # Set environment variables
 ENV DEBIAN_FRONTEND=noninteractive
 ENV PYTHONUNBUFFERED=1
-ENV PYSPICE_NGSPICE_LIBRARY=/usr/lib/x86_64-linux-gnu/libngspice.so.0
+ENV PYTHONDONTWRITEBYTECODE=1
 
 # Install system dependencies
-RUN apt-get update && apt-get install -y \
-    # Python and pip
-    python3.11 \
-    python3.11-dev \
-    python3-pip \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     # Build tools
     build-essential \
     cmake \
@@ -34,7 +30,12 @@ RUN apt-get update && apt-get install -y \
     # Additional tools
     vim \
     && rm -rf /var/lib/apt/lists/* \
-    && ln -s /usr/bin/python3 /usr/bin/python
+    && apt-get clean
+
+# Find and set the ngspice library path dynamically
+RUN export NGSPICE_LIB=$(find /usr/lib -name "libngspice.so*" | head -1) && \
+    echo "export PYSPICE_NGSPICE_LIBRARY=${NGSPICE_LIB}" >> /etc/profile && \
+    echo "Found ngspice library at: ${NGSPICE_LIB}"
 
 # Create a non-root user
 RUN useradd -m -s /bin/bash simulator && \
@@ -44,33 +45,28 @@ RUN useradd -m -s /bin/bash simulator && \
 # Set working directory
 WORKDIR /workspace
 
+# Copy requirements files first (for better caching)
+COPY requirements.txt requirements-dev.txt ./
+
 # Install Python packages
-RUN pip3 install --no-cache-dir \
-    numpy \
-    scipy \
-    matplotlib \
-    PySpice \
-    plotly \
-    pandas \
-    jupyter \
-    ipython \
-    pytest \
-    pytest-cov \
-    black \
-    ruff \
-    mypy
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt && \
+    pip install --no-cache-dir -r requirements-dev.txt
 
 # Copy the project files
 COPY --chown=simulator:simulator . /workspace/
 
 # Install the circuit-sim package in development mode
-RUN pip3 install -e .
+RUN pip install -e .
 
 # Switch to non-root user
 USER simulator
 
-# Expose port for Jupyter (optional)
-EXPOSE 8888
+# Source the profile to get environment variables
+SHELL ["/bin/bash", "-c"]
 
-# Default command
-CMD ["/bin/bash"]
+# Expose ports
+EXPOSE 8888 8000
+
+# Default command - source profile and start bash
+CMD ["/bin/bash", "-l"]

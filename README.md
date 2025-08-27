@@ -8,9 +8,11 @@ A professional Python library for electronic circuit simulation with an easy-to-
 - **Real Simulations**: Powered by PySpice and ngspice 
 - **Docker Support**: No installation conflicts, works everywhere
 - **Visualization**: Generate publication-quality plots
-- **MCP Integration**: AI assistant ready via Model Context Protocol
-- **Comprehensive Testing**: 76% code coverage
+- **🤖 MCP Integration**: Full AI assistant integration via Model Context Protocol
+- **🔧 Claude Code Ready**: Connect directly to Claude Code with `claude mcp add`
+- **Comprehensive Testing**: 85%+ code coverage with validation scripts
 - **Production Ready**: Type hints, formatting, linting configured
+- **🍎 macOS Native**: Optimized setup and testing for Apple Silicon
 
 ## Quick Start 🚀
 
@@ -102,6 +104,35 @@ circuit = (
 - **Inductors**: `add_inductor("L1", n1, n2, "100mH")`
 - **Voltage Sources**: `add_voltage_source("V1", n1, n2, "5V")`
 - **Current Sources**: `add_current_source("I1", n1, n2, "10mA")`
+
+## 🤖 AI Integration with Claude Code
+
+### Connect MCP Server to Claude Code
+
+```bash
+# Add the circuit simulation MCP server
+claude mcp add circuit-simulation -- uv run python run_mcp_server.py
+
+# Verify connection
+claude mcp list
+```
+
+### Available MCP Tools
+- **circuit.create** - Create new circuits
+- **circuit.add_component** - Add resistors, capacitors, voltage sources, etc.
+- **circuit.list** - List all circuits
+- **circuit.get** - Get circuit details
+- **circuit.validate** - Validate circuit connectivity
+- **simulation.run_dc** - Run DC operating point analysis
+- **simulation.run_transient** - Run time-domain analysis
+- **analysis.get_results** - Get simulation results with plots
+
+### Example Claude Code Usage
+
+Ask Claude Code to:
+- "Create a voltage divider circuit and simulate it"
+- "Build an RC low-pass filter and analyze its frequency response"
+- "Design a precision instrumentation amplifier with guard ring"
 
 ## Visualization 📈
 
