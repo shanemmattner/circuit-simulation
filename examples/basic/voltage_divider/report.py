@@ -164,14 +164,14 @@ def _create_dc_analysis_plot(
         row=2, col=1
     )
     
-    # Power dissipation pie chart
+    # Power dissipation bar chart (pie charts don't work well in subplots)
     if "power_dissipation" in results:
         power = results["power_dissipation"]
-        labels = list(power.keys())
-        values = list(power.values())
+        labels = [k for k in power.keys() if k != "total"]
+        values = [power[k] * 1000 for k in labels]  # Convert to mW
         
         fig.add_trace(
-            go.Pie(labels=labels, values=values, name="Power"),
+            go.Bar(x=labels, y=values, name="Power (mW)", marker_color='orange'),
             row=2, col=2
         )
     

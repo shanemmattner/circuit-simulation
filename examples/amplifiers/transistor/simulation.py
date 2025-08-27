@@ -151,8 +151,12 @@ def calculate_bias_point(circuit: TransistorAmplifierCircuit) -> Dict[str, float
     # Base current
     ib = ic / circuit.beta
     
-    # Collector voltage
-    vc = circuit.vcc - ic * circuit.rc if circuit.rc else circuit.vcc / 2
+    # Collector voltage (ensure it's positive)
+    if circuit.rc:
+        vc = circuit.vcc - ic * circuit.rc
+        vc = max(vc, 0.1)  # Ensure not negative
+    else:
+        vc = circuit.vcc / 2
     
     return {
         "vb": vb,

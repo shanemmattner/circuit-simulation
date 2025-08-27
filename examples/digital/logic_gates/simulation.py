@@ -35,11 +35,8 @@ def simulate_logic_gate(
     for signal in input_signals:
         expanded = []
         for i, t in enumerate(time):
-            sample_idx = int(t / time_per_sample)
-            if sample_idx < len(signal):
-                expanded.append(signal[sample_idx])
-            else:
-                expanded.append(signal[-1])
+            sample_idx = min(int(t / time_per_sample), len(signal) - 1)
+            expanded.append(signal[sample_idx])
         expanded_inputs.append(expanded)
     
     # Simulate gate output with propagation delay

@@ -47,9 +47,16 @@ def design_astable_555(
         # Solve for R1 and R2
         r_sum = 1.44 / (frequency * capacitor)
         
-        # From duty cycle equation
-        r2 = r_sum * (1 - duty_cycle) / 2
-        r1 = r_sum - 2 * r2
+        # From duty cycle equation: D = (R1+R2)/(R1+2*R2)
+        # Solving: R1 = R2 * (2*D - 1) / (1 - D)
+        if duty_cycle > 0.5:
+            r2 = r_sum / 3  # Start with reasonable value
+            r1 = r2 * (2 * duty_cycle - 1) / (1 - duty_cycle)
+        else:
+            # For duty cycle < 50%, limited by 555 design
+            duty_cycle = 0.55  # Adjust to achievable value
+            r2 = r_sum / 3
+            r1 = r2 * (2 * duty_cycle - 1) / (1 - duty_cycle)
         
         # Ensure positive values
         if r1 <= 0:

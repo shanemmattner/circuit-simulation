@@ -35,8 +35,9 @@ def design_regulated_supply(
     c_filter = i_out / (120 * ripple_max * 10)  # Extra margin
     
     # Round to standard value
-    c_values = [100e-6, 220e-6, 470e-6, 1000e-6, 2200e-6, 4700e-6]
-    c_filter = min(c for c in c_values if c >= c_filter)
+    c_values = [100e-6, 220e-6, 470e-6, 1000e-6, 2200e-6, 4700e-6, 10000e-6]
+    matching_values = [c for c in c_values if c >= c_filter]
+    c_filter = matching_values[0] if matching_values else c_values[-1]
     
     return PowerSupplyCircuit(
         v_ac_input=v_ac_available,
