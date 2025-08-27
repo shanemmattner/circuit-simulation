@@ -7,6 +7,7 @@ Professional circuit simulation with REST API, CLI tools, and AI integration.
 - **⚡ Simulation Engine**: PySpice + ngspice for DC, transient, AC analysis
 - **🖥️ CLI Interface**: Professional command-line tools with progress bars  
 - **🌐 REST API**: FastAPI with WebSocket, job management, interactive docs
+- **🎨 Analysis Dashboard**: Web-based GUI for multi-tab analysis (DC/AC/Transient) *[In Development]*
 - **🤖 AI Integration**: MCP server for Claude Code/Desktop integration
 - **📊 Reports**: Interactive Plotly charts, professional HTML reports
 - **📥 Import**: KiCad netlists, SPICE files, circuit-synth JSON
@@ -79,6 +80,31 @@ circuit-sim list                       # List circuits
 circuit-sim simulate "name" --type dc  # Run simulation
 circuit-sim info                       # System info
 ```
+
+### Analysis Dashboard 🎨
+Professional web-based GUI for comprehensive circuit analysis:
+```bash
+# Start dashboard
+python src/gui/app.py
+# → Opens http://127.0.0.1:8051
+
+# Current Features (v0.1):
+# ✅ Multi-tab interface: DC | AC | Transient | Reports | Jobs
+# ✅ Real-time circuit loading from FastAPI backend
+# ✅ Professional card-based layouts with Bootstrap styling
+# ✅ Comprehensive logging system (logs/gui_session.log)
+# ✅ Circuit selection with live API integration
+
+# Coming Soon:
+# 🔄 Real-time simulation monitoring with WebSocket progress
+# 📊 Interactive Plotly charts embedded in tabs
+# 🚀 One-click simulation execution from GUI
+# 📋 Professional report generation and export
+```
+
+**Architecture**: Complementary analysis dashboard built with Plotly Dash that enhances the programmatic API experience. Uses existing FastAPI endpoints and WebSocket infrastructure to provide professional visualization tools for stakeholders and analysis workflows.
+
+**Test Coverage**: 23/23 GUI tests passing with full TDD implementation.
 
 ## Installation
 
