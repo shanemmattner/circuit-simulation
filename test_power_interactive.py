@@ -307,7 +307,7 @@ def create_html_report(circuits_data):
             <h3>📊 Report Summary</h3>
             <p><strong>Generated:</strong> {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</p>
             <p><strong>Circuits Analyzed:</strong> {len([d for d in circuits_data if d[4] is not None])}</p>
-            <p><strong>Total Components:</strong> {sum(len(d[4].component_power) for d in circuits_data if d[4] is not None)}</p>
+            <p><strong>Total Components:</strong> {sum(len([comp for comp in d[1].components if comp.get('type') not in ['voltage_source', 'current_source']]) for d in circuits_data if d[4] is not None)}</p>
         </div>
 """
         
@@ -344,11 +344,25 @@ def create_html_report(circuits_data):
             
             <h3>💡 Component Analysis</h3>
             <table>
-                <tr><th>Component</th><th>Power</th><th>Voltage</th><th>Current</th><th>Method</th><th>Rating</th><th>Utilization</th></tr>
+                <tr><th>Component</th><th>Type</th><th>Value</th><th>Power</th><th>Voltage</th><th>Current</th><th>Method</th><th>Rating</th><th>Utilization</th></tr>
 """
             
             # Add component details
             for comp_name, info in power_analysis.component_power.items():
+                # Find the actual component in the circuit to get its value
+                component_value = "N/A"
+                component_type = info.component_type
+                
+                for comp in circuit.components:
+                    if comp.get('name') == comp_name:
+                        if comp.get('type') == 'resistor':
+                            component_value = f"{comp.get('resistance', '?')}Ω"
+                        elif comp.get('type') == 'capacitor':
+                            component_value = f"{comp.get('capacitance', '?')}F"
+                        elif comp.get('type') == 'inductor':
+                            component_value = f"{comp.get('inductance', '?')}H"
+                        break
+                
                 utilization = ""
                 row_class = ""
                 if info.rating:
@@ -364,6 +378,8 @@ def create_html_report(circuits_data):
                 html_content += f"""
                 <tr class="{row_class}">
                     <td>{comp_name}</td>
+                    <td>{component_type}</td>
+                    <td>{component_value}</td>
                     <td>{info.power:.3f}W</td>
                     <td>{info.voltage:.2f}V</td>
                     <td>{info.current:.3f}A</td>
