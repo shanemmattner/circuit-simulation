@@ -80,3 +80,11 @@ node_modules/
 # OS specific
 Thumbs.db
 .Trash-*
+
+# FastAPI specific
+test_api_*.py
+websocket_demo.py
+test_api_examples.sh
+examples/output/
+memory-bank/
+submodules/
