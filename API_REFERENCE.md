@@ -192,10 +192,11 @@ Start a simulation job for a circuit.
     "start_time": 0,
     "max_time_step": 0.001
     
-    // For AC analysis (future)
-    "start_frequency": 1,
-    "stop_frequency": 1000,
-    "points_per_decade": 10
+    // For AC frequency analysis
+    "start_frequency": 1.0,
+    "stop_frequency": 10000.0,
+    "points_per_decade": 20,
+    "variation": "dec"  // "dec" or "lin"
   },
   "priority": 5  // 1 (lowest) to 10 (highest)
 }
@@ -291,6 +292,8 @@ Get simulation results.
 - `job_id`: UUID of the simulation job
 
 **Response** (200):
+
+**DC Analysis Results**:
 ```json
 {
   "voltages": {
@@ -301,12 +304,38 @@ Get simulation results.
   "currents": {
     "v1": 0.001667  // Current through V1
   },
-  "time": null,     // For transient: [0, 0.0001, 0.0002, ...]
+  "time": null,
   "metadata": {
     "temperature": 25,
-    "circuit_name": "RC Filter",
-    "start_time": 0,
-    "stop_time": 0.01
+    "circuit_name": "RC Filter"
+  }
+}
+```
+
+**AC Analysis Results**:
+```json
+{
+  "voltages": {
+    "2": {
+      "magnitude": [1.0, 0.707, 0.316, ...],  // |V(2)| vs frequency
+      "phase": [0, -45, -71.6, ...],          // ∠V(2) vs frequency  
+      "complex": true
+    }
+  },
+  "currents": {
+    "v1": {
+      "magnitude": [0.001, 0.0007, ...],
+      "phase": [90, 45, ...],
+      "complex": true
+    }
+  },
+  "frequency": [1, 10, 100, 1000, 10000],     // Frequency points (Hz)
+  "metadata": {
+    "start_frequency": 1.0,
+    "stop_frequency": 10000.0,
+    "points_per_decade": 20,
+    "variation": "dec",
+    "circuit_name": "RC Filter"
   }
 }
 ```

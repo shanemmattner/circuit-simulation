@@ -219,6 +219,21 @@ class SimulationService:
                 results = self.engine.simulate_transient(circuit, stop_time, step_time)
                 job_record["message"] = "Transient analysis complete"
                 
+            elif job_record["type"] == SimulationType.AC:
+                job_record["progress"] = 60.0
+                self._send_websocket_update(job_id, 60.0, "Running AC frequency analysis...")
+                
+                params = job_record["parameters"]
+                start_freq = params.get("start_frequency", 1.0)
+                stop_freq = params.get("stop_frequency", 1000.0)
+                points_per_decade = params.get("points_per_decade", 10)
+                variation = params.get("variation", "dec")
+                
+                results = self.engine.simulate_ac(
+                    circuit, start_freq, stop_freq, points_per_decade, variation
+                )
+                job_record["message"] = "AC frequency analysis complete"
+                
             else:
                 raise ValueError(f"Unsupported simulation type: {job_record['type']}")
             
@@ -226,13 +241,55 @@ class SimulationService:
             job_record["progress"] = 90.0
             self._send_websocket_update(job_id, 90.0, "Processing results...")
             
-            # Store results
-            job_record["results"] = {
-                "voltages": results.voltages,
-                "currents": results.currents,
-                "time": results.time.tolist() if results.time is not None else None,
+            # Store results (handle complex data for AC analysis)
+            result_data = {
+                "voltages": {},
+                "currents": {},
                 "metadata": results.metadata
             }
+            
+            # Process voltages (handle both real and complex data)
+            for node, voltage_data in results.voltages.items():
+                if isinstance(voltage_data, np.ndarray) and voltage_data.dtype == complex:
+                    # AC analysis - store magnitude and phase
+                    magnitude = np.abs(voltage_data).tolist()
+                    phase = np.angle(voltage_data, deg=True).tolist()
+                    result_data["voltages"][str(node)] = {
+                        "magnitude": magnitude,
+                        "phase": phase,
+                        "complex": True
+                    }
+                else:
+                    # DC/Transient analysis - store as-is
+                    if isinstance(voltage_data, np.ndarray):
+                        result_data["voltages"][str(node)] = voltage_data.tolist()
+                    else:
+                        result_data["voltages"][str(node)] = voltage_data
+            
+            # Process currents similarly
+            for branch, current_data in results.currents.items():
+                if isinstance(current_data, np.ndarray) and current_data.dtype == complex:
+                    magnitude = np.abs(current_data).tolist()
+                    phase = np.angle(current_data, deg=True).tolist()
+                    result_data["currents"][str(branch)] = {
+                        "magnitude": magnitude,
+                        "phase": phase,
+                        "complex": True
+                    }
+                else:
+                    if isinstance(current_data, np.ndarray):
+                        result_data["currents"][str(branch)] = current_data.tolist()
+                    else:
+                        result_data["currents"][str(branch)] = current_data
+            
+            # Add time or frequency vector
+            if results.time is not None:
+                result_data["time"] = results.time.tolist()
+            
+            if hasattr(results, 'frequency') and results.frequency is not None:
+                result_data["frequency"] = results.frequency.tolist()
+            
+            job_record["results"] = result_data
             
             # Complete simulation
             job_record["status"] = "completed"
