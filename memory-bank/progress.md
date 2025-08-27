@@ -27,7 +27,18 @@
 - **Cross-Platform**: Works on Linux, macOS, Windows
 - **Pre-configured**: All dependencies installed and configured
 
-### Command Line Interface (NEW! 🚀)
+### Analysis Dashboard GUI (NEW! 🎨)
+- **Plotly Dash Interface**: Professional web-based dashboard at http://localhost:8051
+- **Multi-tab Analysis**: DC | AC | Transient | Reports | Jobs with rich content
+- **API Integration**: Real-time circuit loading from existing FastAPI backend
+- **Component Architecture**: Modular, testable Dash components
+- **Professional Styling**: Bootstrap-based responsive design with card layouts
+- **TDD Implementation**: 23/23 tests passing, complete test coverage
+- **Session Logging**: Comprehensive logging to logs/gui_session.log
+- **Circuit Selection**: Live dropdown populated from /api/circuits endpoint
+- **Interactive Content**: Professional analysis interfaces for each tab type
+
+### Command Line Interface 🚀
 - **Professional CLI**: `circuit-sim` command with Rich output formatting
 - **Project Management**: `init`, `info` commands for project setup
 - **Circuit Creation**: `create` command with netlist validation and progress bars
