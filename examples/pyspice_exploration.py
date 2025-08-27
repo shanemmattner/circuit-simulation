@@ -3,7 +3,6 @@ Exploration of PySpice API to understand how it works.
 This is research code to inform our integration design.
 """
 
-import numpy as np
 from PySpice.Spice.Netlist import Circuit as PySpiceCircuit
 from PySpice.Unit import *
 
@@ -24,23 +23,23 @@ try:
     # Create simulator
     simulator = circuit.simulator(temperature=25, nominal_temperature=25)
     print("Simulator created!")
-    
-    # Run operating point (DC) analysis  
+
+    # Run operating point (DC) analysis
     analysis = simulator.operating_point()
     print("DC analysis complete!")
-    
+
     # Extract results
     for node in analysis.nodes.values():
         print(f"Node {node}: {float(node)} V")
-        
+
 except Exception as e:
     print(f"Simulation failed (expected if ngspice not installed): {e}")
 
-print("\n" + "="*50)
+print("\n" + "=" * 50)
 print("Key observations:")
 print("1. PySpice uses @ operator for units (10@u_V)")
 print("2. Components are added with circuit.R(), circuit.V(), etc")
 print("3. Node 0 is circuit.gnd")
 print("4. simulator.operating_point() runs DC analysis")
 print("5. Results are in analysis.nodes")
-print("="*50)
+print("=" * 50)
