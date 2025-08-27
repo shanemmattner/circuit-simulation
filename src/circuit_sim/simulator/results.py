@@ -278,6 +278,16 @@ class SimulationResults:
         with np.errstate(divide='ignore', invalid='ignore'):
             h_jw = vout / vin
         
+        # Check for valid transfer function data
+        if np.all(h_jw == 0):
+            raise ValueError("Transfer function is identically zero - check circuit connectivity")
+        
+        if np.any(np.isnan(h_jw)) or np.any(np.isinf(h_jw)):
+            raise ValueError(
+                "Invalid transfer function data: simulation may have failed or "
+                "circuit may have connectivity issues. Check AC analysis setup."
+            )
+        
         # Convert frequency from Hz to rad/s
         omega = 2 * np.pi * self._frequency
         

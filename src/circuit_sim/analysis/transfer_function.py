@@ -117,12 +117,24 @@ class TransferFunction:
         """
         frequencies = np.asarray(frequencies)
         response = np.asarray(response)
+        
+        # Check for valid input data
+        if np.any(np.isnan(response)) or np.any(np.isinf(response)):
+            raise ValueError("Invalid frequency response data: contains NaN or infinite values")
+        
+        if len(frequencies) != len(response):
+            raise ValueError("Frequency and response arrays must have the same length")
 
         if order is None:
             # Auto-detect order based on phase change
             phase = np.unwrap(np.angle(response))
             phase_change = abs(phase[-1] - phase[0])
-            order = max(1, int(np.round(phase_change / (np.pi / 2))))
+            
+            # Handle edge cases where phase_change might be invalid
+            if np.isnan(phase_change) or np.isinf(phase_change):
+                order = 1  # Default to first order
+            else:
+                order = max(1, int(np.round(phase_change / (np.pi / 2))))
 
         if num_order is None:
             num_order = max(0, order - 1)

@@ -127,7 +127,9 @@ class PySpiceBuilder:
             name = name[1:]  # Remove V prefix
 
         # Use PySpice units correctly (using @ operator with unit objects)
-        pyspice_circuit.V(name, node1, node2, voltage @ u_V)
+        # For AC analysis, set AC magnitude to 1V (common practice)
+        voltage_source = pyspice_circuit.V(name, node1, node2, voltage @ u_V)
+        voltage_source.ac = 1 @ u_V  # Set AC magnitude to 1V for analysis
 
     def _add_current_source(self, pyspice_circuit: Any, comp: Dict, counts: Dict[str, int]):
         """Add current source to PySpice circuit."""
