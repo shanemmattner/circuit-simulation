@@ -2,6 +2,18 @@
 
 Professional circuit simulation with REST API, CLI tools, and AI integration.
 
+## Features
+
+- **⚡ Simulation Engine**: PySpice + ngspice for DC, transient, AC analysis
+- **🖥️ CLI Interface**: Professional command-line tools with progress bars  
+- **🌐 REST API**: FastAPI with WebSocket, job management, interactive docs
+- **🤖 AI Integration**: MCP server for Claude Code/Desktop integration
+- **📊 Reports**: Interactive Plotly charts, professional HTML reports
+- **📥 Import**: KiCad netlists, SPICE files, circuit-synth JSON
+- **📚 Example Library**: 10 complete circuits with comprehensive documentation
+- **🔌 50k+ Components**: KiCad-Spice-Library integration with real models
+- **🐳 Production Ready**: Docker deployment, Redis/Celery backend
+
 ## Quick Start
 
 ```bash
@@ -136,6 +148,21 @@ uv run pytest --cov=src           # Test with coverage
 # MCP integration
 claude mcp add circuit-simulation -- uv run python run_mcp_server.py
 ```
+
+## Testing
+
+- **Manual Testing**: See `TESTING_GUIDE.md`
+- **Unit Tests**: `uv run pytest` 
+- **API Tests**: `uv run python examples/tests/test_api_client.py`
+- **MCP Tests**: `uv run python examples/tests/test_mcp_server.py`
+- **Regression Test**: Use `.claude/commands/regression_test.md`
+
+## Documentation
+
+- **`TESTING_GUIDE.md`** - Comprehensive manual testing
+- **`CLAUDE.md`** - Development guidelines  
+- **`docs/`** - Technical documentation
+- **`/docs`** endpoint - Interactive API reference
 
 ## License
 

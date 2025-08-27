@@ -25,7 +25,7 @@ divider = (
 )
 # Output at node 2 will be: 5V * (1000/(680+1000)) = 2.97V ≈ 3V
 print(f"Created: {divider}")
-print(f"Output node: 2")
+print("Output node: 2")
 print()
 
 # Example 3: RC Filter (smooths signals)
