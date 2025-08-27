@@ -4,9 +4,12 @@ Simulation results container.
 Provides a clean interface to access simulation data.
 """
 
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Optional, Union, TYPE_CHECKING
 
 import numpy as np
+
+if TYPE_CHECKING:
+    from ..analysis import TransferFunction
 
 
 class SimulationResults:
@@ -228,3 +231,56 @@ class SimulationResults:
             info.append(f"freq_points={len(self._frequency)}")
 
         return ", ".join(info) + ")"
+    
+    def to_transfer_function(
+        self,
+        input_node: Union[int, str],
+        output_node: Union[int, str],
+        reference: Union[int, str] = 0
+    ) -> "TransferFunction":
+        """
+        Extract transfer function from AC analysis results.
+        
+        Args:
+            input_node: Input node identifier
+            output_node: Output node identifier
+            reference: Reference node (default: ground/0)
+            
+        Returns:
+            TransferFunction object H(s) = Vout/Vin
+            
+        Raises:
+            ValueError: If not AC analysis or nodes not found
+        """
+        if self.analysis_type != "ac":
+            raise ValueError("Transfer function extraction requires AC analysis results")
+        
+        if self._frequency is None:
+            raise ValueError("No frequency data available")
+        
+        # Get voltages
+        vin = self.voltage(input_node)
+        vout = self.voltage(output_node)
+        
+        if vin is None:
+            raise ValueError(f"Input node '{input_node}' not found in results")
+        if vout is None:
+            raise ValueError(f"Output node '{output_node}' not found in results")
+        
+        # Handle reference node if not ground
+        if reference != 0:
+            vref = self.voltage(reference)
+            if vref is not None:
+                vin = vin - vref
+                vout = vout - vref
+        
+        # Calculate transfer function H(jω) = Vout/Vin
+        with np.errstate(divide='ignore', invalid='ignore'):
+            h_jw = vout / vin
+        
+        # Convert frequency from Hz to rad/s
+        omega = 2 * np.pi * self._frequency
+        
+        # Create transfer function from frequency response
+        from ..analysis import TransferFunction
+        return TransferFunction.from_frequency_response(omega, h_jw)
