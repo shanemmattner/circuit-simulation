@@ -152,6 +152,47 @@ async def serve() -> None:
                     "required": ["circuit_id", "simulation_type"],
                 },
             ),
+            Tool(
+                name="power.analyze",
+                description="Analyze power dissipation in circuit components",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "circuit_id": {"type": "string", "description": "Circuit ID"},
+                        "simulation_type": {"type": "string", "description": "Simulation type (default: dc)", "default": "dc"},
+                        "component_ratings": {
+                            "type": "object",
+                            "description": "Component power ratings in watts (name: rating)",
+                            "additionalProperties": {"type": "number"}
+                        },
+                        "thresholds": {
+                            "type": "object", 
+                            "description": "Power warning/error thresholds",
+                            "properties": {
+                                "warning": {"type": "number", "description": "Warning threshold in watts"},
+                                "error": {"type": "number", "description": "Error threshold in watts"}
+                            }
+                        }
+                    },
+                    "required": ["circuit_id"],
+                },
+            ),
+            Tool(
+                name="power.validate_ratings",
+                description="Validate component power ratings against actual dissipation",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "circuit_id": {"type": "string", "description": "Circuit ID"},
+                        "component_ratings": {
+                            "type": "object",
+                            "description": "Component power ratings in watts (name: rating)",
+                            "additionalProperties": {"type": "number"}
+                        }
+                    },
+                    "required": ["circuit_id", "component_ratings"],
+                },
+            ),
         ]
 
     @server.call_tool()
@@ -167,6 +208,8 @@ async def serve() -> None:
                 result = await handle_simulation_tool(name, arguments)
             elif name.startswith("analysis."):
                 result = await handle_analysis_tool(name, arguments)
+            elif name.startswith("power."):
+                result = await handle_power_tool(name, arguments)
             else:
                 raise ValueError(f"Unknown tool: {name}")
 
@@ -231,6 +274,23 @@ async def handle_analysis_tool(tool_name: str, arguments: Dict[str, Any]) -> Dic
         return await get_results(arguments)
     else:
         raise ValueError(f"Unknown analysis action: {action}")
+
+
+async def handle_power_tool(tool_name: str, arguments: Dict[str, Any]) -> Dict[str, Any]:
+    """Handle power analysis tools."""
+    from .tools.power_tools import PowerTools
+    
+    # Create a mock server object with required methods
+    class MockServer:
+        def get_circuit(self, circuit_id: str):
+            session = SESSIONS.get(circuit_id)
+            return session.circuit if session else None
+            
+        def get_session(self, circuit_id: str):
+            return SESSIONS.get(circuit_id)
+    
+    power_tools = PowerTools(MockServer())
+    return await power_tools.handle(tool_name, arguments)
 
 
 async def create_circuit(args: Dict[str, Any]) -> Dict[str, Any]:

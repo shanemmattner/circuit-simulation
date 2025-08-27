@@ -133,6 +133,29 @@ class SimulationResults:
         """Get simulation metadata."""
         return self._metadata
 
+    def analyze_power(self, circuit, component_ratings: Optional[Dict[str, float]] = None):
+        """
+        Analyze power dissipation in the circuit.
+        
+        Args:
+            circuit: Circuit object used for simulation
+            component_ratings: Optional component power ratings
+            
+        Returns:
+            PowerAnalysisResult with power information
+            
+        Raises:
+            ImportError: If validation module not available
+            NotImplementedError: If not DC analysis
+        """
+        try:
+            from ..validation import PowerAnalyzer
+        except ImportError:
+            raise ImportError("Power analysis requires validation module")
+            
+        analyzer = PowerAnalyzer()
+        return analyzer.analyze_power(circuit, self, component_ratings)
+        
     def plot(self, *signals: str, save_to: Optional[str] = None, show: bool = True):
         """
         Plot simulation results.

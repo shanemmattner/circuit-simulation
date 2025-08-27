@@ -46,8 +46,10 @@
 - **Short Circuit Detection**: Advanced voltage source short detection with Dijkstra pathfinding
 - **Configurable Thresholds**: Error (1mΩ) and warning (100mΩ) thresholds for different validation levels
 - **Basic Circuit Validation**: Component presence, ground connections, floating nodes, duplicate names
-- **MCP Integration**: Enhanced validation through MCP tools with level configuration (basic/standard/strict)
-- **Test Coverage**: 11/11 validation tests passing with comprehensive edge case coverage
+- **Power Analysis**: Complete power dissipation analysis with P=VI, P=I²R, P=V²/R calculations
+- **Power Validation**: Component rating validation and power budget analysis
+- **MCP Integration**: Enhanced validation and power analysis through MCP tools
+- **Test Coverage**: 20+ validation and power analysis tests passing with comprehensive coverage
 
 ### Testing & Quality
 - **Test Coverage**: 85% coverage with 83+ passing tests (improved with validation tests)
@@ -56,8 +58,9 @@
 - **Documentation**: Comprehensive docstrings
 
 ### MCP Integration ✅ COMPLETE
-- **MCP Server**: 8 working tools for AI assistant integration
+- **MCP Server**: 10 working tools for AI assistant integration
 - **Circuit Management**: create, add_component, list, get, validate
+- **Power Analysis**: analyze, validate_ratings tools for power dissipation analysis
 - **Simulation Tools**: DC and transient analysis via MCP protocol
 - **JSON-RPC**: Proper MCP protocol implementation
 - **Claude Ready**: Can connect to Claude Desktop immediately
