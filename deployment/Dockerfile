@@ -48,10 +48,23 @@ WORKDIR /workspace
 # Copy requirements files first (for better caching)
 COPY requirements.txt requirements-dev.txt ./
 
+# Install uv (modern Python package manager)
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh
+ENV PATH="/root/.local/bin:$PATH"
+
 # Install Python packages
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt && \
-    pip install --no-cache-dir -r requirements-dev.txt
+    pip install --no-cache-dir -r requirements-dev.txt && \
+    pip install --no-cache-dir \
+        ipywidgets>=8.1.1 \
+        jupyter>=1.0.0 \
+        jupyterlab>=4.0.0 \
+        voila>=0.5.0 \
+        jupyter-dash>=0.4.2 \
+        ipython>=8.12.0 \
+        nbformat>=5.9.0 \
+        nbconvert>=7.0.0
 
 # Copy the project files
 COPY --chown=simulator:simulator . /workspace/

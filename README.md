@@ -20,18 +20,51 @@ Professional circuit simulation with REST API, CLI tools, and AI integration.
 
 ## Quick Start
 
+### **🚀 Easy Launch Options**
+
+#### **🎓 Interactive Learning (Recommended)**
 ```bash
-# Install and test
+# One command to start everything:
+./learn.sh
+# Opens http://localhost:8888 with working simulation!
+```
+
+#### **⚡ Quick Launch (if container exists)**
+```bash
+make learn-quick
+# or
+./quick-learn.sh
+```
+
+#### **🔧 All Available Commands**
+```bash
+make help              # Show all available commands
+make learn             # Full learning environment setup
+make test-sim          # Test simulation backend  
+make clean             # Clean up containers
+```
+
+### **🐳 Manual Docker Commands (Advanced)**
+```bash
+# Build container
+make build-container
+
+# Test simulation
+docker exec circuit-sim python test_interactive_learning.py
+
+# Manual access
+docker exec -it circuit-sim bash
+
+# Production API
+docker-compose -f deployment/docker-compose.fastapi.yml up -d
+```
+
+### Alternative: Local Development (No Simulation)
+```bash
+# Install dependencies (CLI and educational content work, simulation shows demo mode)
 uv install
-uv run circuit-sim init --name "My Project"
-uv run circuit-sim create --netlist examples/rc_filter.cir --name "RC Filter"
-
-# Start API server  
-uv run uvicorn src.api.main:app --host 0.0.0.0 --port 8000
-open http://localhost:8000/docs
-
-# Docker deployment
-docker-compose -f deployment/docker-compose.fastapi.yml up -d --build
+uv run circuit-sim init --name "My Project"  # CLI works
+uv run jupyter lab docs/learning_modules/    # Educational content works
 ```
 
 ## Features

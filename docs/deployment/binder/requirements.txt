@@ -1,0 +1,29 @@
+# Circuit Simulation Interactive Learning Environment
+# Binder Requirements
+
+# Core circuit simulation
+PySpice>=1.5
+numpy>=1.24.0
+matplotlib>=3.6.0
+plotly>=6.3.0
+pandas>=2.3.2
+
+# Interactive learning components
+ipywidgets>=8.1.1
+jupyter>=1.0.0
+jupyterlab>=4.0.0
+voila>=0.5.0
+jupyter-dash>=0.4.2
+ipython>=8.12.0
+nbformat>=5.9.0
+nbconvert>=7.0.0
+
+# Utilities
+pyyaml>=6.0.2
+jinja2>=3.1.6
+rich>=13.0.0
+
+# For better notebook experience
+ipykernel
+jupyter-server-proxy
+jupyterlab-widgets

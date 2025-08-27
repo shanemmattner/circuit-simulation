@@ -1,0 +1,65 @@
+{
+  "name": "Circuit Simulation Learning Environment",
+  "image": "mcr.microsoft.com/devcontainers/python:3.10",
+  
+  "features": {
+    "ghcr.io/devcontainers/features/common-utils:2": {},
+    "ghcr.io/devcontainers/features/git:1": {},
+    "ghcr.io/devcontainers/features/github-cli:1": {}
+  },
+  
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-toolsai.jupyter",
+        "ms-python.pylint",
+        "ms-python.black-formatter",
+        "charliermarsh.ruff",
+        "ms-python.mypy-type-checker",
+        "redhat.vscode-yaml",
+        "yzhang.markdown-all-in-one"
+      ],
+      "settings": {
+        "python.defaultInterpreterPath": "/usr/local/bin/python",
+        "python.formatting.provider": "black",
+        "python.linting.enabled": true,
+        "python.linting.pylintEnabled": false,
+        "python.linting.ruffEnabled": true,
+        "jupyter.askForKernelRestart": false,
+        "jupyter.interactiveWindow.creationMode": "perFile",
+        "files.exclude": {
+          "**/__pycache__": true,
+          "**/.pytest_cache": true,
+          "**/.*_cache": true
+        }
+      }
+    }
+  },
+  
+  "forwardPorts": [8000, 8888, 8080],
+  "portsAttributes": {
+    "8000": {
+      "label": "FastAPI Server",
+      "onAutoForward": "notify"
+    },
+    "8888": {
+      "label": "Jupyter Lab",
+      "onAutoForward": "openPreview"
+    },
+    "8080": {
+      "label": "Voila Dashboard",
+      "onAutoForward": "openPreview"
+    }
+  },
+  
+  "postCreateCommand": "bash .devcontainer/setup.sh",
+  "postStartCommand": "echo '🎓 Circuit Learning Environment Ready! Open learning_modules/ to start.'",
+  
+  "remoteUser": "vscode",
+  "workspaceFolder": "/workspaces/circuit-simulation",
+  
+  "mounts": [
+    "source=${localWorkspaceFolder}/docs/learning_modules,target=/workspaces/learning_modules,type=bind,consistency=cached"
+  ]
+}

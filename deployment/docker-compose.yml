@@ -3,13 +3,13 @@ version: '3.8'
 services:
   circuit-sim:
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: ..
+      dockerfile: deployment/Dockerfile
     image: circuit-simulation:latest
     container_name: circuit-sim
     volumes:
       # Mount the project directory
-      - .:/workspace
+      - ..:/workspace
       # Mount for X11 forwarding (for matplotlib plots)
       - /tmp/.X11-unix:/tmp/.X11-unix:rw
     environment:
@@ -31,13 +31,13 @@ services:
   # Jupyter notebook service (optional)
   notebook:
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: ..
+      dockerfile: deployment/Dockerfile
     image: circuit-simulation:latest
     container_name: circuit-notebook
     volumes:
-      - .:/workspace
-      - ./notebooks:/workspace/notebooks
+      - ..:/workspace
+      - ../notebooks:/workspace/notebooks
     environment:
       - PYTHONPATH=/workspace
     working_dir: /workspace
@@ -48,12 +48,12 @@ services:
   # Test runner service
   test:
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: ..
+      dockerfile: deployment/Dockerfile
     image: circuit-simulation:latest
     container_name: circuit-test
     volumes:
-      - .:/workspace
+      - ..:/workspace
     environment:
       - PYTHONPATH=/workspace
     working_dir: /workspace

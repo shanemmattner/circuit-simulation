@@ -1,0 +1,24 @@
+#!/bin/bash
+# Binder post-build script for Circuit Simulation Learning Environment
+
+# Enable JupyterLab extensions
+jupyter labextension install @jupyter-widgets/jupyterlab-manager --no-build
+jupyter labextension install jupyterlab-plotly --no-build
+jupyter labextension install @pyviz/jupyterlab_pyviz --no-build
+
+# Enable widgets
+jupyter nbextension enable --py widgetsnbextension --sys-prefix
+
+# Build JupyterLab with extensions
+jupyter lab build --dev-build=False --minimize=True
+
+# Create symbolic link to learning modules in user directory
+ln -sf /home/jovyan/docs/learning_modules /home/jovyan/learning_modules
+
+# Set up circuit-sim package in development mode
+cd /home/jovyan
+pip install -e . --no-deps
+
+echo "✅ Binder environment setup complete!"
+echo "🎓 Interactive Circuit Learning Environment ready!"
+echo "📚 Navigate to learning_modules/ to start learning!"
