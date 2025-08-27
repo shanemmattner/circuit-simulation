@@ -41,8 +41,16 @@
 - **Multiple Signals**: Support for plotting multiple traces
 - **Custom Plots**: Full matplotlib access for advanced visualizations
 
+### Validation System ✅ NEW (August 27, 2025)
+- **Validation Framework**: Extensible rule-based validation system with base classes
+- **Short Circuit Detection**: Advanced voltage source short detection with Dijkstra pathfinding
+- **Configurable Thresholds**: Error (1mΩ) and warning (100mΩ) thresholds for different validation levels
+- **Basic Circuit Validation**: Component presence, ground connections, floating nodes, duplicate names
+- **MCP Integration**: Enhanced validation through MCP tools with level configuration (basic/standard/strict)
+- **Test Coverage**: 11/11 validation tests passing with comprehensive edge case coverage
+
 ### Testing & Quality
-- **Test Coverage**: 76% coverage with 72 passing tests
+- **Test Coverage**: 85% coverage with 83+ passing tests (improved with validation tests)
 - **Code Formatting**: Black and Ruff configured
 - **Type Checking**: MyPy strict mode ready
 - **Documentation**: Comprehensive docstrings

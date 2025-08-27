@@ -5,6 +5,7 @@ Professional circuit simulation with REST API, CLI tools, and AI integration.
 ## Features
 
 - **⚡ Simulation Engine**: PySpice + ngspice for DC, transient, AC analysis
+- **🔍 Circuit Validation**: Advanced short circuit detection and topology analysis
 - **🖥️ CLI Interface**: Professional command-line tools with progress bars  
 - **🌐 REST API**: FastAPI with WebSocket, job management, interactive docs
 - **🤖 AI Integration**: MCP server for Claude Code/Desktop integration
