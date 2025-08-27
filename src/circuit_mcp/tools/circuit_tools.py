@@ -172,13 +172,110 @@ class CircuitTools:
         }
 
     async def validate_circuit(self, args: Dict[str, Any]) -> Dict[str, Any]:
-        """Validate circuit connectivity and components."""
+        """Validate circuit connectivity and components using new validation system."""
         circuit_id = args.get("circuit_id")
+        level = args.get("level", "standard")  # basic, standard, strict
+        checks = args.get("checks", ["electrical", "basic"])  # list of check types
 
         circuit = self.server.get_circuit(circuit_id)
         if not circuit:
             return {"status": "error", "message": f"Circuit {circuit_id} not found"}
 
+        # Import validation system
+        try:
+            from circuit_sim.validation import CircuitValidator, ShortCircuitDetector, BasicCircuitValidator
+        except ImportError:
+            # Fallback to old validation if new system not available
+            return await self._legacy_validate_circuit(args)
+
+        # Set up validator with requested checks
+        validator = CircuitValidator()
+        
+        if "electrical" in checks:
+            # Configure thresholds based on level
+            if level == "strict":
+                short_threshold = 0.0001  # 0.1mΩ
+                warning_threshold = 0.01  # 10mΩ
+            elif level == "standard":
+                short_threshold = 0.001   # 1mΩ
+                warning_threshold = 0.1   # 100mΩ
+            else:  # basic
+                short_threshold = 0.01    # 10mΩ
+                warning_threshold = 1.0   # 1Ω
+                
+            validator.add_rule(ShortCircuitDetector(
+                short_threshold=short_threshold,
+                warning_threshold=warning_threshold
+            ))
+        
+        if "basic" in checks:
+            validator.add_rule(BasicCircuitValidator())
+
+        # Run validation
+        results = validator.validate(circuit)
+        
+        # Format results for MCP
+        all_issues = []
+        all_warnings = []
+        all_suggestions = []
+        
+        overall_valid = True
+        
+        for rule_name, result in results.items():
+            if not result.is_valid:
+                overall_valid = False
+                
+            # Collect issues
+            for issue in result.issues:
+                all_issues.append({
+                    "rule": rule_name,
+                    "type": issue.type,
+                    "severity": issue.severity.value,
+                    "message": issue.message,
+                    "components": issue.components,
+                    "suggestion": issue.suggestion
+                })
+                
+            # Collect warnings
+            for warning in result.warnings:
+                all_warnings.append({
+                    "rule": rule_name,
+                    "type": warning.type,
+                    "severity": warning.severity.value,
+                    "message": warning.message,
+                    "components": warning.components,
+                    "suggestion": warning.suggestion
+                })
+                
+            # Collect suggestions
+            all_suggestions.extend(result.suggestions)
+
+        return {
+            "status": "success",
+            "valid": overall_valid,
+            "level": level,
+            "checks_run": checks,
+            "issues": all_issues,
+            "warnings": all_warnings,
+            "suggestions": list(set(all_suggestions)),  # Remove duplicates
+            "summary": {
+                "components": len(circuit.components),
+                "nodes": len(circuit.nodes),
+                "has_ground": 0 in circuit.nodes,
+                "has_source": any(comp.get('type') in ['voltage_source', 'current_source'] 
+                                for comp in circuit.components),
+                "rules_run": len(results),
+                "rules_passed": sum(1 for r in results.values() if r.is_valid),
+                "total_issues": len(all_issues),
+                "total_warnings": len(all_warnings)
+            },
+        }
+
+    async def _legacy_validate_circuit(self, args: Dict[str, Any]) -> Dict[str, Any]:
+        """Legacy validation method as fallback."""
+        circuit_id = args.get("circuit_id")
+        circuit = self.server.get_circuit(circuit_id)
+        
         issues = []
         warnings = []
 
@@ -188,7 +285,7 @@ class CircuitTools:
 
         # Check if circuit has at least one source
         has_source = any(
-            comp.component_type in ["voltage_source", "current_source"]
+            comp.get('type') in ["voltage_source", "current_source"]
             for comp in circuit.components
         )
         if not has_source:
@@ -202,21 +299,17 @@ class CircuitTools:
         node_connections = {}
         for comp in circuit.components:
             # Count connections for each node
-            if hasattr(comp, "positive"):
-                node_connections[comp.positive] = node_connections.get(comp.positive, 0) + 1
-            if hasattr(comp, "negative"):
-                node_connections[comp.negative] = node_connections.get(comp.negative, 0) + 1
-            if hasattr(comp, "node1"):
-                node_connections[comp.node1] = node_connections.get(comp.node1, 0) + 1
-            if hasattr(comp, "node2"):
-                node_connections[comp.node2] = node_connections.get(comp.node2, 0) + 1
+            for node_key in ['positive', 'negative', 'node1', 'node2']:
+                if node_key in comp:
+                    node = comp[node_key]
+                    node_connections[node] = node_connections.get(node, 0) + 1
 
         for node, count in node_connections.items():
             if count == 1 and node != 0:
                 warnings.append(f"Node {node} has only one connection (might be floating)")
 
         # Check for duplicate component names
-        component_names = [comp.name for comp in circuit.components]
+        component_names = [comp.get('name', 'unnamed') for comp in circuit.components]
         if len(component_names) != len(set(component_names)):
             duplicates = [name for name in component_names if component_names.count(name) > 1]
             issues.append(f"Duplicate component names: {set(duplicates)}")
@@ -226,8 +319,10 @@ class CircuitTools:
         return {
             "status": "success",
             "valid": valid,
-            "issues": issues,
-            "warnings": warnings,
+            "level": "basic",
+            "issues": [{"message": issue, "type": "basic_validation"} for issue in issues],
+            "warnings": [{"message": warning, "type": "basic_validation"} for warning in warnings],
+            "suggestions": [],
             "summary": {
                 "components": len(circuit.components),
                 "nodes": len(circuit.nodes),

@@ -5,14 +5,17 @@ Professional circuit simulation with REST API, CLI tools, and AI integration.
 ## Features
 
 - **⚡ Simulation Engine**: PySpice + ngspice for DC, transient, AC analysis
+- **🔍 Circuit Validation**: Advanced short circuit detection with pathfinding algorithms
+- **🔋 Power Analysis**: Complete power dissipation analysis with component rating validation
 - **🖥️ CLI Interface**: Professional command-line tools with progress bars  
 - **🌐 REST API**: FastAPI with WebSocket, job management, interactive docs
-- **🎨 Analysis Dashboard**: Web-based GUI for multi-tab analysis (DC/AC/Transient) *[In Development]*
-- **🤖 AI Integration**: MCP server for Claude Code/Desktop integration
-- **📊 Reports**: Interactive Plotly charts, professional HTML reports
-- **📥 Import**: KiCad netlists, SPICE files, circuit-synth JSON
+- **🎨 Analysis Dashboard**: Web-based GUI for multi-tab analysis (DC/AC/Transient)
+- **🤖 AI Integration**: MCP server with 10 tools for Claude Code/Desktop integration
+- **📊 Reports**: Interactive Plotly charts, professional HTML reports with power analysis
+- **📥 Smart Import**: Intelligent KiCad netlist parsing with automatic SPICE model assignment
+- **🧠 Model Intelligence**: 90%+ component coverage - transistors, diodes, op-amps, logic gates auto-mapped
 - **📚 Example Library**: 10 complete circuits with comprehensive documentation
-- **🔌 50k+ Components**: KiCad-Spice-Library integration with real models
+- **🔌 50k+ Components**: Full KiCad-Spice-Library integration with fuzzy matching and behavioral fallbacks
 - **🐳 Production Ready**: Docker deployment, Redis/Celery backend
 
 ## Quick Start
@@ -38,7 +41,7 @@ docker-compose -f deployment/docker-compose.fastapi.yml up -d --build
 - **🌐 REST API**: FastAPI with WebSocket, job management, interactive docs
 - **🤖 AI Integration**: MCP server for Claude Code/Desktop integration
 - **📊 Reports**: Interactive Plotly charts, professional HTML reports
-- **📥 Import**: KiCad netlists, SPICE files, circuit-synth JSON
+- **📥 Smart Import**: Intelligent KiCad netlist parsing with automatic SPICE model assignment
 - **🐳 Production Ready**: Docker deployment, Redis/Celery backend
 
 ## Usage
@@ -48,16 +51,88 @@ docker-compose -f deployment/docker-compose.fastapi.yml up -d --build
 from circuit_sim import Circuit
 from circuit_sim.simulator import SimulationEngine
 
-# Define circuit
-circuit = (Circuit("RC Filter")
-    .add_voltage_source("V1", 1, 0, "5V")
-    .add_resistor("R1", 1, 2, "1k") 
-    .add_capacitor("C1", 2, 0, "1u"))
+# Define circuit with advanced components
+circuit = (Circuit("Amplifier Circuit")
+    .add_voltage_source("VCC", 4, 0, "12V")
+    .add_resistor("R1", 1, 2, "10k")
+    .add_bjt_transistor("Q1", collector=3, base=2, emitter=0, model="2N3904")
+    .add_resistor("RC", 4, 3, "1k")
+    .add_capacitor("C1", 1, 0, "100uF"))
 
-# Simulate and plot
+# Simulate and plot  
 results = SimulationEngine().simulate_dc(circuit)
-print(f"Output: {results.voltage(2)[0]:.2f}V")
+print(f"Output: {results.voltage(3)[0]:.2f}V")
 results.plot()
+```
+
+### Smart KiCad Import
+```python
+from src.io.parsers.kicad_parser import KiCadParser
+
+# Import KiCad netlist with automatic model assignment
+parser = KiCadParser()
+result = parser.parse_content_with_result(kicad_netlist_content)
+
+print(result.summary())  # Shows what was imported successfully
+# ✅ Import successful: 5/5 components
+#   ✓ Q1: bjt_transistor (model: 2N3904)  
+#   ✓ D1: diode (model: 1N4148)
+#   ✓ U1: opamp (model: LM358)
+
+circuit = result.circuit  # Ready for simulation!
+```
+
+### Advanced Visualizations
+```python
+from circuit_sim.visualization import (
+    NyquistPlotter, SmithChartPlotter, NicholsPlotter, InteractivePlotter,
+    PlotStyle
+)
+
+# Professional Nyquist plot for stability analysis
+nyquist = NyquistPlotter(style=PlotStyle.professional())
+result = nyquist.plot(
+    transfer_function=tf, 
+    frequencies=frequencies, 
+    show_stability=True,
+    mark_frequencies=[1, 10, 100]
+)
+print(f"System stable: {result.metadata['stability_analysis']['is_stable']}")
+print(f"Encirclements: {result.metadata['stability_analysis']['encirclements']}")
+
+# Smith chart for RF impedance matching (50Ω reference)
+smith = SmithChartPlotter(z0=50.0) 
+smith_result = smith.plot(
+    impedances=impedances,
+    frequencies=rf_frequencies,
+    show_vswr_circles=True,
+    vswr_values=[1.5, 2.0, 3.0]
+)
+print(f"Best VSWR: {min(smith_result.data['vswr']):.2f}")
+
+# Nichols chart for control system design
+nichols = NicholsPlotter()
+nichols.plot(
+    transfer_function=open_loop_tf,
+    frequencies=frequencies,
+    show_margins=True,
+    show_grid=True
+)
+
+# Interactive multi-trace Bode plots
+interactive = InteractivePlotter()
+html = interactive.create_multi_trace_bode(
+    frequencies=frequencies,
+    transfer_functions={
+        "Original": tf1,
+        "Compensated": tf2,
+        "Final": tf3
+    },
+    title="Control System Comparison"
+)
+with open("analysis.html", "w") as f:
+    f.write(html)
+# Open in browser for interactive exploration
 ```
 
 ### REST API
@@ -70,6 +145,39 @@ curl -X POST http://localhost:8000/api/circuits \
 # Start simulation  
 curl -X POST http://localhost:8000/api/circuits/{id}/simulate \
   -d '{"type": "dc"}'
+```
+
+### Power Analysis
+```python
+# Built-in power analysis
+from circuit_sim import Circuit
+from circuit_sim.simulator import SimulationEngine
+
+circuit = Circuit("Power Test")
+circuit.add_voltage_source("V1", 1, 0, "12V")
+circuit.add_resistor("R1", 1, 0, "100")  # 100Ω
+
+results = SimulationEngine().simulate_dc(circuit)
+power_analysis = results.analyze_power(circuit)
+
+print(f"Total Power: {power_analysis.total_power:.3f}W")
+for name, info in power_analysis.component_power.items():
+    print(f"{name}: {info.power:.3f}W @ {info.voltage:.1f}V")
+
+# Component rating validation
+ratings = {"R1": 0.25}  # 1/4W rating
+analysis = results.analyze_power(circuit, ratings)
+if not analysis.is_valid:
+    for issue in analysis.issues:
+        print(f"Issue: {issue.message}")
+```
+
+### Interactive Power Reports
+```bash
+# Generate comprehensive power analysis with Plotly visualizations
+python test_power_interactive.py
+# Opens: power_analysis_report.html (interactive dashboard)
+# Opens: power_analysis_detailed_report.html (component tables)
 ```
 
 ### CLI Commands

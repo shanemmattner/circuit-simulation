@@ -9,6 +9,11 @@ import re
 from typing import Any, Dict, List, Optional
 
 from circuit_sim import Circuit
+from .import_result import ImportResult, ComponentFailure, ComponentWarning, FailureLevel, create_component_failure
+from .value_extractor import ValueExtractor, ValueExtractionResult
+from .format_detector import FormatDetector, FormatInfo
+from .component_model_mapper import ComponentModelMapper
+from src.models.spice_loader import SpiceModelLoader
 
 
 class KiCadParser:
@@ -17,6 +22,15 @@ class KiCadParser:
     def __init__(self):
         self.components = {}
         self.nets = {}
+        self.value_extractor = ValueExtractor()
+        self.format_detector = FormatDetector()
+        # Initialize model mapper with SpiceModelLoader
+        try:
+            model_loader = SpiceModelLoader()
+            self.model_mapper = ComponentModelMapper(model_loader)
+        except Exception:
+            # If model library not available, disable advanced mapping
+            self.model_mapper = None
 
     def parse_content(self, content: str) -> Circuit:
         """
@@ -54,6 +68,315 @@ class KiCadParser:
                 circuit.add_inductor(ref, comp_nodes.get("1", 1), comp_nodes.get("2", 0), value)
 
         return circuit
+
+    def parse_content_with_result(self, content: str) -> ImportResult:
+        """
+        Parse KiCad netlist content with detailed result tracking.
+        
+        This is the new robust parsing method that provides detailed
+        information about what succeeded and what failed.
+        
+        Args:
+            content: Complete KiCad netlist as string
+            
+        Returns:
+            ImportResult with circuit and detailed success/failure information
+        """
+        # Initialize result tracker
+        result = ImportResult()
+        
+        try:
+            # Detect format first
+            format_info = self.format_detector.detect_format(content)
+            
+            # Add format warnings to result
+            for warning in format_info.warnings:
+                result.add_parsing_error(f"Format detection: {warning}")
+                
+            if not format_info.supported:
+                result.add_parsing_error(
+                    f"Format {format_info.format_type} (KiCad {format_info.version.value}) "
+                    f"has limited support"
+                )
+            
+            # Extract basic info
+            circuit_name = self._extract_circuit_name(content)
+            result.circuit = Circuit(circuit_name)
+            
+            # Parse components with robust handling
+            self._parse_components_robust(content, result, format_info)
+            
+            # Parse connectivity
+            nets = self._extract_nets_section(content)
+            if nets:
+                self._apply_connectivity_robust(result.circuit, nets, result)
+            else:
+                result.add_parsing_error("No nets section found - components will have default connections")
+                
+        except Exception as e:
+            # Critical parsing error
+            failure = create_component_failure(
+                "PARSER",
+                f"Critical parsing error: {str(e)}",
+                FailureLevel.CRITICAL,
+                suggestion="Check if netlist is valid KiCad format"
+            )
+            result.add_failure(failure)
+            
+        return result
+        
+    def detect_format(self, content: str) -> FormatInfo:
+        """Public method to detect format without parsing."""
+        return self.format_detector.detect_format(content)
+        
+    def _parse_components_robust(self, content: str, result: ImportResult, format_info: FormatInfo):
+        """Parse components using robust value extraction."""
+        try:
+            components = self._extract_components_section(content)
+            
+            for ref, comp_data in components.items():
+                try:
+                    self._process_single_component_robust(ref, comp_data, content, result)
+                except Exception as e:
+                    failure = create_component_failure(
+                        ref,
+                        f"Failed to process component: {str(e)}",
+                        FailureLevel.ERROR,
+                        suggestion="Check component definition in netlist"
+                    )
+                    result.add_failure(failure)
+                    
+        except Exception as e:
+            result.add_parsing_error(f"Failed to extract components section: {str(e)}")
+            
+    def _process_single_component_robust(self, ref: str, comp_data: dict, full_content: str, result: ImportResult):
+        """Process a single component with robust value extraction and error handling."""
+        
+        # Extract component type
+        symbol = comp_data.get("part", "")
+        
+        # First try to use the already-extracted value from component data
+        extracted_value = comp_data.get("value", "")
+        
+        if extracted_value and extracted_value.strip() and extracted_value != '""':
+            # We have a good value from the component extraction
+            value_result = type('ValueResult', (), {
+                'value': extracted_value,
+                'confidence': 0.9,
+                'method': 'component_extraction',
+                'warning': None
+            })()
+        else:
+            # Fall back to robust value extraction on raw content
+            value_result = self.value_extractor.extract_value(
+                full_content, 
+                ref, 
+                symbol
+            )
+        
+        # Handle value extraction results
+        if value_result.warning:
+            warning = ComponentWarning(
+                component_ref=ref,
+                warning_message=value_result.warning,
+                action_taken=f"Used value: {value_result.value}"
+            )
+            result.add_warning(warning)
+        
+        if not value_result.value:
+            failure = create_component_failure(
+                ref,
+                "Could not determine component value",
+                FailureLevel.ERROR,
+                suggestion=f"Add value for {ref} in KiCad schematic"
+            )
+            result.add_failure(failure)
+            return
+            
+        # Create component based on type
+        try:
+            success = self._create_circuit_component(
+                result.circuit, 
+                ref, 
+                symbol, 
+                value_result.value
+            )
+            
+            if success:
+                result.add_success(ref)
+            else:
+                failure = create_component_failure(
+                    ref,
+                    f"Unsupported component type: {symbol}",
+                    FailureLevel.ERROR,
+                    suggestion=f"Component type {symbol} not yet supported - add manually after import"
+                )
+                result.add_failure(failure)
+                
+        except Exception as e:
+            failure = create_component_failure(
+                ref,
+                f"Error creating component: {str(e)}",
+                FailureLevel.ERROR
+            )
+            result.add_failure(failure)
+            
+    def _create_circuit_component(self, circuit: Circuit, ref: str, symbol: str, value: str) -> bool:
+        """Create appropriate circuit component with model mapping. Returns True if successful."""
+        
+        # Default nodes - will be updated by connectivity analysis
+        node1, node2 = 1, 0
+        
+        try:
+            # Handle basic components first (no model mapping needed)
+            if symbol == "R" or ref.startswith("R"):
+                circuit.add_resistor(ref, node1, node2, value)
+                return True
+            elif symbol == "C" or ref.startswith("C"):
+                circuit.add_capacitor(ref, node1, node2, value)
+                return True
+            elif symbol == "L" or ref.startswith("L"):
+                circuit.add_inductor(ref, node1, node2, value)
+                return True
+            elif symbol in ["V", "VDC"] or ref.startswith("V"):
+                circuit.add_voltage_source(ref, node1, node2, value)
+                return True
+            elif symbol == "I" or ref.startswith("I"):
+                circuit.add_current_source(ref, node1, node2, value)
+                return True
+            
+            # For complex components, use model mapper if available
+            elif self.model_mapper:
+                return self._create_advanced_component(circuit, ref, symbol, value)
+            else:
+                # No model mapper available - component unsupported
+                return False
+                
+        except Exception:
+            return False
+            
+    def _create_advanced_component(self, circuit: Circuit, ref: str, symbol: str, value: str) -> bool:
+        """Create advanced component using model mapping."""
+        
+        try:
+            # Use model mapper to get appropriate model
+            component_model = self.model_mapper.map_component(symbol, ref, value)
+            
+            # Default nodes - will be updated by connectivity
+            default_nodes = {"1": 1, "2": 0, "3": 2, "4": 3, "5": 4}
+            
+            # Create component based on detected type
+            if component_model.type.startswith("transistor_bjt"):
+                circuit.add_bjt_transistor(
+                    ref,
+                    collector=default_nodes.get("1", 1),
+                    base=default_nodes.get("2", 2), 
+                    emitter=default_nodes.get("3", 0),
+                    model=self._extract_model_name(component_model.spice_model)
+                )
+                return True
+                
+            elif component_model.type.startswith("transistor_mosfet") or component_model.type == "mosfet":
+                circuit.add_mosfet(
+                    ref,
+                    drain=default_nodes.get("1", 1),
+                    gate=default_nodes.get("2", 2),
+                    source=default_nodes.get("3", 0),
+                    bulk=default_nodes.get("4", 0),
+                    model=self._extract_model_name(component_model.spice_model)
+                )
+                return True
+                
+            elif component_model.type.startswith("diode"):
+                circuit.add_diode(
+                    ref,
+                    anode=default_nodes.get("1", 1),
+                    cathode=default_nodes.get("2", 0),
+                    model=self._extract_model_name(component_model.spice_model)
+                )
+                return True
+                
+            elif component_model.type == "opamp":
+                circuit.add_opamp(
+                    ref,
+                    vplus=default_nodes.get("1", 1),
+                    vminus=default_nodes.get("2", 2),
+                    vout=default_nodes.get("3", 3),
+                    vcc=default_nodes.get("4", 4),
+                    vee=default_nodes.get("5", 0),
+                    model=self._extract_model_name(component_model.spice_model)
+                )
+                return True
+            else:
+                # Unknown advanced component type
+                return False
+                
+        except Exception:
+            return False
+            
+    def _extract_model_name(self, spice_model: str) -> str:
+        """Extract model name from SPICE model text."""
+        # For now, return the first word or a generic name
+        lines = spice_model.strip().split('\n')
+        for line in lines:
+            if '.model' in line.lower():
+                # Extract model name from .model statement
+                match = re.search(r'\.model\s+(\w+)', line, re.IGNORECASE)
+                if match:
+                    return match.group(1)
+        
+        # Fallback: return generic model name
+        return "GENERIC_MODEL"
+            
+    def _apply_connectivity_robust(self, circuit: Circuit, nets: dict, result: ImportResult):
+        """Apply network connectivity with error handling."""
+        try:
+            node_map = self._create_node_mapping(nets)
+            
+            # Update each component's connections
+            for component in circuit.components:
+                comp_ref = component.get("name", "")
+                if not comp_ref:
+                    continue
+                    
+                try:
+                    comp_nodes = self._find_component_nodes(comp_ref, nets, node_map)
+                    
+                    if len(comp_nodes) >= 2:
+                        pins = sorted(comp_nodes.keys())
+                        node1 = comp_nodes[pins[0]]
+                        node2 = comp_nodes[pins[1]]
+                        
+                        # Update component nodes
+                        self._update_component_nodes(component, node1, node2)
+                    else:
+                        warning = ComponentWarning(
+                            component_ref=comp_ref,
+                            warning_message="Insufficient pin connections found",
+                            action_taken="Using default node connections"
+                        )
+                        result.add_warning(warning)
+                        
+                except Exception as e:
+                    warning = ComponentWarning(
+                        component_ref=comp_ref,
+                        warning_message=f"Failed to update connectivity: {str(e)}",
+                        action_taken="Using default connections"
+                    )
+                    result.add_warning(warning)
+                    
+        except Exception as e:
+            result.add_parsing_error(f"Failed to apply connectivity: {str(e)}")
+            
+    def _update_component_nodes(self, component: dict, node1: int, node2: int):
+        """Update component node assignments."""
+        if "node1" in component:
+            component["node1"] = node1
+            component["node2"] = node2
+        elif "positive" in component:
+            component["positive"] = node1
+            component["negative"] = node2
+        # Add more component types as needed
 
     def _extract_circuit_name(self, content: str) -> str:
         """Extract circuit name from KiCad netlist."""
@@ -124,24 +447,57 @@ class KiCadParser:
                 continue
             elif in_components and line.startswith("(comp"):
                 # Extract ref and value from multi-line component
-                ref_match = re.search(r'\(ref "([^"]+)"\)', line)
-                if ref_match:
-                    ref = ref_match.group(1)
+                # Handle both quoted and unquoted references
+                ref_patterns = [
+                    r'\(ref "([^"]+)"\)',  # Quoted: (ref "R1")
+                    r'\(ref ([^)]+)\)'     # Unquoted: (ref R1)
+                ]
+                ref = None
+                for pattern in ref_patterns:
+                    ref_match = re.search(pattern, line)
+                    if ref_match:
+                        ref = ref_match.group(1).strip()
+                        break
+                        
+                if ref:
                     components[ref] = {"ref": ref}
 
-            elif in_components and "(value" in line:
-                # Extract value
-                value_match = re.search(r'\(value "([^"]*)"\)', line)
-                if value_match and components:
+            elif in_components and line.strip().startswith("(value"):
+                # Extract value - handle quoted and unquoted
+                # Only match lines that START with (value, not nested values
+                value_patterns = [
+                    r'^\s*\(value "([^"]*)"\)',  # Quoted: (value "10k")  
+                    r'^\s*\(value ([^)]+)\)'     # Unquoted: (value 10k)
+                ]
+                value = None
+                for pattern in value_patterns:
+                    value_match = re.search(pattern, line)
+                    if value_match:
+                        value = value_match.group(1).strip()
+                        break
+                        
+                if value and components:
                     last_ref = list(components.keys())[-1]
-                    components[last_ref]["value"] = value_match.group(1)
+                    # Only set if we don't already have a value (prevent overwrites)
+                    if "value" not in components[last_ref]:
+                        components[last_ref]["value"] = value
 
             elif in_components and "(libsource" in line:
-                # Extract part type
-                part_match = re.search(r'\(part "([^"]+)"\)', line)
-                if part_match and components:
+                # Extract part type - handle quoted and unquoted
+                part_patterns = [
+                    r'\(part "([^"]+)"\)',  # Quoted: (part "R")
+                    r'\(part ([^)]+)\)'     # Unquoted: (part R)
+                ]
+                part = None
+                for pattern in part_patterns:
+                    part_match = re.search(pattern, line)
+                    if part_match:
+                        part = part_match.group(1).strip()
+                        break
+                        
+                if part and components:
                     last_ref = list(components.keys())[-1]
-                    components[last_ref]["part"] = part_match.group(1)
+                    components[last_ref]["part"] = part
 
             elif in_components and line.startswith("(libparts"):
                 break  # End of components section
