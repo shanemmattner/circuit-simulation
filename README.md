@@ -172,13 +172,14 @@ circuit-simulation/
 
 The library includes a Model Context Protocol server for AI assistant integration:
 
-### Start MCP Server
+### Connect to Claude Code
+Add the MCP server directly to your Claude Code project:
 ```bash
-# Start the server
-python3 run_mcp_server.py
+# From project root directory
+claude mcp add circuit-simulation -- python3 run_mcp_server.py
 
-# Or with Docker
-docker-compose run circuit-sim python3 run_mcp_server.py
+# Verify it's added
+claude mcp list
 ```
 
 ### Connect to Claude Desktop

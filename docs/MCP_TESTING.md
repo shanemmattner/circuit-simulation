@@ -45,7 +45,54 @@ docker-compose run --rm circuit-sim python3 test_circuit_functions.py
 ✨ Ready for MCP client integration
 ```
 
-## Method 2: MCP Server Testing
+## Method 2: Claude Code Integration 🔧
+
+### Add MCP Server to Claude Code
+
+1. **Add the server to your project:**
+```bash
+# From the project root directory
+claude mcp add circuit-simulation -- python3 run_mcp_server.py
+```
+
+2. **Verify it's added:**
+```bash
+claude mcp list
+```
+
+3. **Test with Claude Code:**
+Once added, you can use circuit simulation tools directly in Claude Code:
+- `circuit.create` - Create new circuits
+- `circuit.add_component` - Add components (R, L, C, voltage sources)
+- `simulation.run_dc` - Run DC analysis
+- `analysis.get_results` - Get simulation results with plots
+
+### Remove Server (if needed)
+```bash
+claude mcp remove circuit-simulation
+```
+
+## Method 3: Claude Desktop Integration
+
+### Add to Claude Desktop Configuration
+
+Add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "circuit-simulation": {
+      "command": "python3", 
+      "args": ["run_mcp_server.py"],
+      "cwd": "/path/to/circuit-simulation"
+    }
+  }
+}
+```
+
+**Note:** Replace `/path/to/circuit-simulation` with your actual project path.
+
+## Method 4: MCP Server Testing
 
 ### Start the Server
 

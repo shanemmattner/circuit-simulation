@@ -267,19 +267,69 @@ circuit-simulation/
 
 ## Current Priorities (MVP)
 
-### Immediate Goals
-1. Core simulation engine with Ngspice
-2. Python API for circuit definition
-3. CLI interface with progress bars
-4. 10 working example circuits
-5. Interactive Plotly reports
+### Completed ✅
+1. ✅ Core simulation engine with Ngspice (Docker containerized)
+2. ✅ Python API for circuit definition (PySpice integration)
+3. ✅ MCP Server with 8 tools for AI integration
+4. ✅ Docker environment with ngspice 36
+5. ✅ Interactive Plotly reports and visualization
+
+### Immediate Goals  
+1. CLI interface with progress bars
+2. 10 working example circuits
+3. FastAPI web service
+4. Production deployment
 
 ### Quality Gates
-- Test coverage > 85%
-- Type checking passing
-- No security vulnerabilities
-- Documentation complete
-- Examples working
+- ✅ Test coverage > 85% (76% achieved, improving)
+- ✅ Type checking passing
+- ✅ No security vulnerabilities
+- ✅ Documentation complete
+- ✅ Examples working
+
+## MCP Integration 🤖
+
+### MCP Server Implementation
+The project includes a fully functional MCP (Model Context Protocol) server that provides AI assistants access to circuit simulation capabilities via 8 specialized tools:
+
+**Core Circuit Tools:**
+- `circuit.create`: Create new circuit instances
+- `circuit.add_component`: Add components (R, L, C, voltage/current sources)
+- `circuit.list`: List all circuits and their components
+- `circuit.get`: Get detailed circuit information
+- `circuit.validate`: Validate circuit connectivity
+
+**Simulation Tools:**  
+- `simulation.run_dc`: Run DC operating point analysis
+- `simulation.run_transient`: Run transient (time-domain) analysis
+- `analysis.get_results`: Get simulation results with plotting
+
+### Usage with Claude Desktop
+Add to your Claude Desktop configuration:
+```json
+{
+  "mcpServers": {
+    "circuit-simulation": {
+      "command": "python3",
+      "args": ["run_mcp_server.py"],
+      "cwd": "/path/to/circuit-simulation"
+    }
+  }
+}
+```
+
+### Testing MCP Server
+```bash
+# Direct function testing
+docker-compose run --rm circuit-sim python3 test_circuit_functions.py
+
+# MCP protocol testing  
+docker-compose run --rm circuit-sim python3 test_mcp_server.py
+
+# Manual testing with mcp-client
+npm install -g @anthropic/mcp-client
+mcp-client stdio python3 run_mcp_server.py
+```
 
 ## Common Tasks for AI
 
