@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+
+{% block title %}{{ metadata.circuit_name }} - Quick Analysis Report{% endblock %}
+
+{% block content %}
+<!-- Quick Summary -->
+<section class="executive-summary">
+    <h2>Quick Analysis Summary</h2>
+    <div class="summary-grid">
+        <div class="metric">
+            <h3>Components</h3>
+            <p class="value">{{ metadata.component_count }}</p>
+        </div>
+        <div class="metric">
+            <h3>Analysis</h3>
+            <p class="value">{{ metadata.analysis_type | upper }}</p>
+        </div>
+        {% if results.execution_time and results.execution_time != "N/A" %}
+        <div class="metric">
+            <h3>Sim Time</h3>
+            <p class="value">{{ "%.2f"|format(results.execution_time) }}s</p>
+        </div>
+        {% endif %}
+    </div>
+    
+    {% if summary and summary.text %}
+    <p><strong>Summary:</strong> {{ summary.text }}</p>
+    {% endif %}
+</section>
+
+<!-- Key Results -->
+<section class="key-results">
+    <h2>Key Results</h2>
+    
+    {% if results.analysis_type == "dc" and results.dc_operating_points %}
+    <h3>DC Voltages</h3>
+    <div class="metrics-grid">
+        {% for point in results.dc_operating_points %}
+        <div class="metric-card">
+            <h4>{{ point.node }}</h4>
+            <p>{{ "%.3f"|format(point.voltage) }} V</p>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    {% if results.analysis_type == "transient" and results.time_range %}
+    <div class="metric-card">
+        <h4>Simulation Duration</h4>
+        <p>{{ "%.3f"|format(results.time_range.stop - results.time_range.start) }}s</p>
+    </div>
+    {% endif %}
+    
+    <!-- Top Performance Metrics -->
+    {% if metrics %}
+    <h3>Performance Highlights</h3>
+    <div class="metrics-grid">
+        {% for metric_name, metric_value in metrics.items() %}
+        {% if loop.index <= 4 %}  {# Show only first 4 metrics #}
+        <div class="metric-card">
+            <h4>{{ metric_name | replace('_', ' ') | title }}</h4>
+            {% if metric_name.endswith('_time') %}
+                <p>{{ metric_value | format_time_duration }}</p>
+            {% elif metric_name == 'bandwidth' %}
+                <p>{{ metric_value | format_value('Hz') }}</p>
+            {% elif metric_name == 'power_dissipation' %}
+                <p>{{ metric_value | format_value('W') }}</p>
+            {% elif metric_name == 'efficiency' %}
+                <p>{{ (metric_value * 100) | round(1) }}%</p>
+            {% elif metric_name == 'gain' %}
+                <p>{{ metric_value | round(2) }} dB</p>
+            {% else %}
+                <p>{{ metric_value | round(3) }}</p>
+            {% endif %}
+        </div>
+        {% endif %}
+        {% endfor %}
+    </div>
+    {% endif %}
+</section>
+
+<!-- Primary Chart -->
+{% if charts_html %}
+<section class="primary-chart">
+    <h2>Primary Visualization</h2>
+    {% set primary_chart = charts_html.values() | first %}
+    <div class="chart-container">
+        {{ primary_chart | safe }}
+    </div>
+    
+    {% if charts_html | length > 1 %}
+    <p class="text-muted text-center mt-3">
+        <em>Additional charts available in the detailed report.</em>
+    </p>
+    {% endif %}
+</section>
+{% endif %}
+
+<!-- Quick Findings -->
+{% if summary and (summary.key_findings or summary.recommendations) %}
+<section class="quick-findings">
+    <h2>Quick Assessment</h2>
+    
+    {% if summary.key_findings %}
+    <h3>Key Findings</h3>
+    <ul class="findings-list">
+        {% for finding in summary.key_findings[:3] %}  {# Show only first 3 #}
+        <li>{{ finding }}</li>
+        {% endfor %}
+        {% if summary.key_findings | length > 3 %}
+        <li class="text-muted"><em>{{ summary.key_findings | length - 3 }} additional findings in detailed report.</em></li>
+        {% endif %}
+    </ul>
+    {% endif %}
+    
+    {% if summary.recommendations %}
+    <h3>Top Recommendations</h3>
+    <ul class="recommendations-list">
+        {% for recommendation in summary.recommendations[:2] %}  {# Show only first 2 #}
+        <li>{{ recommendation }}</li>
+        {% endfor %}
+        {% if summary.recommendations | length > 2 %}
+        <li class="text-muted"><em>{{ summary.recommendations | length - 2 }} additional recommendations in detailed report.</em></li>
+        {% endif %}
+    </ul>
+    {% endif %}
+</section>
+{% endif %}
+
+<!-- Quick Conclusion -->
+<section class="quick-conclusion">
+    <h2>Conclusion</h2>
+    <p>
+        The {{ metadata.analysis_type | upper }} analysis of <strong>{{ metadata.circuit_name }}</strong> 
+        ({{ metadata.component_count }} components) has completed successfully.
+        {% if metrics %}
+        Key performance metrics have been calculated and fall within expected ranges.
+        {% endif %}
+    </p>
+    
+    <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; border-left: 4px solid #007acc; margin-top: 20px;">
+        <p class="mb-0">
+            <strong>💡 Want more details?</strong> Generate a detailed report for comprehensive analysis, 
+            additional charts, complete component listings, and in-depth performance metrics.
+        </p>
+    </div>
+</section>
+{% endblock %}

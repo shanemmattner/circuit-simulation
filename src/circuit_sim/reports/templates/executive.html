@@ -1,0 +1,218 @@
+{% extends "base.html" %}
+
+{% block title %}{{ metadata.circuit_name }} - Executive Summary{% endblock %}
+
+{% block content %}
+<!-- Executive Dashboard -->
+<section class="executive-dashboard">
+    <h2>Executive Dashboard</h2>
+    <div class="summary-grid" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));">
+        <div class="metric">
+            <h3>Circuit Complexity</h3>
+            <p class="value">{{ metadata.component_count }}</p>
+            <small class="text-muted">Components</small>
+        </div>
+        <div class="metric">
+            <h3>Analysis Type</h3>
+            <p class="value">{{ metadata.analysis_type | upper }}</p>
+            <small class="text-muted">Simulation</small>
+        </div>
+        {% if results.execution_time and results.execution_time != "N/A" %}
+        <div class="metric">
+            <h3>Completion Time</h3>
+            <p class="value">{{ "%.1f"|format(results.execution_time) }}s</p>
+            <small class="text-muted">Duration</small>
+        </div>
+        {% endif %}
+        {% if metadata.node_count %}
+        <div class="metric">
+            <h3>Network Size</h3>
+            <p class="value">{{ metadata.node_count }}</p>
+            <small class="text-muted">Nodes</small>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- Business Impact Summary -->
+<section class="business-impact" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; border-radius: 12px; margin: 30px 0;">
+    <h2 style="color: white; border-bottom: 2px solid rgba(255,255,255,0.3);">Business Impact</h2>
+    <div class="row" style="display: flex; flex-wrap: wrap; gap: 20px; margin-top: 20px;">
+        <div class="col" style="flex: 1; min-width: 250px;">
+            <h3 style="color: #f8f9fa; margin-bottom: 15px;">📊 Performance Status</h3>
+            {% if metrics and metrics.efficiency %}
+                {% set efficiency_pct = (metrics.efficiency * 100) | round(1) %}
+                {% if efficiency_pct >= 90 %}
+                    <p><strong>✅ Excellent</strong> - Circuit efficiency at {{ efficiency_pct }}%</p>
+                {% elif efficiency_pct >= 75 %}
+                    <p><strong>✅ Good</strong> - Circuit efficiency at {{ efficiency_pct }}%</p>
+                {% elif efficiency_pct >= 50 %}
+                    <p><strong>⚠️ Acceptable</strong> - Circuit efficiency at {{ efficiency_pct }}%</p>
+                {% else %}
+                    <p><strong>🔴 Needs Attention</strong> - Circuit efficiency only {{ efficiency_pct }}%</p>
+                {% endif %}
+            {% else %}
+                <p><strong>✅ Nominal</strong> - Circuit operating within specifications</p>
+            {% endif %}
+        </div>
+        <div class="col" style="flex: 1; min-width: 250px;">
+            <h3 style="color: #f8f9fa; margin-bottom: 15px;">⚡ Power Assessment</h3>
+            {% if metrics and metrics.power_dissipation %}
+                <p><strong>Power Consumption:</strong> {{ metrics.power_dissipation | format_value('W') }}</p>
+                {% if metrics.power_dissipation < 0.1 %}
+                    <p class="text-success" style="color: #90EE90 !important;">Low power design ✅</p>
+                {% elif metrics.power_dissipation < 1.0 %}
+                    <p style="color: #FFD700;">Moderate power consumption ⚠️</p>
+                {% else %}
+                    <p style="color: #FFB6C1;">High power - consider optimization 🔴</p>
+                {% endif %}
+            {% else %}
+                <p>Power analysis not available for this simulation type.</p>
+            {% endif %}
+        </div>
+    </div>
+</section>
+
+<!-- Key Performance Indicators -->
+{% if metrics %}
+<section class="kpi-section">
+    <h2>Key Performance Indicators</h2>
+    <div class="metrics-grid">
+        {% for metric_name, metric_value in metrics.items() %}
+        <div class="metric-card" style="text-align: center;">
+            <h4>{{ metric_name | replace('_', ' ') | title }}</h4>
+            {% if metric_name.endswith('_time') %}
+                <p style="font-size: 1.8rem; color: #007acc;">{{ metric_value | format_time_duration }}</p>
+                {% if metric_name == 'rise_time' and metric_value < 0.001 %}
+                    <small class="text-success">Fast response ✅</small>
+                {% elif metric_name == 'settling_time' and metric_value < 0.005 %}
+                    <small class="text-success">Quick settling ✅</small>
+                {% endif %}
+            {% elif metric_name == 'bandwidth' %}
+                <p style="font-size: 1.8rem; color: #007acc;">{{ metric_value | format_value('Hz') }}</p>
+                {% if metric_value > 1000 %}
+                    <small class="text-success">Good bandwidth ✅</small>
+                {% endif %}
+            {% elif metric_name == 'power_dissipation' %}
+                <p style="font-size: 1.8rem; color: #007acc;">{{ metric_value | format_value('W') }}</p>
+            {% elif metric_name == 'efficiency' %}
+                {% set eff_pct = (metric_value * 100) | round(1) %}
+                <p style="font-size: 1.8rem; color: #007acc;">{{ eff_pct }}%</p>
+                {% if eff_pct >= 85 %}
+                    <small class="text-success">High efficiency ✅</small>
+                {% elif eff_pct >= 65 %}
+                    <small class="text-warning">Moderate efficiency ⚠️</small>
+                {% else %}
+                    <small class="text-danger">Low efficiency 🔴</small>
+                {% endif %}
+            {% elif metric_name == 'gain' %}
+                <p style="font-size: 1.8rem; color: #007acc;">{{ metric_value | round(1) }} dB</p>
+            {% elif metric_name == 'overshoot' %}
+                <p style="font-size: 1.8rem; color: #007acc;">{{ metric_value | round(1) }}%</p>
+                {% if metric_value < 10 %}
+                    <small class="text-success">Low overshoot ✅</small>
+                {% elif metric_value < 25 %}
+                    <small class="text-warning">Moderate overshoot ⚠️</small>
+                {% else %}
+                    <small class="text-danger">High overshoot 🔴</small>
+                {% endif %}
+            {% else %}
+                <p style="font-size: 1.8rem; color: #007acc;">{{ metric_value | round(2) }}</p>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+
+<!-- Executive Chart -->
+{% if charts_html %}
+<section class="executive-chart">
+    <h2>Primary Analysis</h2>
+    <div class="chart-container">
+        {% if 'transient_combined' in charts_html %}
+            {{ charts_html['transient_combined'] | safe }}
+        {% elif 'frequency_response' in charts_html %}
+            {{ charts_html['frequency_response'] | safe }}
+        {% elif 'dc_voltages' in charts_html %}
+            {{ charts_html['dc_voltages'] | safe }}
+        {% else %}
+            {{ charts_html.values() | first | safe }}
+        {% endif %}
+    </div>
+</section>
+{% endif %}
+
+<!-- Strategic Recommendations -->
+{% if summary and summary.recommendations %}
+<section class="strategic-recommendations">
+    <h2>Strategic Recommendations</h2>
+    <div style="display: grid; gap: 20px;">
+        {% for recommendation in summary.recommendations %}
+        <div style="background: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); border-left: 5px solid #007acc;">
+            <h3 style="color: #007acc; margin-top: 0; display: flex; align-items: center;">
+                <span style="margin-right: 10px;">💼</span>
+                Priority {{ loop.index }}
+            </h3>
+            <p style="margin-bottom: 0; line-height: 1.6;">{{ recommendation }}</p>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+
+<!-- Executive Summary -->
+<section class="executive-conclusion">
+    <h2>Executive Summary</h2>
+    <div style="background: #f8f9fa; padding: 30px; border-radius: 12px; border: 1px solid #e0e0e0;">
+        {% if summary and summary.text %}
+        <p style="font-size: 1.1rem; line-height: 1.7; margin-bottom: 20px;"><strong>Analysis Overview:</strong> {{ summary.text }}</p>
+        {% endif %}
+        
+        <p style="font-size: 1.1rem; line-height: 1.7; margin-bottom: 20px;">
+            The {{ metadata.analysis_type | upper }} analysis of <strong>{{ metadata.circuit_name }}</strong> has been completed, 
+            evaluating a circuit with {{ metadata.component_count }} components across {{ metadata.node_count }} nodes.
+        </p>
+        
+        {% if metrics %}
+        <h3 style="color: #007acc; margin-bottom: 15px;">Bottom Line</h3>
+        <div style="background: white; padding: 20px; border-radius: 8px; border-left: 4px solid #28a745;">
+            {% if metrics.efficiency and (metrics.efficiency * 100) >= 80 %}
+            <p style="margin-bottom: 10px;"><strong>✅ Recommendation: APPROVE</strong></p>
+            <p style="margin: 0;">Circuit demonstrates strong performance characteristics with {{ (metrics.efficiency * 100) | round(1) }}% efficiency. Ready for implementation.</p>
+            {% elif metrics.power_dissipation and metrics.power_dissipation < 0.5 %}
+            <p style="margin-bottom: 10px;"><strong>✅ Recommendation: APPROVE</strong></p>
+            <p style="margin: 0;">Low power consumption design ({{ metrics.power_dissipation | format_value('W') }}) meets energy efficiency requirements.</p>
+            {% else %}
+            <p style="margin-bottom: 10px;"><strong>✅ Recommendation: APPROVE WITH CONDITIONS</strong></p>
+            <p style="margin: 0;">Circuit meets functional requirements. Consider optimization opportunities identified in recommendations above.</p>
+            {% endif %}
+        </div>
+        {% else %}
+        <div style="background: white; padding: 20px; border-radius: 8px; border-left: 4px solid #007acc;">
+            <p style="margin-bottom: 10px;"><strong>✅ Status: ANALYSIS COMPLETE</strong></p>
+            <p style="margin: 0;">Circuit simulation completed successfully. All functional requirements have been validated.</p>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- Next Steps -->
+<section class="next-steps" style="background: #007acc; color: white; padding: 30px; border-radius: 12px; margin-top: 30px;">
+    <h2 style="color: white; border-bottom: 2px solid rgba(255,255,255,0.3);">Next Steps</h2>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 25px; margin-top: 25px;">
+        <div>
+            <h3 style="color: #f8f9fa;">🔍 Detailed Review</h3>
+            <p>Generate detailed technical report for engineering team review and validation.</p>
+        </div>
+        <div>
+            <h3 style="color: #f8f9fa;">🎯 Implementation</h3>
+            <p>Proceed with PCB layout and component procurement based on validated design.</p>
+        </div>
+        <div>
+            <h3 style="color: #f8f9fa;">📈 Optimization</h3>
+            <p>Consider performance improvements identified in recommendations section.</p>
+        </div>
+    </div>
+</section>
+{% endblock %}

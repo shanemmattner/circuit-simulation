@@ -16,7 +16,8 @@ A production-ready platform for electronic circuit simulation with REST API, Web
 - **Real Simulations**: Powered by PySpice and ngspice 
 - **🖥️ Professional CLI**: Complete command-line interface with progress bars
 - **Docker Support**: No installation conflicts, works everywhere
-- **Visualization**: Generate publication-quality plots with Plotly
+- **📊 Professional Reports**: Interactive HTML reports with Plotly charts and performance metrics
+- **Visualization**: Generate publication-quality plots and analysis reports
 - **🤖 MCP Integration**: Full AI assistant integration via Model Context Protocol
 - **🔧 Claude Code Ready**: Connect directly to Claude Code with `claude mcp add`
 - **Comprehensive Testing**: 85%+ code coverage with validation scripts
@@ -373,6 +374,54 @@ circuit-simulation/
 ├── tests/              # Test suite (76% coverage)
 ├── docker/             # Docker configurations
 └── notebooks/          # Jupyter notebooks
+```
+
+## Professional Report Generation 📊
+
+Generate comprehensive circuit analysis reports with interactive visualizations:
+
+### Quick Report Generation
+```python
+from circuit_sim.reports import ReportGenerator
+
+# Create your circuit and run simulation
+circuit = Circuit("RC Filter")
+# ... add components ...
+results = engine.simulate_transient(circuit, stop_time="10ms")
+
+# Generate professional report
+generator = ReportGenerator()
+report_path = generator.generate_report(
+    circuit=circuit,
+    results=results,
+    report_type="detailed",    # or "quick", "executive"
+    output_format="html",
+    description="Low-pass filter analysis"
+)
+
+print(f"Report generated: {report_path}")
+```
+
+### Report Types Available
+- **Detailed Report**: Complete technical analysis with component tables, interactive charts, performance metrics
+- **Quick Report**: Streamlined summary for rapid analysis and decision making  
+- **Executive Report**: Business-focused dashboard with performance insights and recommendations
+
+### Features
+- 📈 **Interactive Plotly Charts**: Hover for precise values, zoom/pan exploration
+- 📊 **Performance Metrics**: Rise time, settling time, bandwidth, power analysis
+- 🎨 **Professional Styling**: Responsive design suitable for presentations
+- 📱 **Mobile Friendly**: Works on desktop, tablet, and mobile devices
+- 🖨️ **Print Ready**: Optimized CSS for high-quality printed reports
+
+### Demo
+```bash
+# Run the complete report generation demo
+uv run python demo_full_report.py
+
+# Open generated reports in browser
+open demo_detailed_report.html
+open demo_executive_report.html
 ```
 
 ## MCP Server (AI Integration) 🤖

@@ -1,0 +1,223 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Executive Summary -->
+<section class="executive-summary">
+    <h2>Executive Summary</h2>
+    <div class="summary-grid">
+        <div class="metric">
+            <h3>Components</h3>
+            <p class="value">{{ metadata.component_count }}</p>
+        </div>
+        <div class="metric">
+            <h3>Nodes</h3>
+            <p class="value">{{ metadata.node_count }}</p>
+        </div>
+        <div class="metric">
+            <h3>Analysis Type</h3>
+            <p class="value">{{ metadata.analysis_type | upper }}</p>
+        </div>
+        {% if results.execution_time and results.execution_time != "N/A" %}
+        <div class="metric">
+            <h3>Simulation Time</h3>
+            <p class="value">{{ "%.3f"|format(results.execution_time) }}s</p>
+        </div>
+        {% endif %}
+    </div>
+    
+    {% if summary and summary.text %}
+    <p><strong>Analysis Summary:</strong> {{ summary.text }}</p>
+    {% endif %}
+</section>
+
+<!-- Circuit Analysis -->
+<section class="circuit-analysis">
+    <h2>Circuit Analysis</h2>
+    
+    {% if circuit.components %}
+    <h3>Component List</h3>
+    <table class="component-table">
+        <thead>
+            <tr>
+                <th>Component</th>
+                <th>Type</th>
+                <th>Value</th>
+                <th>Connections</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for component in circuit.components %}
+            <tr>
+                <td><strong>{{ component.name }}</strong></td>
+                <td>{{ component.type }}</td>
+                <td>
+                    {% if component.value != "N/A" %}
+                        <code>{{ component.value }}</code>
+                    {% else %}
+                        {{ component.value }}
+                    {% endif %}
+                </td>
+                <td><span class="text-muted">{{ component.nodes }}</span></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+    
+    {% if circuit.nodes_list %}
+    <h3>Node Summary</h3>
+    <p>Circuit contains <strong>{{ circuit.total_nodes }}</strong> nodes: Ground (0)
+    {% if circuit.nodes_list %}, {{ circuit.nodes_list | join(', ') }}{% endif %}</p>
+    {% endif %}
+</section>
+
+<!-- Simulation Results -->
+<section class="simulation-results">
+    <h2>Simulation Results</h2>
+    
+    {% if results.analysis_type == "dc" and results.dc_operating_points %}
+    <h3>DC Operating Points</h3>
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Node</th>
+                <th>Voltage (V)</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for point in results.dc_operating_points %}
+            <tr>
+                <td>{{ point.node }}</td>
+                <td><strong>{{ "%.6f"|format(point.voltage) }}</strong></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+    
+    {% if results.analysis_type == "transient" and results.time_range %}
+    <h3>Transient Analysis Summary</h3>
+    <div class="summary-grid">
+        <div class="metric">
+            <h4>Start Time</h4>
+            <p>{{ "%.6f"|format(results.time_range.start) }}s</p>
+        </div>
+        <div class="metric">
+            <h4>Stop Time</h4>
+            <p>{{ "%.6f"|format(results.time_range.stop) }}s</p>
+        </div>
+        <div class="metric">
+            <h4>Data Points</h4>
+            <p>{{ results.time_range.points }}</p>
+        </div>
+    </div>
+    {% endif %}
+    
+    {% if results.analysis_type == "ac" and results.frequency_range %}
+    <h3>AC Analysis Summary</h3>
+    <div class="summary-grid">
+        <div class="metric">
+            <h4>Start Frequency</h4>
+            <p>{{ results.frequency_range.start | format_value('Hz') }}</p>
+        </div>
+        <div class="metric">
+            <h4>Stop Frequency</h4>
+            <p>{{ results.frequency_range.stop | format_value('Hz') }}</p>
+        </div>
+        <div class="metric">
+            <h4>Data Points</h4>
+            <p>{{ results.frequency_range.points }}</p>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Interactive Charts -->
+    <h3>Interactive Charts</h3>
+    {% if charts_html %}
+        {% for chart_name, chart_html in charts_html.items() %}
+        <div class="chart-container">
+            <h4>{{ chart_name | replace('_', ' ') | title }}</h4>
+            {{ chart_html | safe }}
+        </div>
+        {% endfor %}
+    {% else %}
+    <p class="text-muted">No charts available for this analysis.</p>
+    {% endif %}
+</section>
+
+<!-- Performance Metrics -->
+{% if metrics %}
+<section class="performance-metrics">
+    <h2>Performance Metrics</h2>
+    <div class="metrics-grid">
+        {% for metric_name, metric_value in metrics.items() %}
+        <div class="metric-card">
+            <h4>{{ metric_name | replace('_', ' ') | title }}</h4>
+            {% if metric_name.endswith('_time') %}
+                <p>{{ metric_value | format_time_duration }}</p>
+            {% elif metric_name == 'bandwidth' %}
+                <p>{{ metric_value | format_value('Hz') }}</p>
+            {% elif metric_name == 'power_dissipation' %}
+                <p>{{ metric_value | format_value('W') }}</p>
+            {% elif metric_name == 'efficiency' %}
+                <p>{{ (metric_value * 100) | round(1) }}%</p>
+            {% elif metric_name == 'gain' %}
+                <p>{{ metric_value | round(2) }} dB</p>
+            {% elif metric_name == 'overshoot' %}
+                <p>{{ metric_value | round(1) }}%</p>
+            {% elif metric_name == 'phase_margin' %}
+                <p>{{ metric_value | round(1) }}°</p>
+            {% else %}
+                <p>{{ metric_value | round(3) }}</p>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+
+<!-- Key Findings and Recommendations -->
+{% if summary %}
+<section class="analysis-summary">
+    <h2>Analysis Summary</h2>
+    
+    {% if summary.key_findings %}
+    <h3>Key Findings</h3>
+    <ul class="findings-list">
+        {% for finding in summary.key_findings %}
+        <li>{{ finding }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+    
+    {% if summary.recommendations %}
+    <h3>Recommendations</h3>
+    <ul class="recommendations-list">
+        {% for recommendation in summary.recommendations %}
+        <li>{{ recommendation }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+</section>
+{% endif %}
+
+<!-- Conclusions -->
+<section class="conclusions">
+    <h2>Conclusions</h2>
+    {% if summary and summary.conclusions %}
+    <p>{{ summary.conclusions }}</p>
+    {% else %}
+    <p>The {{ metadata.analysis_type | upper }} analysis has been completed successfully. 
+    The circuit shows nominal performance characteristics within expected parameters. 
+    {% if metrics %}
+    Key performance metrics have been calculated and are presented above.
+    {% endif %}
+    All simulation results are available in the interactive charts for detailed examination.</p>
+    {% endif %}
+    
+    <p class="text-muted mt-3">
+    <strong>Note:</strong> This report contains interactive Plotly charts. 
+    Hover over data points for precise values, use the toolbar to zoom, pan, or download chart images.
+    </p>
+</section>
+{% endblock %}
