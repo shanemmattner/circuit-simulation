@@ -1,0 +1,6 @@
+* RC Low-Pass Filter Test Circuit
+V1 1 0 DC 5V
+R1 1 2 1k
+C1 2 0 1u
+.op
+.end
