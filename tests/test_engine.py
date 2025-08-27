@@ -180,20 +180,22 @@ class TestSimulationEngine:
     def test_ac_parameters(self):
         """Test AC simulation parameter validation."""
         circuit = Circuit("Test")
-        circuit.add_voltage_source("V1", 1, 0, "1V")
+        circuit.add_voltage_source("V1", 1, 0, "DC 0V AC 1V")  # AC source for AC analysis
         circuit.add_resistor("R1", 1, 0, "1k")
 
         engine = SimulationEngine()
 
-        # AC analysis not implemented yet
-        with pytest.raises(NotImplementedError, match="AC analysis"):
-            engine.simulate_ac(
-                circuit,
-                start_frequency=100,
-                stop_frequency=10000,
-                number_of_points=50,
-                variation="lin",
-            )
+        # AC analysis now implemented - test that it works
+        results = engine.simulate_ac(
+            circuit,
+            start_frequency=100,
+            stop_frequency=10000,
+            points_per_decade=20,
+            variation="dec",
+        )
+        
+        assert results.analysis_type == "ac"
+        assert results.frequency is not None
 
     def test_simulate_ac_basic_rc_circuit(self):
         """Test basic AC simulation with RC circuit - TDD failing test."""
