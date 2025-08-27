@@ -82,11 +82,15 @@ uv run python test_mcp_server.py
 ## Library Architecture
 
 ### Core Modules
-- `src/core/`: Circuit simulation engine (keep pure, no external dependencies)
-- `src/models/`: Data models with validation (use Pydantic)
-- `src/api/`: Public API layer (user-facing, stable interfaces)
-- `src/reports/`: Report generation (Plotly visualizations)
-- `src/utils/`: Shared utilities (keep minimal)
+- `src/circuit_sim/`: Main library package
+  - `circuit.py`: Circuit definition with fluent API
+  - `simulator/`: Simulation engine and results handling
+  - `reports/`: Professional report generation system
+    - `generator.py`: Main ReportGenerator orchestration
+    - `builders/`: Format-specific builders (HTML, PDF)
+    - `templates/`: Professional Jinja2 templates
+    - `charts/`: Interactive Plotly chart generation
+    - `utils/`: Formatting and metrics utilities
 
 ### Design Patterns
 - Use dependency injection for flexibility
@@ -171,6 +175,35 @@ def simulate_circuit(
         >>> result = simulate_circuit(circuit, duration=0.001)
         >>> result.plot()
     """
+```
+
+### Report Generation Example
+```python
+from circuit_sim.reports import ReportGenerator
+
+def generate_analysis_report(circuit: Circuit, results: SimulationResults) -> str:
+    """Generate professional circuit analysis report.
+    
+    Args:
+        circuit: Circuit definition with components
+        results: Simulation results from analysis
+    
+    Returns:
+        Path to generated HTML report
+    
+    Example:
+        >>> circuit = Circuit("RC Filter")
+        >>> results = engine.simulate_transient(circuit, "10ms")
+        >>> report_path = generate_analysis_report(circuit, results)
+        >>> # Report contains interactive charts, metrics, analysis
+    """
+    generator = ReportGenerator()
+    return generator.generate_report(
+        circuit=circuit,
+        results=results,
+        report_type="detailed",
+        output_format="html"
+    )
 ```
 
 ### API Documentation
