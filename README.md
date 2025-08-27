@@ -1,23 +1,30 @@
-# Circuit Simulation Library 🔌
+# Circuit Simulation Platform 🔌
 
-A professional Python library for electronic circuit simulation with an easy-to-use API, Docker support, and beautiful visualizations.
+A production-ready platform for electronic circuit simulation with REST API, WebSocket real-time updates, Docker deployment, and AI integration.
 
 ## Features ✨
 
+### 🚀 **FastAPI Web Service** (NEW!)
+- **REST API**: Complete circuit simulation via HTTP endpoints
+- **WebSocket Support**: Real-time simulation progress updates  
+- **Job Management**: Background processing with Redis/Celery
+- **Docker Deployment**: Production-ready containerized services
+- **Interactive Docs**: Automatic OpenAPI/Swagger documentation
+
+### 🔧 **Core Simulation Engine**
 - **Simple API**: Define circuits with human-readable component values
 - **Real Simulations**: Powered by PySpice and ngspice 
 - **🖥️ Professional CLI**: Complete command-line interface with progress bars
 - **Docker Support**: No installation conflicts, works everywhere
-- **Visualization**: Generate publication-quality plots
+- **Visualization**: Generate publication-quality plots with Plotly
 - **🤖 MCP Integration**: Full AI assistant integration via Model Context Protocol
 - **🔧 Claude Code Ready**: Connect directly to Claude Code with `claude mcp add`
 - **Comprehensive Testing**: 85%+ code coverage with validation scripts
 - **Production Ready**: Type hints, formatting, linting configured
-- **🍎 macOS Native**: Optimized setup and testing for Apple Silicon
 
 ## Quick Start 🚀
 
-### Command Line Interface
+### 🖥️ Command Line Interface
 
 ```bash
 # Install the package
@@ -36,7 +43,32 @@ circuit-sim info
 circuit-sim --help
 ```
 
-### Python API
+### 🌐 FastAPI Web Service
+
+```bash
+# Start the API server
+uv run uvicorn src.api.main:app --reload --host 0.0.0.0 --port 8000
+
+# Or with Docker Compose (production)
+docker-compose -f docker-compose.fastapi.yml up -d --build
+
+# Interactive documentation
+open http://localhost:8000/docs
+
+# Test the API
+curl -X POST http://localhost:8000/api/circuits \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "RC Filter",
+    "components": [
+      {"type": "voltage_source", "name": "V1", "positive_node": "1", "negative_node": "0", "value": "5V"},
+      {"type": "resistor", "name": "R1", "positive_node": "1", "negative_node": "2", "value": "1k"},
+      {"type": "capacitor", "name": "C1", "positive_node": "2", "negative_node": "0", "value": "1u"}
+    ]
+  }'
+```
+
+### 🐍 Python Library
 
 ```python
 from circuit_sim import Circuit
@@ -61,7 +93,23 @@ results.plot()
 
 ## Installation
 
-### Using Docker (Recommended)
+### 🚀 FastAPI Web Service
+
+```bash
+# Install dependencies with uv (recommended)
+uv install
+
+# Or with pip
+pip install -r requirements.txt
+
+# Start development server
+uv run uvicorn src.api.main:app --reload --host 0.0.0.0 --port 8000
+
+# Production deployment
+docker-compose -f docker-compose.fastapi.yml up -d --build
+```
+
+### 🐍 Python Library (Local)
 
 ```bash
 # Build the Docker image
@@ -96,6 +144,61 @@ pip install -e .
 # Run tests
 pytest
 ```
+
+## 🌐 FastAPI Web Service
+
+### Endpoints Overview
+
+- **`GET /health`** - Service health check
+- **`GET /docs`** - Interactive API documentation  
+- **`POST /api/circuits`** - Create circuit
+- **`GET /api/circuits/{id}`** - Get circuit details
+- **`POST /api/circuits/{id}/simulate`** - Start simulation
+- **`GET /api/simulations/{job_id}`** - Get job status
+- **`GET /api/simulations/{job_id}/results`** - Get results
+- **`WS /ws/simulation/{job_id}`** - Real-time updates
+
+### WebSocket Real-time Updates
+
+```javascript
+// Connect to simulation updates
+const ws = new WebSocket('ws://localhost:8000/ws/simulation/job-123');
+
+ws.onmessage = (event) => {
+    const data = JSON.parse(event.data);
+    
+    if (data.type === 'progress') {
+        console.log(`Progress: ${data.data.progress}%`);
+        console.log(`Message: ${data.data.message}`);
+    } else if (data.type === 'result') {
+        console.log(`Simulation ${data.data.status}`);
+    }
+};
+
+// Send commands
+ws.send(JSON.stringify({type: 'command', action: 'cancel'}));
+```
+
+### Production Deployment
+
+```bash
+# Copy environment template
+cp .env.example .env
+
+# Start all services
+docker-compose -f docker-compose.fastapi.yml up -d --build
+
+# Scale workers
+docker-compose -f docker-compose.fastapi.yml up -d --scale worker=3
+
+# View logs
+docker-compose -f docker-compose.fastapi.yml logs -f api
+
+# Health check
+curl http://localhost:8000/health
+```
+
+See [API_REFERENCE.md](API_REFERENCE.md) for complete documentation.
 
 ## Usage Examples 💡
 

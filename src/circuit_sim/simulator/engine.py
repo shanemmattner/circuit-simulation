@@ -213,4 +213,102 @@ class SimulationEngine:
             RuntimeError: If simulation fails
             NotImplementedError: AC analysis not yet fully implemented
         """
-        raise NotImplementedError("AC analysis will be implemented in Phase 2")
+# Generate frequency vector
+        frequencies = self._generate_frequency_vector(
+            start_frequency, stop_frequency, points_per_decade, variation
+        )
+        
+        # Build PySpice circuit
+        pyspice_circuit = self.builder.build_circuit(circuit)
+
+        # Create simulator
+        try:
+            simulator = pyspice_circuit.simulator(temperature=25, nominal_temperature=25)
+        except Exception as e:
+            if "NgSpice" in str(e) or "ngspice" in str(e).lower():
+                raise ImportError(
+                    "ngspice is not installed. Install it with:\n"
+                    "  Ubuntu/Debian: sudo apt-get install ngspice\n"
+                    "  macOS: brew install ngspice\n"
+                    "  Windows: Download from http://ngspice.sourceforge.net/"
+                )
+            raise RuntimeError(f"Failed to create simulator: {e}")
+
+        # Run AC analysis
+        try:
+            if variation == "dec":
+                # Use PySpice AC analysis with decade variation
+                analysis = simulator.ac(
+                    start_frequency=start_frequency,
+                    stop_frequency=stop_frequency,
+                    number_of_points=points_per_decade,
+                    variation="dec"
+                )
+            else:
+                # Linear variation - calculate total points
+                num_points = len(frequencies)
+                analysis = simulator.ac(
+                    start_frequency=start_frequency,
+                    stop_frequency=stop_frequency,
+                    number_of_points=num_points,
+                    variation="lin"
+                )
+        except Exception as e:
+            raise RuntimeError(f"AC simulation failed: {e}")
+
+        # Extract results
+        results = SimulationResults("ac")
+        results.set_frequency_vector(frequencies)
+
+        # Get complex node voltages
+        for node_name in analysis.nodes.keys():
+            # Extract node identifier  
+            if node_name.startswith("v(") and node_name.endswith(")"):
+                node_id = node_name[2:-1]
+            else:
+                node_id = node_name
+
+            # Convert to int if possible
+            try:
+                node_id = int(node_id)
+            except ValueError:
+                pass
+
+            # Get complex voltage waveform
+            complex_voltage = np.array([complex(v) for v in analysis.nodes[node_name]])
+            results.add_voltage(node_id, complex_voltage)
+
+        # Get complex branch currents (if available)
+        for branch_name in analysis.branches.keys():
+            complex_current = np.array([complex(i) for i in analysis.branches[branch_name]])
+            results.add_current(branch_name, complex_current)
+
+        # Add metadata
+        results.add_metadata("start_frequency", start_frequency)
+        results.add_metadata("stop_frequency", stop_frequency)
+        results.add_metadata("points_per_decade", points_per_decade)
+        results.add_metadata("variation", variation)
+        results.add_metadata("circuit_name", circuit.name)
+
+        return results
+
+    def _generate_frequency_vector(
+        self,
+        start_freq: float,
+        stop_freq: float,
+        points_per_decade: int,
+        variation: str
+    ) -> np.ndarray:
+        """Generate frequency vector for AC analysis."""
+        if variation == "dec":
+            # Logarithmic (decade) variation
+            num_decades = np.log10(stop_freq / start_freq)
+            num_points = int(num_decades * points_per_decade) + 1
+            return np.logspace(
+                np.log10(start_freq),
+                np.log10(stop_freq),
+                num_points
+            )
+        else:
+            # Linear variation
+            return np.linspace(start_freq, stop_freq, 1000)
