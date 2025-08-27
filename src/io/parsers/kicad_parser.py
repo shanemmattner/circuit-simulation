@@ -12,6 +12,8 @@ from circuit_sim import Circuit
 from .import_result import ImportResult, ComponentFailure, ComponentWarning, FailureLevel, create_component_failure
 from .value_extractor import ValueExtractor, ValueExtractionResult
 from .format_detector import FormatDetector, FormatInfo
+from .component_model_mapper import ComponentModelMapper
+from src.models.spice_loader import SpiceModelLoader
 
 
 class KiCadParser:
@@ -22,6 +24,13 @@ class KiCadParser:
         self.nets = {}
         self.value_extractor = ValueExtractor()
         self.format_detector = FormatDetector()
+        # Initialize model mapper with SpiceModelLoader
+        try:
+            model_loader = SpiceModelLoader()
+            self.model_mapper = ComponentModelMapper(model_loader)
+        except Exception:
+            # If model library not available, disable advanced mapping
+            self.model_mapper = None
 
     def parse_content(self, content: str) -> Circuit:
         """
@@ -213,12 +222,13 @@ class KiCadParser:
             result.add_failure(failure)
             
     def _create_circuit_component(self, circuit: Circuit, ref: str, symbol: str, value: str) -> bool:
-        """Create appropriate circuit component. Returns True if successful."""
+        """Create appropriate circuit component with model mapping. Returns True if successful."""
         
         # Default nodes - will be updated by connectivity analysis
         node1, node2 = 1, 0
         
         try:
+            # Handle basic components first (no model mapping needed)
             if symbol == "R" or ref.startswith("R"):
                 circuit.add_resistor(ref, node1, node2, value)
                 return True
@@ -234,12 +244,89 @@ class KiCadParser:
             elif symbol == "I" or ref.startswith("I"):
                 circuit.add_current_source(ref, node1, node2, value)
                 return True
+            
+            # For complex components, use model mapper if available
+            elif self.model_mapper:
+                return self._create_advanced_component(circuit, ref, symbol, value)
             else:
-                # Unsupported component type
+                # No model mapper available - component unsupported
                 return False
                 
         except Exception:
             return False
+            
+    def _create_advanced_component(self, circuit: Circuit, ref: str, symbol: str, value: str) -> bool:
+        """Create advanced component using model mapping."""
+        
+        try:
+            # Use model mapper to get appropriate model
+            component_model = self.model_mapper.map_component(symbol, ref, value)
+            
+            # Default nodes - will be updated by connectivity
+            default_nodes = {"1": 1, "2": 0, "3": 2, "4": 3, "5": 4}
+            
+            # Create component based on detected type
+            if component_model.type.startswith("transistor_bjt"):
+                circuit.add_bjt_transistor(
+                    ref,
+                    collector=default_nodes.get("1", 1),
+                    base=default_nodes.get("2", 2), 
+                    emitter=default_nodes.get("3", 0),
+                    model=self._extract_model_name(component_model.spice_model)
+                )
+                return True
+                
+            elif component_model.type.startswith("transistor_mosfet") or component_model.type == "mosfet":
+                circuit.add_mosfet(
+                    ref,
+                    drain=default_nodes.get("1", 1),
+                    gate=default_nodes.get("2", 2),
+                    source=default_nodes.get("3", 0),
+                    bulk=default_nodes.get("4", 0),
+                    model=self._extract_model_name(component_model.spice_model)
+                )
+                return True
+                
+            elif component_model.type.startswith("diode"):
+                circuit.add_diode(
+                    ref,
+                    anode=default_nodes.get("1", 1),
+                    cathode=default_nodes.get("2", 0),
+                    model=self._extract_model_name(component_model.spice_model)
+                )
+                return True
+                
+            elif component_model.type == "opamp":
+                circuit.add_opamp(
+                    ref,
+                    vplus=default_nodes.get("1", 1),
+                    vminus=default_nodes.get("2", 2),
+                    vout=default_nodes.get("3", 3),
+                    vcc=default_nodes.get("4", 4),
+                    vee=default_nodes.get("5", 0),
+                    model=self._extract_model_name(component_model.spice_model)
+                )
+                return True
+            else:
+                # Unknown advanced component type
+                return False
+                
+        except Exception:
+            return False
+            
+    def _extract_model_name(self, spice_model: str) -> str:
+        """Extract model name from SPICE model text."""
+        # For now, return the first word or a generic name
+        lines = spice_model.strip().split('\n')
+        for line in lines:
+            if '.model' in line.lower():
+                # Extract model name from .model statement
+                match = re.search(r'\.model\s+(\w+)', line, re.IGNORECASE)
+                if match:
+                    return match.group(1)
+        
+        # Fallback: return generic model name
+        return "GENERIC_MODEL"
             
     def _apply_connectivity_robust(self, circuit: Circuit, nets: dict, result: ImportResult):
         """Apply network connectivity with error handling."""

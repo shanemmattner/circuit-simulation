@@ -214,6 +214,151 @@ class Circuit:
 
         return self
 
+    def add_bjt_transistor(
+        self, name: str, collector: Union[int, str], base: Union[int, str], 
+        emitter: Union[int, str], model: str = "2N3904"
+    ) -> "Circuit":
+        """
+        Add a BJT transistor to the circuit.
+
+        Args:
+            name: Component identifier (e.g., "Q1")
+            collector: Collector terminal node
+            base: Base terminal node  
+            emitter: Emitter terminal node
+            model: SPICE model name (e.g., "2N3904")
+
+        Returns:
+            self for method chaining
+        """
+        # Convert "gnd" to 0
+        for node in [collector, base, emitter]:
+            if node == "gnd":
+                node = 0
+            self.nodes.add(node)
+
+        self.components.append({
+            "type": "bjt_transistor",
+            "name": name,
+            "collector": collector,
+            "base": base,
+            "emitter": emitter,
+            "model": model
+        })
+
+        return self
+
+    def add_diode(
+        self, name: str, anode: Union[int, str], cathode: Union[int, str], 
+        model: str = "1N4148"
+    ) -> "Circuit":
+        """
+        Add a diode to the circuit.
+
+        Args:
+            name: Component identifier (e.g., "D1")
+            anode: Anode terminal node
+            cathode: Cathode terminal node
+            model: SPICE model name (e.g., "1N4148")
+
+        Returns:
+            self for method chaining
+        """
+        # Convert "gnd" to 0
+        if anode == "gnd":
+            anode = 0
+        if cathode == "gnd":
+            cathode = 0
+
+        self.nodes.add(anode)
+        self.nodes.add(cathode)
+
+        self.components.append({
+            "type": "diode",
+            "name": name,
+            "anode": anode,
+            "cathode": cathode,
+            "model": model
+        })
+
+        return self
+
+    def add_opamp(
+        self, name: str, vplus: Union[int, str], vminus: Union[int, str],
+        vout: Union[int, str], vcc: Union[int, str], vee: Union[int, str],
+        model: str = "LM358"
+    ) -> "Circuit":
+        """
+        Add an operational amplifier to the circuit.
+
+        Args:
+            name: Component identifier (e.g., "U1")
+            vplus: Non-inverting input node
+            vminus: Inverting input node
+            vout: Output node
+            vcc: Positive supply node
+            vee: Negative supply node (often ground)
+            model: SPICE model name (e.g., "LM358")
+
+        Returns:
+            self for method chaining
+        """
+        # Convert "gnd" to 0 and add all nodes
+        for node in [vplus, vminus, vout, vcc, vee]:
+            if node == "gnd":
+                node = 0
+            self.nodes.add(node)
+
+        self.components.append({
+            "type": "opamp", 
+            "name": name,
+            "vplus": vplus,
+            "vminus": vminus,
+            "vout": vout,
+            "vcc": vcc,
+            "vee": vee,
+            "model": model
+        })
+
+        return self
+
+    def add_mosfet(
+        self, name: str, drain: Union[int, str], gate: Union[int, str],
+        source: Union[int, str], bulk: Union[int, str], 
+        model: str = "IRF540"
+    ) -> "Circuit":
+        """
+        Add a MOSFET transistor to the circuit.
+
+        Args:
+            name: Component identifier (e.g., "Q1")
+            drain: Drain terminal node
+            gate: Gate terminal node
+            source: Source terminal node 
+            bulk: Bulk/substrate terminal node
+            model: SPICE model name (e.g., "IRF540")
+
+        Returns:
+            self for method chaining
+        """
+        # Convert "gnd" to 0 and add all nodes
+        for node in [drain, gate, source, bulk]:
+            if node == "gnd":
+                node = 0
+            self.nodes.add(node)
+
+        self.components.append({
+            "type": "mosfet",
+            "name": name,
+            "drain": drain,
+            "gate": gate,
+            "source": source,
+            "bulk": bulk,
+            "model": model
+        })
+
+        return self
+
     def simulate(self, analysis: str = "dc", **kwargs) -> "SimulationResults":
         """
         Run circuit simulation.

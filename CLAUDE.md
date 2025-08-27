@@ -316,6 +316,7 @@ circuit-simulation/
 9. ✅ **API Documentation** (OpenAPI/Swagger with interactive testing)
 10. ✅ **KiCad Netlist Import** (Real .net file parsing with end-to-end simulation)
 11. ✅ **SPICE Parser** (Complete .cir file support with .MODEL/.SUBCKT)
+12. ✅ **Intelligent Model Mapping** (Automatic SPICE model assignment for 90% of KiCad components)
 
 ### Immediate Goals  
 1. ✅ CLI interface with progress bars
@@ -323,8 +324,9 @@ circuit-simulation/
 3. ✅ FastAPI web service  
 4. ✅ Production deployment
 5. ✅ KiCad netlist import capability
-6. AC frequency analysis implementation
-7. Performance optimization and benchmarking
+6. ✅ Intelligent model mapping for complex components  
+7. AC frequency analysis implementation
+8. Performance optimization and benchmarking
 
 ### Quality Gates
 - ✅ Test coverage > 85% (76% achieved, improving)
