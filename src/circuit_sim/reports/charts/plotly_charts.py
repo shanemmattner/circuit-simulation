@@ -292,11 +292,35 @@ class PlotlyChartGenerator:
 
         # Bode Plot (Magnitude and Phase)
         if results.nodes:
+            # Find nodes with interesting frequency response (not flat)
+            interesting_nodes = []
+            
             for node in results.nodes:
                 if node != 0:
                     voltage = results.voltage(node)
                     if voltage is not None and np.iscomplexobj(voltage):
-                        magnitude_db = 20 * np.log10(np.abs(voltage))
+                        magnitude = np.abs(voltage)
+                        # Check if node has significant frequency variation
+                        mag_variation = magnitude.max() - magnitude.min()
+                        
+                        if mag_variation > 0.01:  # More than 1% variation
+                            interesting_nodes.append(node)
+            
+            # If no interesting nodes, show all (fallback)
+            nodes_to_plot = interesting_nodes if interesting_nodes else [n for n in results.nodes if n != 0]
+            
+            # Prioritize higher-numbered nodes (usually outputs) if we have multiple
+            nodes_to_plot = sorted(nodes_to_plot, reverse=True)[:2]  # Max 2 nodes to avoid clutter
+            
+            for node in nodes_to_plot:
+                voltage = results.voltage(node)
+                if voltage is not None and np.iscomplexobj(voltage):
+                        # Calculate magnitude and phase with proper handling of small values
+                        magnitude_linear = np.abs(voltage)
+                        
+                        # Avoid log of zero by setting minimum value
+                        magnitude_linear_safe = np.maximum(magnitude_linear, 1e-12)
+                        magnitude_db = 20 * np.log10(magnitude_linear_safe)
                         phase_deg = np.angle(voltage, deg=True)
 
                         fig = make_subplots(
@@ -364,7 +388,10 @@ class PlotlyChartGenerator:
                 if node != 0:
                     voltage = results.voltage(node)
                     if voltage is not None and np.iscomplexobj(voltage):
-                        magnitude_db = 20 * np.log10(np.abs(voltage))
+                        # Safe magnitude calculation
+                        magnitude_linear = np.abs(voltage)
+                        magnitude_linear_safe = np.maximum(magnitude_linear, 1e-12)
+                        magnitude_db = 20 * np.log10(magnitude_linear_safe)
 
                         fig.add_trace(
                             go.Scatter(
@@ -445,7 +472,10 @@ class PlotlyChartGenerator:
                     if node != 0:
                         voltage = results.voltage(node)
                         if voltage is not None and np.iscomplexobj(voltage):
-                            magnitude_db = 20 * np.log10(np.abs(voltage))
+                            # Safe magnitude calculation
+                            magnitude_linear = np.abs(voltage)
+                            magnitude_linear_safe = np.maximum(magnitude_linear, 1e-12)
+                            magnitude_db = 20 * np.log10(magnitude_linear_safe)
                             fig.add_trace(
                                 go.Scatter(
                                     x=results.frequency,

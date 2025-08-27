@@ -1,440 +1,220 @@
-# PRD: SPICE Netlist Import/Export System
+# PRD: SPICE Netlist Export & circuit-synth Integration
 
-**Status**: DRAFT 📝  
-**Version**: 1.0  
+**Issue**: #8  
 **Created**: August 27, 2025  
-**Owner**: Circuit Simulation Team  
-**GitHub Issue**: [#8](https://github.com/circuit-synth/circuit-simulation/issues/8)
+**Author**: Claude  
+**Status**: Draft
 
 ## Executive Summary
 
-Implement SPICE and KiCad netlist import/export with deep integration to circuit-synth and circuit-intelligence repositories, enabling hierarchical circuit analysis and subcircuit simulation while maintaining standalone utility.
+Add SPICE netlist export capability to circuit-simulation and create a bridge to circuit-synth for comprehensive EDA workflow integration. Leverage existing circuit-synth JSON format and KiCad export capabilities rather than duplicating functionality.
 
 ## Problem Statement
 
-### Current State
-- Circuit simulation library uses proprietary Python API
-- circuit-synth has KiCad netlist → hierarchical JSON conversion
-- No SPICE format support for academic/industry standard circuits
-- No integration between circuit-synth hierarchy and simulation capabilities
-- Subcircuit simulation requires manual extraction
+Currently, the platform has:
+- **Basic SPICE import** via `SpiceParser` for simple circuits
+- **No SPICE export** - Cannot generate SPICE netlists from Circuit objects  
+- **No circuit-synth integration** - Missing bridge to leverage existing JSON format and KiCad export
 
-### User Pain Points
-- **circuit-synth users**: Cannot simulate extracted hierarchical designs
-- **Academic users**: Cannot import textbook SPICE examples
-- **circuit-intelligence integration**: Missing netlist analysis pipeline
-- **Hierarchical analysis**: No way to simulate subcircuits individually
+**circuit-synth already provides**:
+- ✅ JSON circuit format with hierarchical support
+- ✅ KiCad netlist export functionality  
+- ✅ Professional circuit representation (Circuit, Component, Net, Pin)
 
-## Vision Statement
+**What's missing**: Integration layer and SPICE export functionality.
 
-> "Enable seamless circuit portability across the entire EDA ecosystem, from academic SPICE examples to professional design flows, making our simulation library the universal translator for circuit designs."
+## Goals & Success Criteria
 
-## Success Metrics
+### Primary Goals
+1. **SPICE Export Engine** - Generate industry-standard SPICE netlists from Circuit objects
+2. **circuit-synth Bridge** - Bidirectional conversion: Circuit ↔ circuit-synth JSON ↔ KiCad
+3. **Enhanced Import** - Use circuit-synth as intermediate format for complex circuits
+4. **Professional Integration** - CLI and MCP tools for complete EDA workflow
 
-### Primary KPIs
-- **Import Success Rate**: 95%+ of standard SPICE files parse correctly
-- **Format Coverage**: Support 5+ major EDA formats (SPICE, LTSpice, KiCad, PSpice, Spectre)
-- **Performance**: Parse 1000+ component netlists in <1 second
-- **User Adoption**: 70% of new users start by importing existing circuits
+### Success Metrics
+- Export 10+ example circuits to valid SPICE netlists
+- Seamless Circuit → circuit-synth JSON → KiCad netlist workflow
+- Import circuit-synth JSON projects for simulation
+- Integration with existing CLI and MCP tools
 
-### Secondary KPIs
-- **Error Reporting**: Clear, actionable error messages for 100% of parse failures
-- **Model Preservation**: Maintain 100% of component models and parameters
-- **Export Quality**: Generated netlists simulate identically in target tools
-- **Documentation**: Complete format support matrix with examples
+## Technical Requirements
 
-## Target Users
+### SPICE Export Engine
+```python
+class SpiceExporter:
+    def export_circuit(self, circuit: Circuit) -> str:
+        """Generate SPICE netlist from circuit-simulation Circuit object"""
+        
+    def export_to_file(self, circuit: Circuit, filepath: str):
+        """Export circuit to .cir/.sp file"""
+        
+    def export_with_analysis(self, circuit: Circuit, analysis_commands: List[str]) -> str:
+        """Export with SPICE analysis commands (.TRAN, .AC, .DC)"""
+```
 
-### Primary Personas
+### circuit-synth Integration Bridge
+```python
+class CircuitSynthBridge:
+    def to_circuit_synth_json(self, circuit: Circuit) -> Dict[str, Any]:
+        """Convert Circuit to circuit-synth JSON format"""
+        
+    def from_circuit_synth_json(self, json_data: Dict[str, Any]) -> Circuit:
+        """Import circuit-synth JSON for simulation"""
+        
+    def to_kicad_via_circuit_synth(self, circuit: Circuit, output_dir: str):
+        """Generate KiCad project via circuit-synth (leverages existing export)"""
+```
 
-**🎓 Academic Researcher (Dr. Sarah)**
-- Needs: Import textbook examples, share results in papers
-- Pain: Manually transcribing SPICE from literature
-- Success: One-click import of any academic circuit
+### Enhanced Import via circuit-synth
+```python
+class CircuitSynthImporter:
+    def import_json_project(self, json_path: str) -> Circuit:
+        """Import circuit-synth JSON project for simulation"""
+        
+    def import_kicad_netlist_via_circuit_synth(self, netlist_path: str) -> Circuit:
+        """Import KiCad netlist using circuit-synth as intermediate format"""
+```
 
-**👨‍💻 Hardware Engineer (Mike)**  
-- Needs: Import legacy designs, export to production tools
-- Pain: Tool lock-in prevents design reuse
-- Success: Seamless workflow integration
+### Integration Points
+- **SPICE → Circuit**: Direct import (existing SpiceParser)
+- **Circuit → SPICE**: New export functionality  
+- **Circuit → circuit-synth JSON → KiCad**: Complete EDA workflow
+- **circuit-synth JSON → Circuit**: Import existing projects for simulation
 
-**📚 Student (Alex)**
-- Needs: Work with course materials, submit in required formats
-- Pain: Learning multiple tool syntaxes
-- Success: Focus on circuit design, not file formats
+## Architecture
 
-## Functional Requirements
-
-### Core Import Features
-
-#### FR1: SPICE Format Support
-**Requirement**: Parse standard SPICE variants with high fidelity
-
-**Supported Formats** (Phase 1 Focus):
-- Standard SPICE (.cir, .sp) - Priority 1
-- KiCad netlist (.net) - Priority 1
-- PSpice (.cir with extensions) - Priority 2
-
-**Acceptance Criteria**:
-- Parse component definitions (R, L, C, V, I, M, Q, D)
-- Handle subcircuit definitions (.SUBCKT)
-- Extract model definitions (.MODEL)
-- Process parameter definitions (.PARAM)
-- Resolve include files (.INCLUDE)
-- Maintain node naming and connectivity
-
-#### FR2: circuit-synth Integration
-**Requirement**: Deep integration with existing circuit-synth KiCad processing
-
-**Integration Points**:
-- Use circuit-synth's hierarchical JSON as intermediate format
-- Enable simulation of extracted subcircuits
-- Preserve circuit-synth's component mapping logic
-- Support circuit-intelligence analysis pipeline
-
-**Acceptance Criteria**:
-- Import circuit-synth JSON hierarchy directly
-- Simulate individual subcircuits from hierarchy
-- Maintain compatibility with existing circuit-synth workflows
-- Export results back to circuit-synth format
-
-#### FR3: Robust Error Handling
-**Requirement**: Provide actionable feedback for parsing issues
-
-**Features**:
-- Line-by-line error reporting
-- Syntax validation with suggestions
-- Component model validation
-- Node connectivity verification
-
-### Export Capabilities
-
-#### FR4: Multi-Format Export
-**Requirement**: Generate netlists compatible with target simulators
-
-**Export Formats**:
-- Standard SPICE netlist
-- Spectre netlist for Cadence
-- Verilog-A behavioral models
-- KiCad netlist for PCB layout
-- Python circuit definition (round-trip)
-
-#### FR5: Template System
-**Requirement**: Customizable export templates for different use cases
-
-**Templates**:
-- Academic submission format
-- Production netlist with headers
-- Simulation testbench wrapper
-- Documentation format
-
-## Technical Architecture
-
-### System Design with circuit-synth Integration
-
+### Module Structure
 ```
 src/io/
-├── parsers/
-│   ├── base_parser.py          # Common parsing interface
-│   ├── spice_parser.py         # Standard SPICE (.cir, .sp)
-│   ├── kicad_parser.py         # KiCad netlist (.net)
-│   └── circuit_synth_bridge.py # Bridge to circuit-synth JSON
 ├── exporters/
-│   ├── base_exporter.py        # Common export interface
-│   ├── spice_exporter.py       # Standard SPICE output
-│   ├── kicad_exporter.py       # KiCad netlist generation
-│   └── python_exporter.py     # Circuit definition code
-├── hierarchical/
-│   ├── subcircuit_manager.py   # Hierarchical circuit handling
-│   ├── port_interface.py       # Subcircuit port management
-│   ├── testbench_generator.py  # Individual subcircuit testing
-│   └── hierarchy_simulator.py  # Multi-level simulation
-├── models/
-│   ├── netlist.py             # Intermediate representation
-│   ├── component.py           # Component abstraction
-│   ├── subcircuit.py          # Hierarchical designs
-│   └── circuit_synth_json.py   # circuit-synth JSON format
-└── utils/
-    ├── tokenizer.py           # SPICE tokenization
-    ├── validator.py           # Netlist validation
-    └── model_library.py       # Component model database
+│   ├── spice_exporter.py           # SPICE netlist export engine
+│   └── circuit_synth_bridge.py     # Bridge to circuit-synth
+├── importers/
+│   ├── circuit_synth_importer.py   # Import circuit-synth JSON
+│   └── enhanced_spice_parser.py    # Enhanced SPICE parser
+└── integration/
+    ├── format_converter.py         # Multi-format conversion
+    └── workflow_manager.py         # End-to-end workflows
 ```
 
-### Data Flow with Hierarchical Support
-
+### Data Flow Architecture
 ```
-Input Files → Parser → Hierarchical IR → Individual/Group Simulation
-     ├── SPICE (.cir) → SPICE Parser → Circuit API → Flat Simulation
-     ├── KiCad (.net) → KiCad Parser → Circuit API → Hierarchical Simulation  
-     └── circuit-synth JSON → Bridge → Subcircuit Groups → Individual Tests
+SPICE Files → SpiceParser → Circuit Objects → Simulation
+                                ↓
+Circuit Objects → SpiceExporter → SPICE Files
 
-Export: Circuit API → Exporter → Output Format
-         └── Subcircuit API → Testbench Generator → Individual Tests
-```
+Circuit Objects → CircuitSynthBridge → circuit-synth JSON → KiCad Project
+                                                          ↓
+circuit-synth JSON ← CircuitSynthImporter ← Circuit Objects
 
-### circuit-synth Integration Points
-
-Based on research, circuit-synth provides:
-1. **Hierarchical JSON Structure**: Nested subcircuits with component/net data
-2. **Component Mapping**: Symbol, footprint, pin information preserved  
-3. **Bidirectional Conversion**: Python ↔ KiCad ↔ JSON workflows
-4. **Pin-Level Connectivity**: Exact pin mappings with names, numbers, types
-5. **Testable Architecture**: Individual .py files for each subcircuit
-
-### Subcircuit Interface Strategy (Based on SPICE Standards)
-
-**Port Definition Standard**:
-```spice
-.SUBCKT POWER_SUPPLY VIN VOUT GND ENABLE
-* VIN: Input voltage port (typ 5V-15V)
-* VOUT: Regulated output (3.3V)
-* GND: Ground reference 
-* ENABLE: Logic enable input
-... circuit implementation ...
-.ENDS
+Multi-format workflow:
+SPICE → Circuit → circuit-synth JSON → KiCad → PCB Design
 ```
 
-**Testbench Generation Strategy**:
+### API Integration
 ```python
-def create_subcircuit_testbench(subcircuit: Circuit, ports: Dict[str, str]):
-    """Create isolated testbench for subcircuit simulation"""
-    testbench = Circuit(f"{subcircuit.name}_testbench")
-    
-    # Add test sources for each input port
-    for port_name, port_type in ports.items():
-        if port_type == "input":
-            testbench.add_voltage_source(f"V_{port_name}", port_name, "gnd", "test_value")
-        elif port_type == "power":
-            testbench.add_voltage_source(f"V_{port_name}", port_name, "gnd", "supply_voltage")
-        elif port_type == "output":
-            testbench.add_resistor(f"R_LOAD_{port_name}", port_name, "gnd", "load_resistance")
-    
-    # Include subcircuit instance
-    testbench.add_subcircuit(subcircuit)
-    
-    return testbench
+# CLI commands
+circuit-sim export --format spice circuit.json
+circuit-sim export --format circuit-synth circuit.json  
+circuit-sim import circuit-synth-project.json
+
+# MCP tools (3 new)
+- export.to_spice(circuit_id, include_analysis=True)
+- export.to_circuit_synth(circuit_id)
+- import.from_circuit_synth(json_path)
+
+# FastAPI endpoints
+POST /api/circuits/export/{circuit_id}?format=spice
+POST /api/circuits/export/{circuit_id}?format=circuit-synth
+POST /api/circuits/import/circuit-synth
 ```
-
-**Group Simulation Strategy**:
-- **Individual Mode**: Simulate each subcircuit with generated testbench
-- **Hierarchical Mode**: Simulate subcircuits within parent context
-- **Integration Mode**: Full system simulation with all subcircuits
-
-### Parser Architecture
-
-```python
-class NetlistParser:
-    def parse(self, filepath: str) -> Netlist:
-        """Parse netlist file to intermediate representation"""
-        
-    def validate(self, netlist: Netlist) -> ValidationResult:
-        """Validate netlist for completeness and correctness"""
-        
-class CircuitConverter:
-    def to_circuit(self, netlist: Netlist) -> Circuit:
-        """Convert netlist to internal Circuit format"""
-        
-    def from_circuit(self, circuit: Circuit) -> Netlist:
-        """Convert Circuit back to netlist representation"""
-```
-
-## Risk Assessment
-
-### Technical Risks
-
-**High Risk - Format Complexity**
-- **Risk**: SPICE syntax variations cause parse failures
-- **Mitigation**: Comprehensive test suite with real-world files
-- **Contingency**: Graceful degradation with manual override options
-
-**Medium Risk - Model Translation**
-- **Risk**: Component models don't translate between formats
-- **Mitigation**: Extensive model mapping database
-- **Contingency**: Generic model fallbacks with warnings
-
-**Low Risk - Performance**
-- **Risk**: Large netlists cause memory/speed issues
-- **Mitigation**: Streaming parser with lazy evaluation
-- **Contingency**: Chunked processing for very large files
-
-### Business Risks
-
-**Medium Risk - User Expectations**
-- **Risk**: Users expect 100% compatibility with every variant
-- **Mitigation**: Clear documentation of supported features
-- **Contingency**: Community contribution for edge cases
 
 ## Implementation Plan
 
-### Phase 1: Core SPICE Parser (Week 1-2)
-- [ ] Basic SPICE tokenizer and grammar
-- [ ] Component parsing (R, L, C, V, I)
-- [ ] Node connectivity resolution
-- [ ] Unit tests with sample files
+### Phase 1: SPICE Export Engine (2 days)
+**Chunk 1**: Basic SpiceExporter class - convert Circuit components to SPICE syntax
+**Chunk 2**: Analysis command integration (.TRAN, .AC, .DC statements)
+**Chunk 3**: Professional SPICE formatting with comments and validation
 
-### Phase 2: Advanced Features (Week 2-3)
-- [ ] Subcircuit support (.SUBCKT)
-- [ ] Model definitions (.MODEL)
-- [ ] Parameter handling (.PARAM)
-- [ ] Include file resolution
+### Phase 2: circuit-synth Bridge (2 days)  
+**Chunk 4**: CircuitSynthBridge - Circuit to circuit-synth JSON conversion
+**Chunk 5**: CircuitSynthImporter - JSON to Circuit conversion
+**Chunk 6**: Integration testing with existing circuit-synth projects
 
-### Phase 3: Multi-Format Support (Week 3-4)
-- [ ] LTSpice ASC parser
-- [ ] KiCad netlist parser
-- [ ] Export functionality
-- [ ] Template system
+### Phase 3: Enhanced Workflows (2 days)
+**Chunk 7**: Multi-format converter (Circuit → SPICE/JSON/KiCad workflows)
+**Chunk 8**: CLI integration (export/import commands)
+**Chunk 9**: MCP tools integration (3 new tools)
 
-### Phase 4: Polish & Integration (Week 4-5)
-- [ ] Error handling and validation
-- [ ] Performance optimization
-- [ ] Documentation and examples
-- [ ] CI/CD integration
+### Phase 4: Integration & Polish (2 days)
+**Chunk 10**: FastAPI endpoint implementation  
+**Chunk 11**: Comprehensive testing with example circuits
+**Chunk 12**: Documentation and workflow examples
 
-## Testing Strategy
+## User Stories
 
-### Test Coverage Requirements
-- **Unit Tests**: 95% coverage for all parsers
-- **Integration Tests**: Round-trip conversion accuracy
-- **Performance Tests**: 1000+ component files
-- **Compatibility Tests**: Real-world file corpus
+**As a professional engineer**, I want to:
+- Export simulation-ready circuits to SPICE format for other SPICE simulators
+- Import circuit-synth JSON projects to run simulations and analysis
+- Generate KiCad projects from my simulation circuits for PCB design
 
-### Test File Library
-```
-tests/fixtures/
-├── spice/
-│   ├── basic_circuits/         # Simple R, L, C examples
-│   ├── amplifiers/             # Op-amp designs
-│   ├── complex/                # Large hierarchical designs
-│   └── edge_cases/             # Unusual syntax variants
-├── ltspice/
-├── kicad/
-└── reference_outputs/          # Expected parse results
-```
+**As a system integrator**, I want to:
+- Use circuit-simulation as the analysis engine for circuit-synth projects
+- Convert between SPICE, circuit-synth JSON, and KiCad formats seamlessly
+- Leverage existing circuit-synth component intelligence and KiCad export
 
-## Quality Gates
+**As an EDA workflow user**, I want to:
+- Complete workflow: SPICE → simulate → optimize → circuit-synth JSON → KiCad → PCB
+- Import existing circuit-synth projects for validation and analysis
+- Use MCP tools for AI-powered circuit analysis and optimization
 
-### Definition of Done
-- [ ] Parses 95% of test file corpus
-- [ ] All exported netlists simulate correctly
-- [ ] Performance benchmarks met
-- [ ] Documentation complete with examples
-- [ ] No critical or high-severity bugs
+## Technical Considerations
 
-### Performance Benchmarks
-- Parse 100 components: <100ms
-- Parse 1000 components: <1s
-- Parse 10,000 components: <10s
-- Memory usage: <100MB for largest files
+### SPICE Compliance
+- **SPICE 3f5** compatibility as baseline standard
+- **Ngspice extensions** support for enhanced functionality
+- **Industry conventions** for component naming and organization
 
-## Documentation Requirements
+### Performance
+- Export 1000+ component circuits in <2 seconds
+- Streaming export for very large netlists (>10k components)  
+- Memory-efficient import with lazy evaluation
 
-### User Documentation
-- Format support matrix
-- Import/export tutorials
-- Troubleshooting guide
-- Best practices for each format
+### Quality Assurance
+- Round-trip testing with 10 example circuits
+- SPICE syntax validation against industry parsers
+- Integration testing with existing simulation workflows
 
-### Developer Documentation
-- Parser architecture overview
-- Adding new format support
-- Component model mapping
-- Testing new parsers
+## Risks & Mitigation
 
-## Future Enhancements
+**Risk**: SPICE syntax complexity and edge cases
+**Mitigation**: Focus on 90% common use cases, extensive testing
 
-### Phase 2 Features (Next Quarter)
-- Verilog-A behavioral model export
-- IBIS model support
-- Real-time format conversion API
-- Web-based netlist viewer
+**Risk**: Round-trip data loss or corruption  
+**Mitigation**: Comprehensive integrity checking and validation
 
-### Community Features
-- Format plugin architecture
-- Community parser contributions
-- Crowdsourced test file library
-- Format support voting
+**Risk**: Performance with large netlists
+**Mitigation**: Streaming I/O and memory optimization
 
-## Success Criteria
+## Dependencies
 
-### Launch Criteria
-1. Support 3+ major formats (SPICE, LTSpice, KiCad)
-2. 90%+ parse success rate on test corpus
-3. Complete round-trip conversion
-4. Performance targets met
-5. Documentation published
+- Existing `SpiceParser` class as foundation
+- `Circuit` API for component access  
+- **circuit-synth submodule** for JSON format and KiCad export
+- CLI framework for command integration
+- MCP server for AI tool integration
 
-### Long-term Success
-1. Become the de facto converter for academic use
-2. Integration requests from commercial EDA vendors
-3. Community contributions for niche formats
-4. Citation in research papers as standard tool
+## Definition of Done
 
-## Key Integration Questions for Implementation
+- [ ] SpiceExporter generates valid SPICE netlists from Circuit objects
+- [ ] CircuitSynthBridge converts Circuit ↔ circuit-synth JSON format
+- [ ] CircuitSynthImporter loads existing circuit-synth projects for simulation
+- [ ] CLI commands: `export --format spice/circuit-synth`, `import circuit-synth`
+- [ ] MCP tools: `export.to_spice`, `export.to_circuit_synth`, `import.from_circuit_synth`
+- [ ] FastAPI endpoints for multi-format export/import
+- [ ] Complete workflow: Circuit → circuit-synth JSON → KiCad project generation
+- [ ] Integration testing with circuit-synth example projects
+- [ ] Documentation with EDA workflow examples
 
-### **1. circuit-synth JSON Format Specifics**
-From the research, I see circuit-synth uses a specific JSON structure:
-- **Components**: `{"J1": {"symbol": "Connector:USB_C_Receptacle", "ref": "J1", "pins": [...]}}`
-- **Nets**: `{"net_name": [{"component": "R1", "pin": {"number": "1", "name": "in", "type": "passive"}}]}`
-- **Subcircuits**: Nested hierarchy with individual `.py` files
-
-**Questions**:
-- Should we use circuit-synth's `json_loader.py` directly as a dependency?
-- Do we need to preserve the exact JSON format for round-trip compatibility?
-- How should we handle circuit-synth's pin mapping vs SPICE node numbering?
-
-### **2. Subcircuit Simulation Strategy**
-Research shows three common approaches:
-- **Individual Testbenches**: Each subcircuit tested in isolation with generated test sources
-- **Hierarchical Context**: Subcircuits simulated within their parent circuit
-- **Port Replacement**: Replace subcircuits with behavioral models based on simulation results
-
-**Questions**:
-- Which simulation modes are most valuable for your circuit-synth/circuit-intelligence workflow?
-- Should we auto-generate testbenches for each subcircuit in circuit-synth JSON?
-- Do you want individual subcircuit analysis (power consumption, transfer function) or full system simulation?
-
-### **3. Interface Handling for KiCad Hierarchical Sheets**
-KiCad hierarchical sheets use:
-- **Global nets**: Power, ground that span all sheets
-- **Hierarchical pins**: Explicit connections between sheets
-- **Local nets**: Nets contained within a sheet
-
-**Questions**:
-- Should we treat KiCad hierarchical pins as SPICE `.SUBCKT` ports?
-- How should we handle global nets (VCC, GND) that appear in multiple subcircuits?
-- Do you want simulation results aggregated back to the parent level?
-
-### **4. Integration with circuit-intelligence**  
-**Questions**:
-- What kind of netlist analysis does circuit-intelligence need from this parser?
-- Should the parser output structured data for circuit-intelligence consumption?
-- Do you need critical path analysis or just connectivity information?
-
-### **5. Available SPICE Models (KiCad-Spice-Library Research)**
-**Model Library Scale**: 537+ SPICE model files across 7 categories
-
-**Available Models**:
-- **Digital Logic**: 74xx series (13 families: HC, LS, ALS, etc.)
-- **Diodes**: General diodes, LEDs, Zener diodes  
-- **Op-Amps**: LM358, TL072, TL082, Op07, and manufacturer collections
-- **Transistors**: BJT (BC546, 2N3904/6, power), FET (JFET, MOSFET)
-- **Manufacturer Libraries**:
-  - Texas Instruments (80+ op-amp models)
-  - Maxim Integrated (50+ precision models) 
-  - Linear Technology (precision analog)
-  - Infineon Technologies (power devices)
-
-**Integration Strategy**:
-- Use KiCad-Spice-Library as authoritative model source
-- Map KiCad symbols to specific SPICE models automatically
-- Support both basic models (Device:R) and advanced manufacturer models
-
-**Questions**:
-- Should we auto-map common symbols (Device:R → generic resistor, TI:LM358 → TI model)?
-- Do you want manufacturer-specific models prioritized over generic ones?
-- Should `.MODEL` parsing handle both simple and complex manufacturer models?
-
----
-
-**Approval Required**: Please review and approve this PRD before beginning implementation.
-
-**Next Steps**: Upon approval, create detailed technical specifications and begin Phase 1 implementation with circuit-synth integration.
+**Timeline**: 8 days total  
+**Approval Required**: Yes - before implementation begins

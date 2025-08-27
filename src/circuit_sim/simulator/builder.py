@@ -126,13 +126,13 @@ class PySpiceBuilder:
         if name.upper().startswith("V"):
             name = name[1:]  # Remove V prefix
 
-        # Use PySpice units correctly (using @ operator with unit objects)
-        # Create voltage source with both DC and AC components
-        voltage_source = pyspice_circuit.V(name, node1, node2, voltage @ u_V)
+        # Use PySpice with proper AC source configuration
+        # For AC analysis, we need to specify both DC and AC values
+        # Use SPICE syntax: "DC <dc_value> AC <ac_magnitude>"
+        dc_value = float(voltage)
         
-        # Set AC magnitude for frequency analysis (PySpice syntax)
-        # Use numeric value instead of unit for AC property
-        voltage_source.ac = 1.0  # 1V AC magnitude
+        # Create voltage source with explicit DC and AC values for proper frequency analysis
+        voltage_source = pyspice_circuit.V(name, node1, node2, f"DC {dc_value} AC 1")
 
     def _add_current_source(self, pyspice_circuit: Any, comp: Dict, counts: Dict[str, int]):
         """Add current source to PySpice circuit."""
