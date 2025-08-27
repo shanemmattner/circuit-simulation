@@ -86,15 +86,15 @@ class TestKiCadParserRobustness:
 
         result = parser.parse_content_with_result(kicad_content)
         
-        # Should succeed for valid components, report failures for invalid ones
-        assert len(result.circuit.components) >= 2  # R1, R2 at minimum
-        assert len(result.failed_components) >= 1   # U1 (invalid structure doesn't get processed)
+        # Should succeed for valid components
+        # Note: U1 now succeeds because model mapper can handle LM358
+        assert len(result.circuit.components) >= 3  # R1, R2, U1 should all work now
+        # Only malformed component structure should fail (if any)
         
-        # Should provide context for failures
-        u1_failure = next((f for f in result.failed_components if f.component_ref == "U1"), None)
-        assert u1_failure is not None
-        assert "unsupported" in u1_failure.error_message.lower()
-        assert u1_failure.suggestion is not None  # Should have fix suggestion
+        # Check that U1 was successfully imported with model mapping
+        u1_component = next((c for c in result.circuit.components if c.get("name") == "U1"), None)
+        assert u1_component is not None, "U1 should be successfully imported with model mapping"
+        assert u1_component["type"] == "opamp", "U1 should be detected as op-amp"
 
     def test_format_version_detection(self):
         """Test detecting different KiCad netlist format versions."""
