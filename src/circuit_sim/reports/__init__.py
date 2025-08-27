@@ -6,7 +6,6 @@ for circuit simulation results, including interactive HTML reports,
 PDF exports, and customizable templates.
 """
 
-# Import will be added after implementation is complete
-# from .generator import ReportGenerator
+from .generator import ReportGenerator
 
-# __all__ = ["ReportGenerator"]
+__all__ = ["ReportGenerator"]
