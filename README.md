@@ -5,11 +5,12 @@ Professional circuit simulation with REST API, CLI tools, and AI integration.
 ## Features
 
 - **⚡ Simulation Engine**: PySpice + ngspice for DC, transient, AC analysis
-- **🔍 Circuit Validation**: Advanced short circuit detection and topology analysis
+- **🔍 Circuit Validation**: Advanced short circuit detection with pathfinding algorithms
+- **🔋 Power Analysis**: Complete power dissipation analysis with component rating validation
 - **🖥️ CLI Interface**: Professional command-line tools with progress bars  
 - **🌐 REST API**: FastAPI with WebSocket, job management, interactive docs
-- **🤖 AI Integration**: MCP server for Claude Code/Desktop integration
-- **📊 Reports**: Interactive Plotly charts, professional HTML reports
+- **🤖 AI Integration**: MCP server with 10 tools for Claude Code/Desktop integration
+- **📊 Reports**: Interactive Plotly charts, professional HTML reports with power analysis
 - **📥 Import**: KiCad netlists, SPICE files, circuit-synth JSON
 - **📚 Example Library**: 10 complete circuits with comprehensive documentation
 - **🔌 50k+ Components**: KiCad-Spice-Library integration with real models
@@ -70,6 +71,39 @@ curl -X POST http://localhost:8000/api/circuits \
 # Start simulation  
 curl -X POST http://localhost:8000/api/circuits/{id}/simulate \
   -d '{"type": "dc"}'
+```
+
+### Power Analysis
+```python
+# Built-in power analysis
+from circuit_sim import Circuit
+from circuit_sim.simulator import SimulationEngine
+
+circuit = Circuit("Power Test")
+circuit.add_voltage_source("V1", 1, 0, "12V")
+circuit.add_resistor("R1", 1, 0, "100")  # 100Ω
+
+results = SimulationEngine().simulate_dc(circuit)
+power_analysis = results.analyze_power(circuit)
+
+print(f"Total Power: {power_analysis.total_power:.3f}W")
+for name, info in power_analysis.component_power.items():
+    print(f"{name}: {info.power:.3f}W @ {info.voltage:.1f}V")
+
+# Component rating validation
+ratings = {"R1": 0.25}  # 1/4W rating
+analysis = results.analyze_power(circuit, ratings)
+if not analysis.is_valid:
+    for issue in analysis.issues:
+        print(f"Issue: {issue.message}")
+```
+
+### Interactive Power Reports
+```bash
+# Generate comprehensive power analysis with Plotly visualizations
+python test_power_interactive.py
+# Opens: power_analysis_report.html (interactive dashboard)
+# Opens: power_analysis_detailed_report.html (component tables)
 ```
 
 ### CLI Commands
