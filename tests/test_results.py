@@ -315,3 +315,132 @@ class TestSimulationResults:
         # Nonexistent component should return None
         assert results.current("R99") is None
         assert results.current("missing") is None
+
+    def test_complex_voltage_storage(self):
+        """Test storing and retrieving complex voltage data for AC analysis."""
+        results = SimulationResults("ac")
+        
+        # Create frequency vector
+        frequencies = np.logspace(1, 4, 100)  # 10Hz to 10kHz
+        results.set_frequency_vector(frequencies)
+        
+        # Create complex voltage data (simulating RC filter response)
+        # V_out/V_in = 1/(1 + jωRC) for RC = 1ms time constant
+        omega = 2 * np.pi * frequencies
+        rc_time_constant = 1e-3  # 1ms
+        transfer_function = 1 / (1 + 1j * omega * rc_time_constant)
+        
+        # Store complex voltage data
+        results.add_voltage(2, transfer_function)
+        
+        # Retrieve and verify
+        v_complex = results.voltage(2)
+        assert v_complex is not None
+        assert len(v_complex) == len(frequencies)
+        assert np.iscomplexobj(v_complex)  # Should be complex array
+        
+        # Verify at very low frequency (10Hz with 1ms time constant has some phase shift)
+        # At f=10Hz, ωRC = 2π×10×0.001 = 0.0628
+        # Expected: 1/(1+j×0.0628) = 0.996-j×0.0626
+        assert abs(v_complex[0].real - 0.996) < 0.01
+        assert abs(v_complex[0].imag - (-0.0626)) < 0.01
+        
+        # Verify at high frequency (should have significant phase shift)
+        assert abs(v_complex[-1]) < 0.1  # High attenuation
+        
+    def test_magnitude_phase_extraction(self):
+        """Test magnitude and phase extraction from complex data."""
+        results = SimulationResults("ac")
+        
+        # Create test complex data: 5V at 45° phase shift
+        test_voltage = 5.0 * np.exp(1j * np.pi / 4)  # 5∠45° 
+        complex_array = np.array([test_voltage, test_voltage * 0.5])  # Second point at half magnitude
+        
+        results.add_voltage(1, complex_array)
+        
+        # Test magnitude extraction (should be new method)
+        magnitude = results.magnitude(1)
+        assert magnitude is not None
+        assert abs(magnitude[0] - 5.0) < 1e-6
+        assert abs(magnitude[1] - 2.5) < 1e-6
+        
+        # Test magnitude in dB
+        magnitude_db = results.magnitude_db(1)
+        assert magnitude_db is not None
+        assert abs(magnitude_db[0] - 20*np.log10(5.0)) < 1e-6  # 20*log10(5) ≈ 13.98 dB
+        assert abs(magnitude_db[1] - 20*np.log10(2.5)) < 1e-6  # 20*log10(2.5) ≈ 7.96 dB
+        
+        # Test phase extraction  
+        phase_rad = results.phase_rad(1)
+        phase_deg = results.phase_deg(1)
+        assert phase_rad is not None
+        assert phase_deg is not None
+        assert abs(phase_rad[0] - np.pi/4) < 1e-6  # 45° in radians
+        assert abs(phase_deg[0] - 45.0) < 1e-6     # 45° in degrees
+        
+    def test_complex_current_storage(self):
+        """Test storing complex current data for AC analysis."""
+        results = SimulationResults("ac")
+        
+        # Create complex current data (90° leading voltage for capacitive load)
+        current_magnitude = 0.001  # 1mA
+        phase_lead = np.pi/2  # 90° leading
+        complex_current = current_magnitude * np.exp(1j * phase_lead)
+        
+        # Store as array
+        results.add_current("C1", np.array([complex_current, complex_current * 0.5]))
+        
+        # Retrieve and verify
+        i_complex = results.current("C1")
+        assert i_complex is not None
+        assert np.iscomplexobj(i_complex)
+        
+        # Verify magnitude and phase
+        assert abs(abs(i_complex[0]) - current_magnitude) < 1e-6
+        assert abs(np.angle(i_complex[0]) - phase_lead) < 1e-6
+
+    def test_bode_plot_generation(self):
+        """Test Bode plot generation for AC analysis results."""
+        results = SimulationResults("ac")
+        
+        # Create frequency sweep data
+        frequencies = np.logspace(1, 4, 50)  # 10Hz to 10kHz
+        results.set_frequency_vector(frequencies)
+        
+        # Create RC low-pass filter response: H(jω) = 1/(1 + jωRC)
+        omega = 2 * np.pi * frequencies
+        rc_time_constant = 1e-3  # 1ms → fc = 159Hz
+        transfer_function = 1 / (1 + 1j * omega * rc_time_constant)
+        
+        results.add_voltage(2, transfer_function)  # Output voltage
+        
+        # Test Bode plot method (should be added to SimulationResults)
+        plot_data = results.plot_bode("V(2)", title="RC Low-Pass Filter", show=False)
+        
+        # Verify plot data structure
+        assert plot_data is not None
+        assert "magnitude_db" in plot_data
+        assert "phase_deg" in plot_data
+        assert "frequencies" in plot_data
+        
+        # Verify data arrays
+        assert len(plot_data["magnitude_db"]) == len(frequencies)
+        assert len(plot_data["phase_deg"]) == len(frequencies)
+        assert len(plot_data["frequencies"]) == len(frequencies)
+        
+        # Verify Bode plot characteristics
+        mag_db = plot_data["magnitude_db"]
+        phase_deg = plot_data["phase_deg"]
+        
+        # At low frequency: magnitude ≈ 0dB, phase ≈ 0°
+        assert abs(mag_db[0] - 0.0) < 0.1  # Should be ~0dB at low freq
+        assert abs(phase_deg[0] - 0.0) < 5.0  # Should be ~0° at low freq
+        
+        # At high frequency: significant attenuation and -90° phase shift
+        assert mag_db[-1] < -20  # Should have significant attenuation
+        assert phase_deg[-1] < -45  # Should approach -90° phase shift
+        
+        # At cutoff frequency (~159Hz), should be -3dB and -45°
+        fc_idx = np.argmin(np.abs(frequencies - 159))
+        assert abs(mag_db[fc_idx] - (-3)) < 1  # -3dB at cutoff
+        assert abs(phase_deg[fc_idx] - (-45)) < 10  # -45° at cutoff

@@ -108,6 +108,68 @@ class SimulationResults:
         """
         return self._branch_currents.get(component)
 
+    def magnitude(self, node: Union[int, str]) -> Optional[np.ndarray]:
+        """
+        Get magnitude of complex voltage at a node.
+
+        Args:
+            node: Node identifier
+
+        Returns:
+            Magnitude array or None if node not found
+        """
+        voltage = self.voltage(node)
+        if voltage is None:
+            return None
+        return np.abs(voltage)
+
+    def magnitude_db(self, node: Union[int, str]) -> Optional[np.ndarray]:
+        """
+        Get magnitude in dB of complex voltage at a node.
+
+        Args:
+            node: Node identifier
+
+        Returns:
+            Magnitude in dB array or None if node not found
+        """
+        magnitude = self.magnitude(node)
+        if magnitude is None:
+            return None
+        # Avoid log of zero by using a minimum value
+        magnitude_safe = np.maximum(magnitude, 1e-12)
+        return 20 * np.log10(magnitude_safe)
+
+    def phase_rad(self, node: Union[int, str]) -> Optional[np.ndarray]:
+        """
+        Get phase in radians of complex voltage at a node.
+
+        Args:
+            node: Node identifier
+
+        Returns:
+            Phase in radians array or None if node not found
+        """
+        voltage = self.voltage(node)
+        if voltage is None:
+            return None
+        return np.angle(voltage)
+
+    def phase_deg(self, node: Union[int, str]) -> Optional[np.ndarray]:
+        """
+        Get phase in degrees of complex voltage at a node.
+
+        Args:
+            node: Node identifier
+
+        Returns:
+            Phase in degrees array or None if node not found
+        """
+        phase_rad = self.phase_rad(node)
+        if phase_rad is None:
+            return None
+        return np.degrees(phase_rad)
+
     @property
     def nodes(self) -> List[Union[int, str]]:
         """Get list of nodes with voltage data."""
@@ -195,6 +257,96 @@ class SimulationResults:
 
         if show:
             plt.show()
+
+    def plot_bode(self, signal: str, title: str = "Bode Plot", show: bool = True):
+        """
+        Generate Bode plot (magnitude and phase vs frequency) for AC analysis.
+
+        Args:
+            signal: Signal to plot (e.g., "V(2)" for voltage at node 2)
+            title: Plot title
+            show: Whether to display the plot
+
+        Returns:
+            Dictionary with plot data for testing/export
+
+        Raises:
+            ValueError: If not AC analysis or signal not found
+            ImportError: If matplotlib not available
+        """
+        if self.analysis_type != "ac":
+            raise ValueError("Bode plots are only available for AC analysis")
+
+        if self.frequency is None:
+            raise ValueError("No frequency data available")
+
+        try:
+            import matplotlib.pyplot as plt
+        except ImportError:
+            raise ImportError(
+                "matplotlib is required for plotting. Install with: pip install matplotlib"
+            )
+
+        # Parse signal specification
+        if signal.upper().startswith("V(") and signal.endswith(")"):
+            # Voltage signal
+            node = signal[2:-1]  # Extract node from "V(node)"
+            try:
+                node = int(node)
+            except ValueError:
+                pass
+
+            voltage = self.voltage(node)
+            if voltage is None:
+                raise ValueError(f"Node {node} not found in results")
+
+            # Calculate magnitude and phase
+            magnitude_db = self.magnitude_db(node)
+            phase_deg = self.phase_deg(node)
+
+            if magnitude_db is None or phase_deg is None:
+                raise ValueError(f"Cannot calculate magnitude/phase for node {node}")
+
+        else:
+            raise ValueError(f"Signal format '{signal}' not supported. Use V(node) format.")
+
+        # Create Bode plot with two subplots
+        fig, (ax_mag, ax_phase) = plt.subplots(2, 1, figsize=(10, 8))
+
+        # Magnitude plot
+        ax_mag.semilogx(self.frequency, magnitude_db, 'b-', linewidth=2)
+        ax_mag.set_ylabel('Magnitude (dB)')
+        ax_mag.grid(True, which='both', alpha=0.3)
+        ax_mag.axhline(y=0, color='k', linestyle='-', alpha=0.5)
+        ax_mag.axhline(y=-3, color='r', linestyle='--', alpha=0.5, label='-3dB')
+        ax_mag.legend()
+
+        # Phase plot
+        ax_phase.semilogx(self.frequency, phase_deg, 'r-', linewidth=2)
+        ax_phase.set_xlabel('Frequency (Hz)')
+        ax_phase.set_ylabel('Phase (°)')
+        ax_phase.grid(True, which='both', alpha=0.3)
+        ax_phase.axhline(y=0, color='k', linestyle='-', alpha=0.5)
+        ax_phase.axhline(y=-45, color='r', linestyle='--', alpha=0.5, label='-45°')
+        ax_phase.axhline(y=-90, color='r', linestyle='--', alpha=0.5, label='-90°')
+        ax_phase.legend()
+
+        plt.suptitle(title)
+        plt.tight_layout()
+
+        # Return plot data for testing
+        plot_data = {
+            "magnitude_db": magnitude_db,
+            "phase_deg": phase_deg,
+            "frequencies": self.frequency,
+            "signal": signal,
+            "title": title
+        }
+
+        if show:
+            plt.show()
+
+        return plot_data
 
     def __repr__(self) -> str:
         """String representation."""

@@ -169,14 +169,91 @@ class SimulationTools:
     async def run_ac_simulation(self, args: Dict[str, Any]) -> Dict[str, Any]:
         """Run AC frequency response analysis."""
         circuit_id = args.get("circuit_id")
-        # start_freq = args.get("start_frequency", 10)  # Default 10Hz
-        # stop_freq = args.get("stop_frequency", 1e6)  # Default 1MHz
-        # points_per_decade = args.get("points_per_decade", 20)
+        start_freq = args.get("start_frequency", 10)  # Default 10Hz
+        stop_freq = args.get("stop_frequency", 1e6)   # Default 1MHz  
+        points_per_decade = args.get("points_per_decade", 20)
+        variation = args.get("variation", "dec")      # Default decade
 
-        # AC analysis not yet implemented
-        return {
-            "status": "error",
-            "message": "AC analysis is not yet implemented",
-            "circuit_id": circuit_id,
-            "note": "This feature is planned for Phase 2",
-        }
+        # Get circuit
+        session = self.server.get_session(circuit_id)
+        if not session:
+            return {"status": "error", "message": f"Circuit {circuit_id} not found"}
+
+        circuit = session.circuit
+
+        try:
+            # Run simulation
+            results = self.server.engine.simulate_ac(
+                circuit,
+                start_frequency=start_freq,
+                stop_frequency=stop_freq,
+                points_per_decade=points_per_decade,
+                variation=variation
+            )
+
+            # Store results in session
+            session.simulations["ac"] = results
+            session.last_modified = datetime.now()
+
+            # Get frequency vector
+            freq_data = None
+            if results.frequency is not None:
+                freq_data = {
+                    "points": len(results.frequency),
+                    "start": float(results.frequency[0]),
+                    "stop": float(results.frequency[-1]),
+                    "variation": variation,
+                }
+
+            # Extract frequency response data for each node
+            frequency_response = {}
+            for node in results.nodes:
+                voltage = results.voltage(node)
+                if voltage is not None:
+                    magnitude = results.magnitude(node)
+                    magnitude_db = results.magnitude_db(node)
+                    phase_deg = results.phase_deg(node)
+                    
+                    frequency_response[f"V({node})"] = {
+                        "magnitude_min": float(np.min(magnitude)),
+                        "magnitude_max": float(np.max(magnitude)),
+                        "magnitude_db_min": float(np.min(magnitude_db)),
+                        "magnitude_db_max": float(np.max(magnitude_db)),
+                        "phase_min": float(np.min(phase_deg)),
+                        "phase_max": float(np.max(phase_deg)),
+                        "dc_gain": float(magnitude[0]),
+                        "dc_gain_db": float(magnitude_db[0]),
+                        "dc_phase": float(phase_deg[0]),
+                        "unit": "V",
+                    }
+
+            return {
+                "status": "success",
+                "simulation_type": "ac",
+                "circuit_id": circuit_id,
+                "circuit_name": circuit.name,
+                "parameters": {
+                    "start_frequency": start_freq,
+                    "stop_frequency": stop_freq,
+                    "points_per_decade": points_per_decade,
+                    "variation": variation,
+                },
+                "results": {
+                    "frequency_data": freq_data,
+                    "frequency_response": frequency_response,
+                    "summary": {
+                        "frequency_range": f"{start_freq}Hz - {stop_freq}Hz",
+                        "frequency_points": freq_data["points"] if freq_data else 0,
+                        "nodes_analyzed": len(frequency_response),
+                    },
+                },
+                "timestamp": datetime.now().isoformat(),
+            }
+
+        except Exception as e:
+            logger.error(f"AC simulation failed: {e}")
+            return {
+                "status": "error",
+                "message": f"AC simulation failed: {str(e)}",
+                "circuit_id": circuit_id,
+            }

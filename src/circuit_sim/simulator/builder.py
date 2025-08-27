@@ -128,11 +128,10 @@ class PySpiceBuilder:
 
         # Create voltage source with AC specification if provided
         if ac_value is not None:
-            # For AC analysis, use SPICE syntax: V1 node1 node2 DC dc_value AC ac_value
-            # PySpice handles this through the V() method with proper parameters
-            voltage_source = pyspice_circuit.V(name, node1, node2, dc_value @ u_V)
-            # Set AC magnitude directly on the voltage source
-            voltage_source.ac = ac_value @ u_V
+            # For AC analysis, PySpice needs the raw SPICE string format
+            # Use the raw_spice parameter to specify DC and AC components
+            spice_line = f"DC {dc_value} AC {ac_value}"
+            pyspice_circuit.V(name, node1, node2, spice_line)
         else:
             # Simple DC voltage source
             pyspice_circuit.V(name, node1, node2, dc_value @ u_V)

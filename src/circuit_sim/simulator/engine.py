@@ -259,27 +259,41 @@ class SimulationEngine:
         results = SimulationResults("ac")
         results.set_frequency_vector(frequencies)
 
-        # Get complex node voltages
+        # Get complex node voltages using as_ndarray() to preserve complex data
         for node_name in analysis.nodes.keys():
             # Extract node identifier  
-            if node_name.startswith("v(") and node_name.endswith(")"):
-                node_id = node_name[2:-1]
-            else:
-                node_id = node_name
-
+            node_id = node_name
+            
             # Convert to int if possible
             try:
-                node_id = int(node_id)
+                node_id = int(node_name)
             except ValueError:
                 pass
 
-            # Get complex voltage waveform
-            complex_voltage = np.array([complex(v) for v in analysis.nodes[node_name]])
+            # Get complex voltage waveform using as_ndarray() method
+            waveform = analysis.nodes[node_name]
+            if hasattr(waveform, 'as_ndarray'):
+                # This preserves complex data
+                complex_voltage = waveform.as_ndarray()
+            else:
+                # Fallback: reconstruct from real/imag parts
+                real_part = np.array([float(v) for v in waveform.real])
+                imag_part = np.array([float(v) for v in waveform.imag])
+                complex_voltage = real_part + 1j * imag_part
+                
             results.add_voltage(node_id, complex_voltage)
 
         # Get complex branch currents (if available)
         for branch_name in analysis.branches.keys():
-            complex_current = np.array([complex(i) for i in analysis.branches[branch_name]])
+            waveform = analysis.branches[branch_name]
+            if hasattr(waveform, 'as_ndarray'):
+                complex_current = waveform.as_ndarray()
+            else:
+                # Fallback: reconstruct from real/imag parts
+                real_part = np.array([float(i) for i in waveform.real])
+                imag_part = np.array([float(i) for i in waveform.imag])
+                complex_current = real_part + 1j * imag_part
+                
             results.add_current(branch_name, complex_current)
 
         # Add metadata

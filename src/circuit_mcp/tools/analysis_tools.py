@@ -74,6 +74,8 @@ class AnalysisTools:
             return self._format_dc_results(circuit_id, session.circuit.name, results)
         elif simulation_type == "transient":
             return self._format_transient_results(circuit_id, session.circuit.name, results)
+        elif simulation_type == "ac":
+            return self._format_ac_results(circuit_id, session.circuit.name, results)
         else:
             return {"status": "error", "message": f"Unknown simulation type: {simulation_type}"}
 
@@ -180,6 +182,63 @@ class AnalysisTools:
             },
         }
 
+    def _format_ac_results(self, circuit_id: str, circuit_name: str, results) -> Dict[str, Any]:
+        """Format AC simulation results."""
+        # Get frequency vector
+        freq_data = None
+        if results.frequency is not None:
+            freq_data = {
+                "points": len(results.frequency),
+                "start": float(results.frequency[0]),
+                "stop": float(results.frequency[-1]),
+            }
+
+        # Extract frequency response for each node
+        frequency_response = {}
+        for node in results.nodes:
+            voltage = results.voltage(node)
+            if voltage is not None:
+                magnitude = results.magnitude(node)
+                magnitude_db = results.magnitude_db(node)
+                phase_deg = results.phase_deg(node)
+                
+                frequency_response[f"V({node})"] = {
+                    "magnitude": {
+                        "min": float(np.min(magnitude)),
+                        "max": float(np.max(magnitude)),
+                        "dc": float(magnitude[0]),
+                        "unit": "V",
+                    },
+                    "magnitude_db": {
+                        "min": float(np.min(magnitude_db)),
+                        "max": float(np.max(magnitude_db)),
+                        "dc": float(magnitude_db[0]),
+                        "unit": "dB",
+                    },
+                    "phase": {
+                        "min": float(np.min(phase_deg)),
+                        "max": float(np.max(phase_deg)),
+                        "dc": float(phase_deg[0]),
+                        "unit": "degrees",
+                    },
+                }
+
+        return {
+            "status": "success",
+            "circuit_id": circuit_id,
+            "circuit_name": circuit_name,
+            "simulation_type": "ac",
+            "results": {
+                "frequency_data": freq_data,
+                "frequency_response": frequency_response,
+                "summary": {
+                    "frequency_range": f"{freq_data['start']:.1f}Hz - {freq_data['stop']:.1f}Hz" if freq_data else "N/A",
+                    "frequency_points": freq_data["points"] if freq_data else 0,
+                    "nodes_analyzed": len(frequency_response),
+                },
+            },
+        }
+
     async def generate_plot(self, args: Dict[str, Any]) -> Dict[str, Any]:
         """Generate plot of simulation results."""
         circuit_id = args.get("circuit_id")
@@ -265,6 +324,61 @@ class AnalysisTools:
                     ax.set_title(f"Transient Analysis - {session.circuit.name}")
                     ax.legend()
                     ax.grid(True, alpha=0.3)
+
+            elif simulation_type == "ac":
+                # AC plot - check if Bode plot is requested
+                plot_type = args.get("plot_type", "magnitude")  # "magnitude", "phase", "bode"
+                
+                if not signals:
+                    # Default: plot all node voltages  
+                    signals = [f"V({node})" for node in results.nodes if node != 0]
+
+                if plot_type == "bode" and len(signals) == 1:
+                    # Generate Bode plot using SimulationResults method
+                    signal = signals[0]
+                    if signal.startswith("V("):
+                        plot_data = results.plot_bode(signal, title=f"Bode Plot - {session.circuit.name}", show=False)
+                        
+                        # Return the plot data directly since Bode plot is handled internally
+                        return {
+                            "status": "success",
+                            "circuit_id": circuit_id,
+                            "simulation_type": simulation_type,
+                            "plot_type": "bode",
+                            "signal": signal,
+                            "data": plot_data,
+                            "message": "Bode plot generated successfully"
+                        }
+                else:
+                    # Standard frequency response plot (magnitude only)
+                    if results.frequency is not None:
+                        for signal in signals:
+                            if signal.startswith("V("):
+                                node = signal[2:-1]
+                                try:
+                                    node = int(node)
+                                except ValueError:
+                                    pass
+                                    
+                                if plot_type == "magnitude":
+                                    magnitude_db = results.magnitude_db(node)
+                                    if magnitude_db is not None:
+                                        ax.semilogx(results.frequency, magnitude_db, label=signal)
+                                elif plot_type == "phase":
+                                    phase_deg = results.phase_deg(node)
+                                    if phase_deg is not None:
+                                        ax.semilogx(results.frequency, phase_deg, label=signal)
+
+                        ax.set_xlabel("Frequency (Hz)")
+                        if plot_type == "magnitude":
+                            ax.set_ylabel("Magnitude (dB)")
+                            ax.set_title(f"AC Magnitude Response - {session.circuit.name}")
+                        else:
+                            ax.set_ylabel("Phase (°)")
+                            ax.set_title(f"AC Phase Response - {session.circuit.name}")
+                        
+                        ax.legend()
+                        ax.grid(True, alpha=0.3)
 
             # Save plot to bytes
             buffer = io.BytesIO()
