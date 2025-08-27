@@ -104,11 +104,11 @@ def test_circuit_integration():
     print("=" * 60)
     
     try:
-        # Create simple RC low-pass filter
+        # Create simple RC low-pass filter (use numeric nodes like working tests)
         circuit = Circuit("RC Filter")
-        circuit.add_voltage_source("V1", "in", "0", "1V")  # DC voltage source
-        circuit.add_resistor("R1", "in", "out", "1k")      # 1kΩ
-        circuit.add_capacitor("C1", "out", "0", "1u")      # 1μF
+        circuit.add_voltage_source("V1", 1, 0, "1V")         # Node 1 to ground
+        circuit.add_resistor("R1", 1, 2, "1k")               # 1kΩ from node 1 to 2
+        circuit.add_capacitor("C1", 2, 0, "1u")              # 1μF from node 2 to ground
         
         print("Circuit: RC Low-pass Filter")
         print("  R1 = 1kΩ, C1 = 1μF")
@@ -120,7 +120,7 @@ def test_circuit_integration():
         results = engine.simulate_ac(circuit, 1, 10000, points_per_decade=20)
         
         # Extract transfer function
-        tf = results.to_transfer_function("in", "out")
+        tf = results.to_transfer_function(1, 2)
         
         print(f"\nExtracted Transfer Function:")
         print(f"  Order: {tf.order}")
