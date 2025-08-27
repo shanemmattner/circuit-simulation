@@ -146,12 +146,24 @@ class KiCadParser:
         # Extract component type
         symbol = comp_data.get("part", "")
         
-        # Use robust value extraction
-        value_result = self.value_extractor.extract_value(
-            full_content, 
-            ref, 
-            symbol
-        )
+        # First try to use the already-extracted value from component data
+        extracted_value = comp_data.get("value", "")
+        
+        if extracted_value and extracted_value.strip() and extracted_value != '""':
+            # We have a good value from the component extraction
+            value_result = type('ValueResult', (), {
+                'value': extracted_value,
+                'confidence': 0.9,
+                'method': 'component_extraction',
+                'warning': None
+            })()
+        else:
+            # Fall back to robust value extraction on raw content
+            value_result = self.value_extractor.extract_value(
+                full_content, 
+                ref, 
+                symbol
+            )
         
         # Handle value extraction results
         if value_result.warning:
