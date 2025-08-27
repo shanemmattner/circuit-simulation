@@ -59,6 +59,59 @@ print(f"Output: {results.voltage(2)[0]:.2f}V")
 results.plot()
 ```
 
+### Advanced Visualizations
+```python
+from circuit_sim.visualization import (
+    NyquistPlotter, SmithChartPlotter, NicholsPlotter, InteractivePlotter,
+    PlotStyle
+)
+
+# Professional Nyquist plot for stability analysis
+nyquist = NyquistPlotter(style=PlotStyle.professional())
+result = nyquist.plot(
+    transfer_function=tf, 
+    frequencies=frequencies, 
+    show_stability=True,
+    mark_frequencies=[1, 10, 100]
+)
+print(f"System stable: {result.metadata['stability_analysis']['is_stable']}")
+print(f"Encirclements: {result.metadata['stability_analysis']['encirclements']}")
+
+# Smith chart for RF impedance matching (50Ω reference)
+smith = SmithChartPlotter(z0=50.0) 
+smith_result = smith.plot(
+    impedances=impedances,
+    frequencies=rf_frequencies,
+    show_vswr_circles=True,
+    vswr_values=[1.5, 2.0, 3.0]
+)
+print(f"Best VSWR: {min(smith_result.data['vswr']):.2f}")
+
+# Nichols chart for control system design
+nichols = NicholsPlotter()
+nichols.plot(
+    transfer_function=open_loop_tf,
+    frequencies=frequencies,
+    show_margins=True,
+    show_grid=True
+)
+
+# Interactive multi-trace Bode plots
+interactive = InteractivePlotter()
+html = interactive.create_multi_trace_bode(
+    frequencies=frequencies,
+    transfer_functions={
+        "Original": tf1,
+        "Compensated": tf2,
+        "Final": tf3
+    },
+    title="Control System Comparison"
+)
+with open("analysis.html", "w") as f:
+    f.write(html)
+# Open in browser for interactive exploration
+```
+
 ### REST API
 ```bash
 # Create circuit
