@@ -14,46 +14,51 @@ from circuit_sim.circuit import Circuit
 print("🚀 Circuit Analysis Report Generator Demo")
 print("=" * 50)
 
-# Create an amplifier circuit
-circuit = Circuit("Op-Amp Non-Inverting Amplifier")
-circuit.add_voltage_source("V1", 1, 0, "1V")
-circuit.add_resistor("R1", 1, 2, "10k")
-circuit.add_resistor("R2", 2, 0, "1k")
-circuit.add_resistor("R3", 2, 3, "100")
-circuit.add_capacitor("C1", 3, 0, "1u")
+# Create a realistic RC filter circuit
+circuit = Circuit("RC Low-Pass Filter with Voltage Divider")
+circuit.add_voltage_source("V1", 1, 0, "10V")  # Higher input for clearer demo
+circuit.add_resistor("R1", 1, 2, "1k")         # Input resistance
+circuit.add_resistor("R2", 2, 0, "2k")         # Voltage divider (creates 6.67V at node 2)
+circuit.add_resistor("R3", 2, 3, "100")        # Series resistance for RC filter
+circuit.add_capacitor("C1", 3, 0, "10u")       # Filter capacitor
 
 print(f"📋 Circuit: {circuit.name}")
 print(f"   Components: {len(circuit.components)}")
 print(f"   Nodes: {len(circuit.nodes)}")
 
-# Create realistic transient simulation results
-time = np.linspace(0, 0.01, 500)  # 10ms simulation, 500 points
-tau_rc = 100 * 1e-6  # RC time constant for output
-gain = 11  # Non-inverting amplifier gain (1 + R1/R2) = 1 + 10k/1k
+# Create realistic RC filter simulation results
+time = np.linspace(0, 0.005, 500)  # 5ms simulation, 500 points
+tau_rc = 100 * 10e-6  # RC time constant = R3 * C1 = 100Ω * 10μF = 1ms
 
-# Input and amplified signals with RC filtering
-v_input = 1.0 * np.ones_like(time)  # Step input
-v_amplified = gain * (1 - np.exp(-time / tau_rc))  # Amplified with RC response
-v_output = v_amplified * 0.95  # Slight attenuation due to loading
+# Voltage divider analysis: 10V input, R1=1k, R2=2k
+# V_divider = 10V * R2/(R1+R2) = 10V * 2k/3k = 6.67V
+v_input = 10.0 * np.ones_like(time)  # Step input
+v_divider = (10.0 * 2000 / (1000 + 2000)) * np.ones_like(time)  # 6.67V at node 2
+v_output = v_divider * (1 - np.exp(-time / tau_rc))  # RC charging to 6.67V
 
-# Component currents
-i_r1 = (v_amplified - v_output) / 10000  # Current through R1
-i_r2 = v_output / 1000  # Current through R2
-i_c1 = (1e-6) * np.gradient(v_output, time)  # Capacitor current
+# Component currents (realistic values)
+i_total = 10.0 / (1000 + 2000)  # Total current = 10V / 3kΩ = 3.33mA
+i_r1 = i_total * np.ones_like(time)  # Same current through series resistors
+i_r2 = i_total * np.ones_like(time)
+i_r3 = (v_divider - v_output) / 100  # Current through R3
+i_c1 = 10e-6 * np.gradient(v_output, time)  # Capacitor current
 
 results = SimulationResults("transient")
 results.set_time_vector(time)
-results.add_voltage(1, v_input)      # Input node
-results.add_voltage(2, v_amplified)  # Amplifier output
-results.add_voltage(3, v_output)     # Final output after RC
-results.add_current("R1", i_r1)
-results.add_current("R2", i_r2) 
-results.add_current("C1", i_c1)
+results.add_voltage(1, v_input)      # Input node (10V)
+results.add_voltage(2, v_divider)    # Voltage divider output (6.67V)
+results.add_voltage(3, v_output)     # RC filter output (charging to 6.67V)
+results.add_current("R1", i_r1)      # 3.33mA through R1
+results.add_current("R2", i_r2)      # 3.33mA through R2
+results.add_current("R3", i_r3)      # Variable current through R3
+results.add_current("C1", i_c1)      # Capacitor charging current
 
 print(f"📊 Simulation: {results.analysis_type.upper()} analysis")
 print(f"   Time points: {len(time)}")
 print(f"   Duration: {time[-1]*1000:.1f} ms")
-print(f"   Final output: {v_output[-1]:.2f}V (gain: {v_output[-1]/v_input[0]:.1f}x)")
+print(f"   Voltage divider: {v_divider[0]:.2f}V (from 10V input)")
+print(f"   Final RC output: {v_output[-1]:.2f}V (charging toward {v_divider[0]:.2f}V)")
+print(f"   RC time constant: {tau_rc*1000:.1f}ms")
 
 # Generate comprehensive report
 generator = ReportGenerator()
@@ -75,7 +80,7 @@ for report_type in report_types:
         report_type=report_type,
         output_format="html",
         output_path=output_path,
-        description=f"Performance analysis of a non-inverting operational amplifier circuit with {gain}x gain and RC output filtering"
+        description="Analysis of an RC low-pass filter with voltage divider input stage, demonstrating step response and time constant behavior"
     )
     
     generated_reports.append((report_type, result_path))
