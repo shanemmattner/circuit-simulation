@@ -1,0 +1,21 @@
+# Circuit Simulation Project Configuration
+project:
+  name: My Test
+  version: "1.0.0"
+  description: "Circuit simulation project created with circuit-sim"
+
+# Default simulation settings
+simulation:
+  default_analysis: "dc"
+  timeout: 60  # seconds
+  
+# Output settings
+output:
+  format: "json"
+  directory: "./results"
+  
+# Plotting settings
+plots:
+  theme: "plotly_white"
+  width: 800
+  height: 600

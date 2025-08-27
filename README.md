@@ -6,6 +6,7 @@ A professional Python library for electronic circuit simulation with an easy-to-
 
 - **Simple API**: Define circuits with human-readable component values
 - **Real Simulations**: Powered by PySpice and ngspice 
+- **🖥️ Professional CLI**: Complete command-line interface with progress bars
 - **Docker Support**: No installation conflicts, works everywhere
 - **Visualization**: Generate publication-quality plots
 - **🤖 MCP Integration**: Full AI assistant integration via Model Context Protocol
@@ -15,6 +16,27 @@ A professional Python library for electronic circuit simulation with an easy-to-
 - **🍎 macOS Native**: Optimized setup and testing for Apple Silicon
 
 ## Quick Start 🚀
+
+### Command Line Interface
+
+```bash
+# Install the package
+pip install circuit-sim
+
+# Initialize a new project
+circuit-sim init --name "My Project"
+
+# Create a circuit from netlist
+circuit-sim create --netlist examples/rc_filter.cir --name "RC Filter"
+
+# Get system information
+circuit-sim info
+
+# Get help
+circuit-sim --help
+```
+
+### Python API
 
 ```python
 from circuit_sim import Circuit
@@ -95,6 +117,57 @@ circuit = (
     .add_resistor("R1", 1, 2, "10k")
     .add_capacitor("C1", 2, 0, "100nF")
 )
+```
+
+## Command Line Interface 🖥️
+
+The `circuit-sim` CLI provides professional circuit simulation tools with progress bars and colored output.
+
+### Available Commands
+
+```bash
+# Project Management
+circuit-sim init --name "My Project"       # Initialize new project
+circuit-sim info                           # Show system information  
+circuit-sim list                           # List all circuits
+circuit-sim show <circuit-id>              # Show circuit details
+
+# Circuit Operations
+circuit-sim create --netlist <file> --name <name>  # Create from netlist
+
+# Simulation
+circuit-sim simulate dc --circuit-id <id>           # DC analysis
+circuit-sim simulate transient --circuit-id <id>    # Time-domain analysis
+
+# Help
+circuit-sim --help                         # Show all commands
+circuit-sim simulate --help                # Simulation options
+```
+
+### Project Workflow
+
+```bash
+# 1. Initialize project
+circuit-sim init --name "Audio Amplifier"
+
+# 2. Create circuit from SPICE netlist
+circuit-sim create --netlist amplifier.cir --name "Class A Amplifier"
+# ✅ Circuit 'Class A Amplifier' created successfully!
+# 🆔 Circuit ID: a1b2c3d4
+# 📁 Netlist: amplifier.cir
+
+# 3. Get system info
+circuit-sim info
+```
+
+### Progress Indicators
+
+All operations show beautiful progress bars powered by Rich:
+
+```
+🔄 Validating netlist... ████████████████████████████████████████ 100%
+🔄 Creating circuit...   ████████████████████████████████████████ 100%
+✅ Circuit created successfully!
 ```
 
 ## Supported Components 🔧

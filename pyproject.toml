@@ -29,7 +29,13 @@ dependencies = [
     "PySpice>=1.5",
     "numpy>=1.24.0",
     "matplotlib>=3.6.0",
+    "click>=8.1.0",
+    "rich>=13.0.0",
+    "pyyaml>=6.0.2",
 ]
+
+[project.scripts]
+circuit-sim = "circuit_sim.cli.main:main"
 
 [project.optional-dependencies]
 dev = [
@@ -81,4 +87,14 @@ exclude_lines = [
     "raise AssertionError",
     "raise NotImplementedError",
     "if __name__ == .__main__.:",
+]
+
+[dependency-groups]
+dev = [
+    "black>=25.1.0",
+    "click>=8.2.1",
+    "mypy>=1.17.1",
+    "pytest>=8.4.1",
+    "rich>=14.1.0",
+    "ruff>=0.12.10",
 ]

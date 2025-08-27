@@ -1,0 +1,11 @@
+{
+  "circuit_id": "4ecaff92",
+  "analysis_type": "transient",
+  "circuit_name": "Simple Circuit",
+  "parameters": {
+    "duration": "10ms",
+    "timestep": "1us"
+  },
+  "status": "mock",
+  "message": "Transient simulation placeholder - full implementation coming soon"
+}

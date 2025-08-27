@@ -3,7 +3,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from .routes import circuits, simulations, health
+from .routes import circuits, health, simulations
 
 app = FastAPI(
     title="Circuit Simulation API",
@@ -26,6 +26,7 @@ app.add_middleware(
 app.include_router(health.router, prefix="/api/v1/health", tags=["health"])
 app.include_router(circuits.router, prefix="/api/v1/circuits", tags=["circuits"])
 app.include_router(simulations.router, prefix="/api/v1/simulations", tags=["simulations"])
+
 
 @app.get("/")
 async def root():
