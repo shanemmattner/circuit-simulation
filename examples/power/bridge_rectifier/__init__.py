@@ -8,5 +8,5 @@ __all__ = [
     "BridgeRectifierCircuit",
     "simulate_rectifier",
     "calculate_ripple",
-    "design_power_supply"
+    "design_power_supply",
 ]

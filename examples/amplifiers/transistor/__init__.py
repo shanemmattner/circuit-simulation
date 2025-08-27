@@ -8,5 +8,5 @@ __all__ = [
     "TransistorAmplifierCircuit",
     "simulate_transistor_amp",
     "calculate_bias_point",
-    "design_common_emitter"
+    "design_common_emitter",
 ]

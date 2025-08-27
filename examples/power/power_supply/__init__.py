@@ -8,5 +8,5 @@ __all__ = [
     "PowerSupplyCircuit",
     "simulate_power_supply",
     "calculate_efficiency",
-    "design_regulated_supply"
+    "design_regulated_supply",
 ]

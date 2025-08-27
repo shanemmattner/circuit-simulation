@@ -9,5 +9,5 @@ __all__ = [
     "simulate_555_timer",
     "calculate_timing_parameters",
     "design_astable_555",
-    "design_monostable_555"
+    "design_monostable_555",
 ]
