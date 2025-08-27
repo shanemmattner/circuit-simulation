@@ -48,6 +48,10 @@ WORKDIR /workspace
 # Copy requirements files first (for better caching)
 COPY requirements.txt requirements-dev.txt ./
 
+# Install uv (modern Python package manager)
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh
+ENV PATH="/root/.local/bin:$PATH"
+
 # Install Python packages
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt && \

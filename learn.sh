@@ -23,9 +23,9 @@ trap cleanup EXIT
 
 echo "🔧 Setting up simulation environment..."
 
-# Stop and remove existing container if it exists
-docker stop circuit-sim-learn > /dev/null 2>&1 || true
-docker rm circuit-sim-learn > /dev/null 2>&1 || true
+# Stop and remove any existing containers
+docker stop circuit-sim circuit-sim-learn > /dev/null 2>&1 || true
+docker rm circuit-sim circuit-sim-learn > /dev/null 2>&1 || true
 
 # Build the image if it doesn't exist
 if ! docker images | grep -q "circuit-simulation.*latest"; then
