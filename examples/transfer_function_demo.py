@@ -19,9 +19,9 @@ def example_rc_filter():
     
     # Create RC filter: Vin -> R -> Vout -> C -> GND
     circuit = Circuit("RC Low-Pass Filter")
-    circuit.add_resistor("R1", "in", "out", 1000)  # 1kΩ
-    circuit.add_capacitor("C1", "out", "0", 1e-6)  # 1μF
-    circuit.add_voltage_source("V1", "in", "0", dc=1, ac=1)
+    circuit.add_resistor("R1", "in", "out", "1k")  # 1kΩ
+    circuit.add_capacitor("C1", "out", "0", "1u")  # 1μF
+    circuit.add_voltage_source("V1", "in", "0", "1V")
     
     # Run AC analysis from 1Hz to 100kHz
     engine = SimulationEngine()
@@ -60,11 +60,11 @@ def example_second_order_filter():
     circuit = Circuit("Sallen-Key Filter")
     
     # Input stage
-    circuit.add_voltage_source("V1", "in", "0", dc=1, ac=1)
-    circuit.add_resistor("R1", "in", "n1", 10e3)  # 10kΩ
-    circuit.add_resistor("R2", "n1", "n2", 10e3)  # 10kΩ
-    circuit.add_capacitor("C1", "n2", "out", 10e-9)  # 10nF
-    circuit.add_capacitor("C2", "n1", "0", 10e-9)  # 10nF
+    circuit.add_voltage_source("V1", "in", "0", "1V")
+    circuit.add_resistor("R1", "in", "n1", "10k")  # 10kΩ
+    circuit.add_resistor("R2", "n1", "n2", "10k")  # 10kΩ
+    circuit.add_capacitor("C1", "n2", "out", "10n")  # 10nF
+    circuit.add_capacitor("C2", "n1", "0", "10n")  # 10nF
     
     # Unity-gain buffer (ideal op-amp)
     circuit.add_vcvs("E1", "out", "0", "n2", "0", 1)  # Voltage follower
@@ -102,17 +102,17 @@ def example_feedback_system():
     circuit = Circuit("Feedback Amplifier")
     
     # Input and feedback network
-    circuit.add_voltage_source("V1", "in", "0", dc=1, ac=1)
-    circuit.add_resistor("R1", "in", "n1", 10e3)  # Input resistor
-    circuit.add_resistor("R2", "n1", "out", 90e3)  # Feedback resistor
+    circuit.add_voltage_source("V1", "in", "0", "1V")
+    circuit.add_resistor("R1", "in", "n1", "10k")  # Input resistor
+    circuit.add_resistor("R2", "n1", "out", "90k")  # Feedback resistor
     
     # Amplifier with frequency-dependent gain (simulated with RC)
     circuit.add_vcvs("E1", "n2", "0", "n1", "0", 100)  # High gain
-    circuit.add_resistor("R3", "n2", "out", 100)  # Output resistance
-    circuit.add_capacitor("C1", "out", "0", 100e-12)  # Parasitic capacitance
+    circuit.add_resistor("R3", "n2", "out", "100")  # Output resistance
+    circuit.add_capacitor("C1", "out", "0", "100p")  # Parasitic capacitance
     
     # Compensation capacitor
-    circuit.add_capacitor("Cc", "n1", "out", 10e-12)  # Miller compensation
+    circuit.add_capacitor("Cc", "n1", "out", "10p")  # Miller compensation
     
     # Run AC analysis
     engine = SimulationEngine()
