@@ -42,8 +42,9 @@ class ModelLibrary:
     def list_models(self, model_type: Optional[str] = None) -> Dict[str, SpiceModel]:
         """List all models, optionally filtered by type."""
         if model_type:
-            return {name: model for name, model in self.models.items() 
-                   if model.model_type == model_type}
+            return {
+                name: model for name, model in self.models.items() if model.model_type == model_type
+            }
         return self.models.copy()
 
     def _load_default_models(self):
@@ -152,7 +153,7 @@ class ModelLibrary:
             manufacturer="Various",
         )
 
-        # MOSFET Models  
+        # MOSFET Models
         self.models["2N7000"] = SpiceModel(
             name="2N7000",
             model_type="NMOS",
@@ -233,7 +234,7 @@ class ModelLibrary:
         )
 
         self.models["DefaultPNP"] = SpiceModel(
-            name="DefaultPNP", 
+            name="DefaultPNP",
             model_type="PNP",
             parameters={"IS": 1e-14, "BF": 100, "VAF": 50},
             description="Generic PNP transistor",

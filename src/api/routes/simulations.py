@@ -5,30 +5,34 @@ Provides REST endpoints for simulation job management, status monitoring,
 and result retrieval.
 """
 
+from typing import Any, Dict
+
 from fastapi import APIRouter, HTTPException, Query
-from typing import Dict, Any
+
 from src.api.models.simulation import SimulationRequest, SimulationStatus
-from src.api.services.simulation_service import SimulationService
 from src.api.routes.circuits import circuit_service  # Import circuit service
+from src.api.services.simulation_service import SimulationService
 
 router = APIRouter(tags=["simulations"])
 
-# Global simulation service instance 
+# Global simulation service instance
 simulation_service = SimulationService(circuit_service)
 
 
-@router.post("/api/circuits/{circuit_id}/simulate", response_model=SimulationStatus, status_code=202)
+@router.post(
+    "/api/circuits/{circuit_id}/simulate", response_model=SimulationStatus, status_code=202
+)
 async def start_simulation(circuit_id: str, sim_request: SimulationRequest) -> SimulationStatus:
     """
     Start a simulation job for a circuit.
-    
+
     Args:
         circuit_id: Circuit identifier
         sim_request: Simulation parameters and type
-        
+
     Returns:
         SimulationStatus with job details
-        
+
     Raises:
         HTTPException: 404 if circuit not found, 422 if validation fails
     """
@@ -47,13 +51,13 @@ async def start_simulation(circuit_id: str, sim_request: SimulationRequest) -> S
 async def get_simulation_status(job_id: str) -> SimulationStatus:
     """
     Get simulation job status.
-    
+
     Args:
         job_id: Job identifier
-        
+
     Returns:
         SimulationStatus with current job state
-        
+
     Raises:
         HTTPException: 404 if job not found
     """
@@ -67,10 +71,10 @@ async def get_simulation_status(job_id: str) -> SimulationStatus:
 async def cancel_simulation(job_id: str) -> None:
     """
     Cancel a simulation job.
-    
+
     Args:
         job_id: Job identifier
-        
+
     Raises:
         HTTPException: 404 if job not found
     """
@@ -82,15 +86,15 @@ async def cancel_simulation(job_id: str) -> None:
 @router.get("/api/simulations", response_model=Dict)
 async def list_simulations(
     skip: int = Query(0, ge=0, description="Number of simulations to skip"),
-    limit: int = Query(100, ge=1, le=1000, description="Maximum simulations to return")
+    limit: int = Query(100, ge=1, le=1000, description="Maximum simulations to return"),
 ) -> Dict:
     """
     List all simulation jobs with pagination.
-    
+
     Args:
         skip: Number of simulations to skip for pagination
         limit: Maximum number of simulations to return
-        
+
     Returns:
         Dictionary with simulations list, total count, and pagination info
     """
@@ -101,13 +105,13 @@ async def list_simulations(
 async def get_simulation_results(job_id: str) -> Dict[str, Any]:
     """
     Get simulation results.
-    
+
     Args:
         job_id: Job identifier
-        
+
     Returns:
         Simulation results data
-        
+
     Raises:
         HTTPException: 404 if job not found or not completed
     """
@@ -119,10 +123,9 @@ async def get_simulation_results(job_id: str) -> Dict[str, Any]:
             raise HTTPException(status_code=404, detail="Simulation job not found")
         elif status.status != "completed":
             raise HTTPException(
-                status_code=409, 
-                detail=f"Simulation not completed (status: {status.status})"
+                status_code=409, detail=f"Simulation not completed (status: {status.status})"
             )
         else:
             raise HTTPException(status_code=404, detail="No results available")
-    
+
     return results

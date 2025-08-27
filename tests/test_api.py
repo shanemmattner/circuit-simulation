@@ -6,6 +6,7 @@ Test-driven development approach - tests written first to define behavior.
 
 import pytest
 from fastapi.testclient import TestClient
+
 from src.api.main import app
 
 

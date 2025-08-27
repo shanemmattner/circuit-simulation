@@ -118,6 +118,21 @@ class SimulationResults:
         """Get list of components with current data."""
         return list(self._branch_currents.keys())
 
+    @property
+    def voltages(self) -> Dict[Union[int, str], np.ndarray]:
+        """Get all node voltage data."""
+        return self._node_voltages
+
+    @property
+    def currents(self) -> Dict[str, np.ndarray]:
+        """Get all component current data."""
+        return self._branch_currents
+
+    @property
+    def metadata(self) -> Dict[str, any]:
+        """Get simulation metadata."""
+        return self._metadata
+
     def plot(self, *signals: str, save_to: Optional[str] = None, show: bool = True):
         """
         Plot simulation results.

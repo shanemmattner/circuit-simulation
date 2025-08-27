@@ -177,8 +177,8 @@ class TestSimulationResults:
         results.set_time_vector(time)
         results.add_voltage(2, voltage)
 
-        # Mock matplotlib
-        with patch("matplotlib.pyplot") as mock_plt:
+        # Mock matplotlib import
+        with patch("matplotlib.pyplot", create=True) as mock_plt:
             mock_fig = MagicMock()
             mock_ax = MagicMock()
             mock_plt.subplots.return_value = (mock_fig, mock_ax)
@@ -201,8 +201,8 @@ class TestSimulationResults:
         results.set_frequency_vector(freq)
         results.add_voltage(2, gain)
 
-        # Mock matplotlib
-        with patch("matplotlib.pyplot") as mock_plt:
+        # Mock matplotlib import
+        with patch("matplotlib.pyplot", create=True) as mock_plt:
             mock_fig = MagicMock()
             mock_ax = MagicMock()
             mock_plt.subplots.return_value = (mock_fig, mock_ax)
@@ -225,8 +225,8 @@ class TestSimulationResults:
         results.set_time_vector(time)
         results.add_current("R1", current)
 
-        # Mock matplotlib
-        with patch("matplotlib.pyplot") as mock_plt:
+        # Mock matplotlib import
+        with patch("matplotlib.pyplot", create=True) as mock_plt:
             mock_fig = MagicMock()
             mock_ax = MagicMock()
             mock_plt.subplots.return_value = (mock_fig, mock_ax)
@@ -243,8 +243,8 @@ class TestSimulationResults:
         results = SimulationResults("dc")
         results.add_voltage(1, 5.0)
 
-        # Mock matplotlib
-        with patch("matplotlib.pyplot") as mock_plt:
+        # Mock matplotlib import
+        with patch("matplotlib.pyplot", create=True) as mock_plt:
             mock_fig = MagicMock()
             mock_ax = MagicMock()
             mock_plt.subplots.return_value = (mock_fig, mock_ax)
@@ -276,8 +276,8 @@ class TestSimulationResults:
         results.add_voltage(1, v1)
         results.add_voltage(2, v2)
 
-        # Mock matplotlib
-        with patch("matplotlib.pyplot") as mock_plt:
+        # Mock matplotlib import
+        with patch("matplotlib.pyplot", create=True) as mock_plt:
             mock_fig = MagicMock()
             mock_ax = MagicMock()
             mock_plt.subplots.return_value = (mock_fig, mock_ax)

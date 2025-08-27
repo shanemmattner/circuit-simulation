@@ -213,11 +213,11 @@ class SimulationEngine:
             RuntimeError: If simulation fails
             NotImplementedError: AC analysis not yet fully implemented
         """
-# Generate frequency vector
+        # Generate frequency vector
         frequencies = self._generate_frequency_vector(
             start_frequency, stop_frequency, points_per_decade, variation
         )
-        
+
         # Build PySpice circuit
         pyspice_circuit = self.builder.build_circuit(circuit)
 
@@ -242,7 +242,7 @@ class SimulationEngine:
                     start_frequency=start_frequency,
                     stop_frequency=stop_frequency,
                     number_of_points=points_per_decade,
-                    variation="dec"
+                    variation="dec",
                 )
             else:
                 # Linear variation - calculate total points
@@ -251,7 +251,7 @@ class SimulationEngine:
                     start_frequency=start_frequency,
                     stop_frequency=stop_frequency,
                     number_of_points=num_points,
-                    variation="lin"
+                    variation="lin",
                 )
         except Exception as e:
             raise RuntimeError(f"AC simulation failed: {e}")
@@ -262,7 +262,7 @@ class SimulationEngine:
 
         # Get complex node voltages
         for node_name in analysis.nodes.keys():
-            # Extract node identifier  
+            # Extract node identifier
             if node_name.startswith("v(") and node_name.endswith(")"):
                 node_id = node_name[2:-1]
             else:
@@ -293,22 +293,14 @@ class SimulationEngine:
         return results
 
     def _generate_frequency_vector(
-        self,
-        start_freq: float,
-        stop_freq: float,
-        points_per_decade: int,
-        variation: str
+        self, start_freq: float, stop_freq: float, points_per_decade: int, variation: str
     ) -> np.ndarray:
         """Generate frequency vector for AC analysis."""
         if variation == "dec":
             # Logarithmic (decade) variation
             num_decades = np.log10(stop_freq / start_freq)
             num_points = int(num_decades * points_per_decade) + 1
-            return np.logspace(
-                np.log10(start_freq),
-                np.log10(stop_freq),
-                num_points
-            )
+            return np.logspace(np.log10(start_freq), np.log10(stop_freq), num_points)
         else:
             # Linear variation
             return np.linspace(start_freq, stop_freq, 1000)

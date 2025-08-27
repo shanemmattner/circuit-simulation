@@ -8,15 +8,15 @@ circuit analysis reports with interactive visualizations and multiple export for
 import os
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Optional, Union, Any
+from typing import Any, Dict, List, Optional
 
-import pandas as pd
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from circuit_sim.circuit import Circuit
 from circuit_sim.simulator.results import SimulationResults
+
 from .charts.plotly_charts import PlotlyChartGenerator
-from .utils.formatting import format_value, format_units, format_time_duration
+from .utils.formatting import format_time_duration, format_units, format_value
 from .utils.metrics import MetricsCalculator
 
 
@@ -32,16 +32,16 @@ class ReportGenerator:
         """
         if template_dir is None:
             template_dir = os.path.join(os.path.dirname(__file__), "templates")
-        
+
         self.template_dir = Path(template_dir)
         self.env = Environment(
             loader=FileSystemLoader(str(self.template_dir)),
             autoescape=select_autoescape(["html", "xml"]),
         )
-        
+
         self.chart_generator = PlotlyChartGenerator()
         self.metrics_calculator = MetricsCalculator()
-        
+
         # Add custom filters to Jinja2
         self.env.filters["format_value"] = format_value
         self.env.filters["format_units"] = format_units
@@ -54,7 +54,7 @@ class ReportGenerator:
         report_type: str = "detailed",
         output_format: str = "html",
         output_path: Optional[str] = None,
-        **kwargs
+        **kwargs,
     ) -> str:
         """
         Generate a comprehensive circuit analysis report.
@@ -225,10 +225,12 @@ class ReportGenerator:
             for node in results.nodes:
                 voltage = results.voltage(node)
                 if voltage is not None:
-                    dc_data.append({
-                        "node": f"Node {node}" if node != 0 else "Ground",
-                        "voltage": voltage[0] if len(voltage) > 0 else 0.0,
-                    })
+                    dc_data.append(
+                        {
+                            "node": f"Node {node}" if node != 0 else "Ground",
+                            "voltage": voltage[0] if len(voltage) > 0 else 0.0,
+                        }
+                    )
             processed["dc_operating_points"] = dc_data
 
         elif results.analysis_type == "transient":
@@ -266,7 +268,7 @@ class ReportGenerator:
             Summary dictionary
         """
         summary_text = self._create_summary_text(results, metrics, circuit)
-        
+
         return {
             "text": summary_text,
             "key_findings": self._extract_key_findings(results, metrics),
@@ -280,44 +282,48 @@ class ReportGenerator:
         analysis_type = results.analysis_type.upper()
         component_count = len(circuit.components)
         node_count = len(circuit.nodes)
-        
+
         text = f"This {analysis_type} analysis was performed on a {component_count}-component "
         text += f"circuit with {node_count} nodes. "
-        
+
         if results.analysis_type == "dc":
             text += "The DC operating point analysis shows the steady-state voltages at all circuit nodes."
         elif results.analysis_type == "transient":
             text += "The transient analysis reveals the circuit's time-domain behavior and response characteristics."
         elif results.analysis_type == "ac":
             text += "The AC frequency analysis demonstrates the circuit's frequency response and filtering characteristics."
-        
+
         return text
 
-    def _extract_key_findings(self, results: SimulationResults, metrics: Dict[str, Any]) -> List[str]:
+    def _extract_key_findings(
+        self, results: SimulationResults, metrics: Dict[str, Any]
+    ) -> List[str]:
         """Extract key findings from the analysis."""
         findings = []
-        
+
         if results.analysis_type == "dc" and metrics:
             if "power_dissipation" in metrics:
-                findings.append(f"Total power dissipation: {format_value(metrics['power_dissipation'], 'W')}")
+                findings.append(
+                    f"Total power dissipation: {format_value(metrics['power_dissipation'], 'W')}"
+                )
             if "efficiency" in metrics:
                 findings.append(f"Circuit efficiency: {metrics['efficiency']:.1%}")
-        
+
         elif results.analysis_type == "transient" and metrics:
             if "rise_time" in metrics:
                 findings.append(f"Rise time: {format_value(metrics['rise_time'], 's')}")
             if "settling_time" in metrics:
                 findings.append(f"Settling time: {format_value(metrics['settling_time'], 's')}")
-        
+
         elif results.analysis_type == "ac" and metrics:
             if "bandwidth" in metrics:
                 findings.append(f"Bandwidth: {format_value(metrics['bandwidth'], 'Hz')}")
             if "gain" in metrics:
                 findings.append(f"Maximum gain: {metrics['gain']:.2f} dB")
-        
+
         if not findings:
             findings.append("Analysis completed successfully with nominal results.")
-        
+
         return findings
 
     def _generate_recommendations(
@@ -325,22 +331,22 @@ class ReportGenerator:
     ) -> List[str]:
         """Generate engineering recommendations based on results."""
         recommendations = []
-        
+
         # Generic recommendations based on circuit complexity
         if len(circuit.components) > 20:
             recommendations.append("Consider circuit optimization to reduce component count.")
-        
+
         if results.analysis_type == "transient":
             recommendations.append("Verify transient response meets timing requirements.")
             recommendations.append("Consider adding damping if overshoot is excessive.")
-        
+
         elif results.analysis_type == "ac":
             recommendations.append("Validate frequency response against specifications.")
             recommendations.append("Check phase margin for stability requirements.")
-        
+
         if not recommendations:
             recommendations.append("Circuit analysis shows nominal performance.")
-        
+
         return recommendations
 
     def _generate_output_path(self, circuit_name: str, report_type: str, output_format: str) -> str:
@@ -348,18 +354,19 @@ class ReportGenerator:
         # Create reports directory if it doesn't exist
         reports_dir = Path("reports")
         reports_dir.mkdir(exist_ok=True)
-        
+
         # Clean circuit name for filename
-        safe_name = "".join(c for c in circuit_name if c.isalnum() or c in (' ', '-', '_')).strip()
-        safe_name = safe_name.replace(' ', '_')
-        
+        safe_name = "".join(c for c in circuit_name if c.isalnum() or c in (" ", "-", "_")).strip()
+        safe_name = safe_name.replace(" ", "_")
+
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         filename = f"{safe_name}_{report_type}_{timestamp}.{output_format}"
-        
+
         return str(reports_dir / filename)
 
     def _generate_html(self, data: Dict[str, Any], report_type: str, output_path: str) -> str:
         """Generate HTML report."""
         from .builders.html_builder import HTMLBuilder
+
         builder = HTMLBuilder(self.env)
         return builder.build(data, report_type, output_path)

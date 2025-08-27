@@ -5,7 +5,8 @@ This module provides the MetricsCalculator class that computes
 performance metrics from simulation results.
 """
 
-from typing import Dict, Any, Optional
+from typing import Any, Dict, Optional
+
 import numpy as np
 
 from ...circuit import Circuit
@@ -15,9 +16,7 @@ from ...simulator.results import SimulationResults
 class MetricsCalculator:
     """Calculate performance metrics from simulation results."""
 
-    def calculate_metrics(
-        self, results: SimulationResults, circuit: Circuit
-    ) -> Dict[str, Any]:
+    def calculate_metrics(self, results: SimulationResults, circuit: Circuit) -> Dict[str, Any]:
         """
         Calculate relevant metrics based on analysis type.
 
@@ -39,9 +38,7 @@ class MetricsCalculator:
 
         return metrics
 
-    def _calculate_dc_metrics(
-        self, results: SimulationResults, circuit: Circuit
-    ) -> Dict[str, Any]:
+    def _calculate_dc_metrics(self, results: SimulationResults, circuit: Circuit) -> Dict[str, Any]:
         """Calculate DC analysis metrics."""
         metrics = {}
 
@@ -61,7 +58,7 @@ class MetricsCalculator:
         # Efficiency (simplified - ratio of output to input power)
         source_power = 0.0
         load_power = 0.0
-        
+
         for component in circuit.components:
             if component["type"] in ["voltage_source", "current_source"]:
                 current = results.current(component["name"])
@@ -108,7 +105,7 @@ class MetricsCalculator:
             return metrics
 
         time = results.time
-        
+
         # Rise time (10% to 90% of final value)
         final_value = voltage[-1]
         rise_time = self._calculate_rise_time(time, voltage, final_value)
@@ -126,9 +123,7 @@ class MetricsCalculator:
 
         return metrics
 
-    def _calculate_ac_metrics(
-        self, results: SimulationResults, circuit: Circuit
-    ) -> Dict[str, Any]:
+    def _calculate_ac_metrics(self, results: SimulationResults, circuit: Circuit) -> Dict[str, Any]:
         """Calculate AC frequency analysis metrics."""
         metrics = {}
 
@@ -191,18 +186,18 @@ class MetricsCalculator:
 
     def _parse_dc_value(self, dc_value: str) -> float:
         """Parse DC value string to float."""
-        value_str = dc_value.upper().rstrip('V').rstrip('A')
+        value_str = dc_value.upper().rstrip("V").rstrip("A")
         try:
             # Handle SI prefixes
-            if value_str.endswith('M'):
+            if value_str.endswith("M"):
                 return float(value_str[:-1]) * 1e6
-            elif value_str.endswith('K'):
+            elif value_str.endswith("K"):
                 return float(value_str[:-1]) * 1e3
-            elif value_str.endswith('U'):
+            elif value_str.endswith("U"):
                 return float(value_str[:-1]) * 1e-6
-            elif value_str.endswith('N'):
+            elif value_str.endswith("N"):
                 return float(value_str[:-1]) * 1e-9
-            elif value_str.endswith('P'):
+            elif value_str.endswith("P"):
                 return float(value_str[:-1]) * 1e-12
             else:
                 return float(value_str)
@@ -243,7 +238,7 @@ class MetricsCalculator:
             return None
 
         tolerance = 0.02 * abs(final_value)
-        
+
         # Work backwards from end
         for i in range(len(voltage) - 1, 0, -1):
             if abs(voltage[i] - final_value) > tolerance:

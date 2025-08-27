@@ -5,11 +5,13 @@ This module provides functions for formatting numerical values,
 units, and other display elements in reports.
 """
 
-from typing import Union, Optional
 import math
+from typing import Optional, Union
 
 
-def format_value(value: Union[float, int, str], unit: Optional[str] = None, precision: int = 3) -> str:
+def format_value(
+    value: Union[float, int, str], unit: Optional[str] = None, precision: int = 3
+) -> str:
     """
     Format a numerical value with appropriate SI prefix and unit.
 
@@ -31,7 +33,7 @@ def format_value(value: Union[float, int, str], unit: Optional[str] = None, prec
     """
     if isinstance(value, str):
         return value
-    
+
     if value == 0:
         if unit:
             return f"0.000 {unit}"
@@ -40,28 +42,28 @@ def format_value(value: Union[float, int, str], unit: Optional[str] = None, prec
 
     # SI prefixes (power of 10)
     si_prefixes = [
-        (1e12, 'T'),   # Tera
-        (1e9, 'G'),    # Giga
-        (1e6, 'M'),    # Mega
-        (1e3, 'k'),    # Kilo
-        (1, ''),       # Base unit
-        (1e-3, 'm'),   # Milli
-        (1e-6, 'μ'),   # Micro
-        (1e-9, 'n'),   # Nano
-        (1e-12, 'p'),  # Pico
-        (1e-15, 'f'),  # Femto
+        (1e12, "T"),  # Tera
+        (1e9, "G"),  # Giga
+        (1e6, "M"),  # Mega
+        (1e3, "k"),  # Kilo
+        (1, ""),  # Base unit
+        (1e-3, "m"),  # Milli
+        (1e-6, "μ"),  # Micro
+        (1e-9, "n"),  # Nano
+        (1e-12, "p"),  # Pico
+        (1e-15, "f"),  # Femto
     ]
 
     abs_value = abs(value)
-    
+
     # Find appropriate SI prefix
     for scale, prefix in si_prefixes:
         if abs_value >= scale:
             scaled_value = value / scale
-            
+
             # Format with specified precision - always use full precision for consistency
             formatted = f"{scaled_value:.{precision}f}"
-            
+
             # Build final string
             result = formatted
             if prefix:
@@ -73,9 +75,9 @@ def format_value(value: Union[float, int, str], unit: Optional[str] = None, prec
                     result += f" {unit}"
                 else:
                     result += " "
-            
+
             return result
-    
+
     # Fallback for very small values
     formatted = f"{value:.{precision}e}"
     if unit:
@@ -102,19 +104,19 @@ def format_units(unit: str) -> str:
         '°'
     """
     unit_map = {
-        'ohm': 'Ω',
-        'ohms': 'Ω',
-        'micro': 'μ',
-        'mu': 'μ',
-        'degrees': '°',
-        'degree': '°',
-        'deg': '°',
-        'celsius': '°C',
-        'fahrenheit': '°F',
-        'percent': '%',
-        'pi': 'π',
+        "ohm": "Ω",
+        "ohms": "Ω",
+        "micro": "μ",
+        "mu": "μ",
+        "degrees": "°",
+        "degree": "°",
+        "deg": "°",
+        "celsius": "°C",
+        "fahrenheit": "°F",
+        "percent": "%",
+        "pi": "π",
     }
-    
+
     return unit_map.get(unit.lower(), unit)
 
 
@@ -158,18 +160,18 @@ def format_scientific(value: Union[float, int], precision: int = 2) -> str:
     """
     if value == 0:
         return "0"
-    
+
     exponent = int(math.floor(math.log10(abs(value))))
-    mantissa = value / (10 ** exponent)
-    
+    mantissa = value / (10**exponent)
+
     # Use proper multiplication and superscript symbols
     if exponent == 0:
         return f"{mantissa:.{precision}f}"
     elif exponent > 0:
-        exp_str = ''.join('⁰¹²³⁴⁵⁶⁷⁸⁹'[int(d)] for d in str(exponent))
+        exp_str = "".join("⁰¹²³⁴⁵⁶⁷⁸⁹"[int(d)] for d in str(exponent))
     else:
-        exp_str = '⁻' + ''.join('⁰¹²³⁴⁵⁶⁷⁸⁹'[int(d)] for d in str(-exponent))
-    
+        exp_str = "⁻" + "".join("⁰¹²³⁴⁵⁶⁷⁸⁹"[int(d)] for d in str(-exponent))
+
     return f"{mantissa:.{precision}f} × 10{exp_str}"
 
 
@@ -190,13 +192,13 @@ def format_time_duration(seconds: float) -> str:
         '1m 15.5s'
     """
     if seconds < 1e-6:
-        return format_value(seconds * 1e9, 'ns')
+        return format_value(seconds * 1e9, "ns")
     elif seconds < 1e-3:
-        return format_value(seconds * 1e6, 'μs')
+        return format_value(seconds * 1e6, "μs")
     elif seconds < 1:
-        return format_value(seconds * 1e3, 'ms')
+        return format_value(seconds * 1e3, "ms")
     elif seconds < 60:
-        return format_value(seconds, 's')
+        return format_value(seconds, "s")
     elif seconds < 3600:
         minutes = int(seconds // 60)
         remaining_seconds = seconds % 60
@@ -224,7 +226,7 @@ def format_frequency(freq_hz: float) -> str:
         >>> format_frequency(2.4e9)
         '2.400 GHz'
     """
-    return format_value(freq_hz, 'Hz')
+    return format_value(freq_hz, "Hz")
 
 
 def format_table_value(value: Union[float, int, str, None], unit: Optional[str] = None) -> str:
@@ -240,10 +242,10 @@ def format_table_value(value: Union[float, int, str, None], unit: Optional[str] 
     """
     if value is None:
         return "N/A"
-    
+
     if isinstance(value, str):
         return value
-    
+
     if isinstance(value, (int, float)):
         if unit:
             return format_value(value, unit, precision=3)
@@ -252,5 +254,5 @@ def format_table_value(value: Union[float, int, str, None], unit: Optional[str] 
                 return f"{value:.2e}"
             else:
                 return f"{value:.3f}"
-    
+
     return str(value)

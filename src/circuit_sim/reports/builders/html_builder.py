@@ -8,7 +8,7 @@ HTML reports with embedded Plotly charts and proper styling.
 import os
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, Any, Optional
+from typing import Any, Dict
 
 from jinja2 import Environment
 
@@ -55,7 +55,7 @@ class HTMLBuilder:
         html_content = template.render(**context)
 
         # Write to file
-        with open(output_path, 'w', encoding='utf-8') as f:
+        with open(output_path, "w", encoding="utf-8") as f:
             f.write(html_content)
 
         return output_path
@@ -74,12 +74,12 @@ class HTMLBuilder:
         context = dict(data)
 
         # Generate chart HTML
-        if 'charts' in data:
-            context['charts_html'] = self._generate_charts_html(data['charts'])
+        if "charts" in data:
+            context["charts_html"] = self._generate_charts_html(data["charts"])
 
         # Add generation metadata
-        context['generated_at'] = datetime.now().isoformat()
-        context['version'] = "1.0.0"
+        context["generated_at"] = datetime.now().isoformat()
+        context["version"] = "1.0.0"
 
         return context
 
@@ -96,12 +96,9 @@ class HTMLBuilder:
         charts_html = {}
 
         for chart_name, chart_fig in charts.items():
-            if hasattr(chart_fig, 'to_html'):
+            if hasattr(chart_fig, "to_html"):
                 # Generate HTML for Plotly figure
-                chart_html = chart_fig.to_html(
-                    include_plotlyjs='cdn',
-                    div_id=f'chart-{chart_name}'
-                )
+                chart_html = chart_fig.to_html(include_plotlyjs="cdn", div_id=f"chart-{chart_name}")
                 charts_html[chart_name] = chart_html
             else:
                 # Fallback for non-Plotly objects

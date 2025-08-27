@@ -6,6 +6,7 @@ Tests circuit creation, retrieval, listing, and deletion via REST API.
 
 import pytest
 from fastapi.testclient import TestClient
+
 from src.api.main import app
 
 
@@ -27,23 +28,23 @@ def sample_circuit_data():
                 "name": "V1",
                 "positive_node": "1",
                 "negative_node": "0",
-                "value": "5V"
+                "value": "5V",
             },
             {
                 "type": "resistor",
                 "name": "R1",
                 "positive_node": "1",
                 "negative_node": "2",
-                "value": "1k"
+                "value": "1k",
             },
             {
                 "type": "capacitor",
                 "name": "C1",
                 "positive_node": "2",
                 "negative_node": "0",
-                "value": "1u"
-            }
-        ]
+                "value": "1u",
+            },
+        ],
     }
 
 
@@ -53,7 +54,7 @@ class TestCircuitCRUD:
     def test_create_circuit_valid(self, client, sample_circuit_data):
         """Test creating a new circuit with valid data."""
         response = client.post("/api/circuits", json=sample_circuit_data)
-        
+
         assert response.status_code == 201
         data = response.json()
         assert data["name"] == sample_circuit_data["name"]
@@ -64,11 +65,8 @@ class TestCircuitCRUD:
 
     def test_create_circuit_invalid_data(self, client):
         """Test creating circuit with invalid data fails."""
-        invalid_data = {
-            "name": "",  # Empty name should fail
-            "components": []
-        }
-        
+        invalid_data = {"name": "", "components": []}  # Empty name should fail
+
         response = client.post("/api/circuits", json=invalid_data)
         assert response.status_code == 422
 
@@ -82,18 +80,18 @@ class TestCircuitCRUD:
                     "name": "R1",
                     "positive_node": "1",
                     "negative_node": "0",
-                    "value": "1k"
+                    "value": "1k",
                 },
                 {
-                    "type": "resistor", 
+                    "type": "resistor",
                     "name": "R1",  # Duplicate name
                     "positive_node": "2",
                     "negative_node": "0",
-                    "value": "2k"
-                }
-            ]
+                    "value": "2k",
+                },
+            ],
         }
-        
+
         response = client.post("/api/circuits", json=invalid_data)
         assert response.status_code == 422
 
@@ -102,10 +100,10 @@ class TestCircuitCRUD:
         # Create circuit first
         create_response = client.post("/api/circuits", json=sample_circuit_data)
         circuit_id = create_response.json()["id"]
-        
+
         # Get circuit by ID
         response = client.get(f"/api/circuits/{circuit_id}")
-        
+
         assert response.status_code == 200
         data = response.json()
         assert data["id"] == circuit_id
@@ -120,13 +118,13 @@ class TestCircuitCRUD:
         """Test listing all circuits."""
         # Create a couple of circuits
         client.post("/api/circuits", json=sample_circuit_data)
-        
+
         sample_circuit_data["name"] = "Another Circuit"
         client.post("/api/circuits", json=sample_circuit_data)
-        
+
         # List circuits
         response = client.get("/api/circuits")
-        
+
         assert response.status_code == 200
         data = response.json()
         assert len(data["circuits"]) >= 2
@@ -137,12 +135,12 @@ class TestCircuitCRUD:
         # Create circuit first
         create_response = client.post("/api/circuits", json=sample_circuit_data)
         circuit_id = create_response.json()["id"]
-        
+
         # Delete circuit
         response = client.delete(f"/api/circuits/{circuit_id}")
-        
+
         assert response.status_code == 204
-        
+
         # Verify circuit is gone
         get_response = client.get(f"/api/circuits/{circuit_id}")
         assert get_response.status_code == 404

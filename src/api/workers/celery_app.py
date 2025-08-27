@@ -3,6 +3,7 @@ Celery application configuration for background job processing.
 """
 
 import os
+
 from celery import Celery
 
 # Redis URL configuration
@@ -10,10 +11,7 @@ REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
 
 # Create Celery app
 celery_app = Celery(
-    "circuit_simulation",
-    broker=REDIS_URL,
-    backend=REDIS_URL,
-    include=["src.api.workers.tasks"]
+    "circuit_simulation", broker=REDIS_URL, backend=REDIS_URL, include=["src.api.workers.tasks"]
 )
 
 # Configuration

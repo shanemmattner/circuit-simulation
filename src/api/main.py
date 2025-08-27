@@ -5,9 +5,10 @@ Provides REST API endpoints for circuit creation, simulation job management,
 and WebSocket support for real-time updates.
 """
 
+import logging
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-import logging
 
 from .routes import circuits, simulations, websocket
 
@@ -49,8 +50,8 @@ async def root():
             "docs": "/docs",
             "health": "/health",
             "circuits": "/api/circuits",
-            "simulations": "/api/simulations"
-        }
+            "simulations": "/api/simulations",
+        },
     }
 
 
@@ -62,4 +63,5 @@ async def health_check():
 
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(app, host="0.0.0.0", port=8000)

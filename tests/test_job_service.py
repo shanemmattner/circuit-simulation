@@ -4,8 +4,8 @@ Tests for job service functionality.
 Tests job submission, status tracking, and fallback behavior.
 """
 
-import pytest
-from unittest.mock import Mock, patch
+from unittest.mock import patch
+
 from src.api.services.job_service import JobService
 
 
@@ -15,32 +15,32 @@ class TestJobService:
     def test_job_service_initialization(self):
         """Test job service initializes correctly."""
         job_service = JobService()
-        
+
         # Should initialize without errors
         assert job_service is not None
-        assert hasattr(job_service, 'use_celery')
-        
+        assert hasattr(job_service, "use_celery")
+
     def test_celery_availability_check(self):
         """Test Celery availability detection."""
         job_service = JobService()
-        
+
         # Without Redis running, should default to direct execution
         assert job_service.use_celery == False
-        
+
     def test_submit_direct_job(self):
         """Test direct job submission (fallback mode)."""
         job_service = JobService()
-        
+
         # Force direct mode
         job_service.use_celery = False
-        
+
         result = job_service.submit_simulation_job(
             job_id="test-123",
             circuit_id="circuit-456",
             sim_type="dc",
-            parameters={"analysis": "operating_point"}
+            parameters={"analysis": "operating_point"},
         )
-        
+
         assert result["job_id"] == "test-123"
         assert result["status"] == "pending"
         assert result["backend"] == "direct"
@@ -50,7 +50,7 @@ class TestJobService:
         """Test job service behavior with mocked Celery."""
         # Test that job service can be created and defaults to direct mode
         job_service = JobService()
-        
+
         # Without proper Redis/Celery setup, should use direct mode
         assert job_service.use_celery == False
 
@@ -58,7 +58,7 @@ class TestJobService:
         """Test job status retrieval when Celery unavailable."""
         job_service = JobService()
         job_service.use_celery = False
-        
+
         # Should return None when Celery not available
         status = job_service.get_job_status("test-job-123")
         assert status is None
@@ -67,7 +67,7 @@ class TestJobService:
         """Test job cancellation when Celery unavailable."""
         job_service = JobService()
         job_service.use_celery = False
-        
+
         # Should return False when Celery not available
         cancelled = job_service.cancel_job("test-job-123")
         assert cancelled == False
@@ -76,14 +76,14 @@ class TestJobService:
         """Test job service handles Redis connection errors."""
         # Without Redis available, should fall back to direct execution
         job_service = JobService()
-        
+
         # Should fall back to direct execution
         assert job_service.use_celery == False
 
     def test_job_service_logging(self):
-        """Test that job service logs appropriately.""" 
-        with patch('src.api.services.job_service.logger') as mock_logger:
+        """Test that job service logs appropriately."""
+        with patch("src.api.services.job_service.logger") as mock_logger:
             job_service = JobService()
-            
+
             # Should have logged the fallback to direct execution
             mock_logger.info.assert_called_with("Celery not available, using direct execution")

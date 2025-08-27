@@ -4,19 +4,21 @@ Test cases for report formatting utilities.
 Tests value formatting, unit conversions, and display formatting functions.
 """
 
-import sys
 import os
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
+import sys
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
 import pytest
+
 from circuit_sim.reports.utils.formatting import (
-    format_value,
-    format_units,
+    format_frequency,
     format_percentage,
     format_scientific,
+    format_table_value,
     format_time_duration,
-    format_frequency,
-    format_table_value
+    format_units,
+    format_value,
 )
 
 
@@ -25,33 +27,33 @@ class TestFormatting:
 
     def test_format_value_basic(self):
         """Test basic value formatting."""
-        assert format_value(1.5, 'V') == "1.500 V"
-        assert format_value(0, 'A') == "0.000 A"
+        assert format_value(1.5, "V") == "1.500 V"
+        assert format_value(0, "A") == "0.000 A"
         assert format_value(5) == "5.000 "
 
     def test_format_value_si_prefixes(self):
         """Test SI prefix formatting."""
-        assert format_value(0.001, 'V') == "1.000 mV"
-        assert format_value(1500, 'Ω') == "1.500 kΩ"
-        assert format_value(1e6, 'Hz') == "1.000 MHz"
-        assert format_value(1e-6, 'F') == "1.000 μF"
-        assert format_value(1e-9, 'H') == "1.000 nH"
-        assert format_value(1e-12, 'F') == "1.000 pF"
+        assert format_value(0.001, "V") == "1.000 mV"
+        assert format_value(1500, "Ω") == "1.500 kΩ"
+        assert format_value(1e6, "Hz") == "1.000 MHz"
+        assert format_value(1e-6, "F") == "1.000 μF"
+        assert format_value(1e-9, "H") == "1.000 nH"
+        assert format_value(1e-12, "F") == "1.000 pF"
 
     def test_format_value_precision(self):
         """Test precision handling."""
-        assert format_value(1.23456, 'V', precision=2) == "1.23 V"
-        assert format_value(123.456, 'mA', precision=4) == "123.4560 mA"
-        
+        assert format_value(1.23456, "V", precision=2) == "1.23 V"
+        assert format_value(123.456, "mA", precision=4) == "123.4560 mA"
+
     def test_format_value_large_numbers(self):
         """Test large number formatting."""
-        assert format_value(1234, 'Ω') == "1.234 kΩ"
-        assert format_value(1234000, 'Hz') == "1.234 MHz"
-        
+        assert format_value(1234, "Ω") == "1.234 kΩ"
+        assert format_value(1234000, "Hz") == "1.234 MHz"
+
     def test_format_value_small_numbers(self):
         """Test very small number formatting."""
-        assert format_value(1e-15, 'F') == "1.000 fF"
-        assert format_value(1e-18, 'A') == "1.000e-18 A"  # Fallback to scientific
+        assert format_value(1e-15, "F") == "1.000 fF"
+        assert format_value(1e-18, "A") == "1.000e-18 A"  # Fallback to scientific
 
     def test_format_value_string_input(self):
         """Test string input handling."""
@@ -60,17 +62,17 @@ class TestFormatting:
 
     def test_format_value_negative(self):
         """Test negative value formatting."""
-        assert format_value(-1.5, 'V') == "-1.500 V"
-        assert format_value(-0.001, 'A') == "-1.000 mA"
+        assert format_value(-1.5, "V") == "-1.500 V"
+        assert format_value(-0.001, "A") == "-1.000 mA"
 
     def test_format_units(self):
         """Test unit symbol formatting."""
-        assert format_units('ohm') == 'Ω'
-        assert format_units('Ohms') == 'Ω'
-        assert format_units('micro') == 'μ'
-        assert format_units('degrees') == '°'
-        assert format_units('percent') == '%'
-        assert format_units('unknown') == 'unknown'
+        assert format_units("ohm") == "Ω"
+        assert format_units("Ohms") == "Ω"
+        assert format_units("micro") == "μ"
+        assert format_units("degrees") == "°"
+        assert format_units("percent") == "%"
+        assert format_units("unknown") == "unknown"
 
     def test_format_percentage(self):
         """Test percentage formatting."""
@@ -116,13 +118,16 @@ class TestFormatting:
         assert format_table_value(1.234) == "1.234"
         assert format_table_value(0.0001234) == "1.23e-04"
 
-    @pytest.mark.parametrize("value,unit,expected", [
-        (1000, "V", "1.000 kV"),
-        (0.001, "A", "1.000 mA"),
-        (1e6, "Ω", "1.000 MΩ"),
-        (47e-12, "F", "47.000 pF"),
-        (2.2e-3, "H", "2.200 mH"),
-    ])
+    @pytest.mark.parametrize(
+        "value,unit,expected",
+        [
+            (1000, "V", "1.000 kV"),
+            (0.001, "A", "1.000 mA"),
+            (1e6, "Ω", "1.000 MΩ"),
+            (47e-12, "F", "47.000 pF"),
+            (2.2e-3, "H", "2.200 mH"),
+        ],
+    )
     def test_format_value_parametrized(self, value, unit, expected):
         """Test various value/unit combinations."""
         assert format_value(value, unit) == expected
@@ -131,11 +136,11 @@ class TestFormatting:
         """Test edge cases and boundary conditions."""
         # Very large numbers
         assert "T" in format_value(1e12, "Hz")  # Should use Tera prefix
-        
+
         # Boundary values for SI prefixes
         assert format_value(999, "Hz") == "999.000 Hz"  # Just below kilo
         assert format_value(1001, "Hz") == "1.001 kHz"  # Just above kilo
-        
+
         # Zero handling
         assert format_value(0.0, "V") == "0.000 V"
         assert format_value(-0.0, "A") == "0.000 A"

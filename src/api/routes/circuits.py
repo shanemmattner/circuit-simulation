@@ -4,8 +4,10 @@ Circuit CRUD API endpoints.
 Provides REST endpoints for circuit creation, retrieval, listing, and deletion.
 """
 
-from fastapi import APIRouter, HTTPException, Query
 from typing import Dict
+
+from fastapi import APIRouter, HTTPException, Query
+
 from src.api.models.circuit import CircuitCreate, CircuitResponse
 from src.api.services.circuit_service import CircuitService
 
@@ -19,13 +21,13 @@ circuit_service = CircuitService()
 async def create_circuit(circuit_data: CircuitCreate) -> CircuitResponse:
     """
     Create a new circuit.
-    
+
     Args:
         circuit_data: Circuit creation request with components
-        
+
     Returns:
         Created circuit with generated ID and metadata
-        
+
     Raises:
         HTTPException: 422 if validation fails
     """
@@ -39,13 +41,13 @@ async def create_circuit(circuit_data: CircuitCreate) -> CircuitResponse:
 async def get_circuit(circuit_id: str) -> CircuitResponse:
     """
     Get circuit by ID.
-    
+
     Args:
         circuit_id: Unique circuit identifier
-        
+
     Returns:
         Circuit details
-        
+
     Raises:
         HTTPException: 404 if circuit not found
     """
@@ -58,15 +60,15 @@ async def get_circuit(circuit_id: str) -> CircuitResponse:
 @router.get("", response_model=Dict)
 async def list_circuits(
     skip: int = Query(0, ge=0, description="Number of circuits to skip"),
-    limit: int = Query(100, ge=1, le=1000, description="Maximum circuits to return")
+    limit: int = Query(100, ge=1, le=1000, description="Maximum circuits to return"),
 ) -> Dict:
     """
     List all circuits with pagination.
-    
+
     Args:
         skip: Number of circuits to skip for pagination
         limit: Maximum number of circuits to return
-        
+
     Returns:
         Dictionary with circuits list, total count, and pagination info
     """
@@ -77,10 +79,10 @@ async def list_circuits(
 async def delete_circuit(circuit_id: str) -> None:
     """
     Delete circuit by ID.
-    
+
     Args:
         circuit_id: Unique circuit identifier
-        
+
     Raises:
         HTTPException: 404 if circuit not found
     """
