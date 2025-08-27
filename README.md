@@ -16,18 +16,35 @@ Professional circuit simulation with REST API, CLI tools, and AI integration.
 
 ## Quick Start
 
+### **🐳 Docker Required for Circuit Simulation**
+**All simulation requires Docker container** with ngspice pre-installed:
+
 ```bash
-# Install and test
-uv install
-uv run circuit-sim init --name "My Project"
-uv run circuit-sim create --netlist examples/rc_filter.cir --name "RC Filter"
+# 1. Build and start simulation container  
+docker-compose -f deployment/docker-compose.yml up -d circuit-sim
 
-# Start API server  
-uv run uvicorn src.api.main:app --host 0.0.0.0 --port 8000
-open http://localhost:8000/docs
+# 2. Run circuit operations in container
+docker-compose -f deployment/docker-compose.yml run --rm circuit-sim \
+  uv run circuit-sim init --name "My Project"
 
-# Docker deployment
+docker-compose -f deployment/docker-compose.yml run --rm circuit-sim \
+  uv run circuit-sim create --netlist examples/rc_filter.cir --name "RC Filter"
+
+# 3. Interactive learning with working simulation
+docker-compose -f deployment/docker-compose.yml run --rm circuit-sim \
+  uv run jupyter lab docs/learning_modules/ --ip=0.0.0.0 --allow-root
+
+# 4. Production API deployment
 docker-compose -f deployment/docker-compose.fastapi.yml up -d --build
+open http://localhost:8000/docs
+```
+
+### Alternative: Local Development (No Simulation)
+```bash
+# Install dependencies (CLI and educational content work, simulation shows demo mode)
+uv install
+uv run circuit-sim init --name "My Project"  # CLI works
+uv run jupyter lab docs/learning_modules/    # Educational content works
 ```
 
 ## Features

@@ -131,6 +131,8 @@ uv run python test_mcp_server.py
 4. **Document**: Add comment explaining the fix if non-obvious
 
 ### Common Commands
+
+### Development Commands
 ```bash
 # Run a specific test
 pytest tests/test_module.py::test_function -v
@@ -145,6 +147,28 @@ grep -r "TODO\|FIXME\|XXX" src/
 # Check for security issues
 bandit -r src/
 safety check
+```
+
+### **🐳 CRITICAL: Docker Container Required for Simulation**
+**All circuit simulation must run in the Docker container** due to ngspice dependencies:
+
+```bash
+# Start the simulation container
+docker-compose -f deployment/docker-compose.yml up -d circuit-sim
+
+# Run interactive learning (with simulation backend)
+docker-compose -f deployment/docker-compose.yml run --rm circuit-sim \
+  uv run jupyter lab docs/learning_modules/
+
+# Run tests with simulation
+docker-compose -f deployment/docker-compose.yml run --rm circuit-sim \
+  uv run python test_interactive_learning.py
+
+# Run simulations from host (calls Docker)
+uv run python examples/simulation_demo.py  # Auto-detects and uses Docker
+
+# Manual container access for debugging
+docker-compose -f deployment/docker-compose.yml run --rm circuit-sim bash
 ```
 
 ## Documentation Standards

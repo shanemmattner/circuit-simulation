@@ -228,10 +228,42 @@ class Circuit:
             SimulationResults object containing simulation data
 
         Raises:
-            NotImplementedError: Simulation not yet implemented
+            ImportError: If PySpice/ngspice not available
+            RuntimeError: If simulation fails
         """
-        # This will be implemented when we integrate PySpice
-        raise NotImplementedError("Simulation will be implemented with PySpice integration")
+        from .simulator import SimulationEngine
+        
+        engine = SimulationEngine()
+        
+        if analysis == "dc":
+            return engine.simulate_dc(self)
+        elif analysis == "transient":
+            stop_time = kwargs.get("stop_time")
+            if stop_time is None:
+                raise ValueError("transient analysis requires stop_time parameter")
+            
+            step_time = kwargs.get("step_time")
+            start_time = kwargs.get("start_time", 0)
+            max_time_step = kwargs.get("max_time_step")
+            
+            return engine.simulate_transient(
+                self, stop_time, step_time, start_time, max_time_step
+            )
+        elif analysis == "ac":
+            start_freq = kwargs.get("start_freq") or kwargs.get("start_frequency")
+            stop_freq = kwargs.get("stop_freq") or kwargs.get("stop_frequency")
+            
+            if start_freq is None or stop_freq is None:
+                raise ValueError("AC analysis requires start_freq and stop_freq parameters")
+            
+            points_per_decade = kwargs.get("points_per_decade", 10)
+            variation = kwargs.get("variation", "dec")
+            
+            return engine.simulate_ac(
+                self, start_freq, stop_freq, points_per_decade, variation
+            )
+        else:
+            raise ValueError(f"Unknown analysis type: {analysis}. Use 'dc', 'transient', or 'ac'")
 
     def __repr__(self) -> str:
         """String representation of the circuit."""
