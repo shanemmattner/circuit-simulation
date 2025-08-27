@@ -42,8 +42,13 @@ class CircuitAPIClient:
             
             if response.status_code == 200:
                 data = response.json()
-                logger.info(f"Successfully loaded {len(data.get('circuits', []))} circuits")
-                return data.get('circuits', [])
+                # Handle both list format (tests) and dict format (real API)
+                if isinstance(data, list):
+                    circuits = data
+                else:
+                    circuits = data.get('circuits', [])
+                logger.info(f"Successfully loaded {len(circuits)} circuits")
+                return circuits
             else:
                 logger.error(f"API error: {response.status_code} - {response.text}")
                 return []
@@ -72,16 +77,81 @@ class CircuitAPIClient:
         Returns:
             Circuit details dictionary or None if not found
         """
+        url = f"{self.base_url}/api/circuits/{circuit_id}"
+        log_api_request(logger, "GET", url)
+        
         try:
-            response = requests.get(
-                f"{self.base_url}/api/circuits/{circuit_id}", 
-                timeout=5
-            )
+            response = requests.get(url, timeout=5)
+            log_api_request(logger, "GET", url, response.status_code)
+            
             if response.status_code == 200:
                 return response.json()
             else:
                 logger.error(f"Circuit not found: {circuit_id}")
                 return None
         except requests.exceptions.RequestException as e:
-            logger.error(f"Failed to fetch circuit {circuit_id}: {e}")
+            log_api_request(logger, "GET", url, error=str(e))
+            return None
+            
+    def start_simulation(self, circuit_id: str, simulation_type: str, parameters: dict = None) -> Optional[Dict[str, Any]]:
+        """Start a simulation for the specified circuit.
+        
+        Args:
+            circuit_id: ID of the circuit to simulate
+            simulation_type: Type of simulation (dc, ac, transient)
+            parameters: Simulation parameters (default: empty dict)
+            
+        Returns:
+            Simulation job status or None if failed
+        """
+        if parameters is None:
+            parameters = {}
+            
+        url = f"{self.base_url}/api/circuits/{circuit_id}/simulate"
+        payload = {
+            "type": simulation_type,
+            "parameters": parameters
+        }
+        
+        log_api_request(logger, "POST", url)
+        logger.info(f"Starting {simulation_type} simulation with parameters: {parameters}")
+        
+        try:
+            response = requests.post(url, json=payload, timeout=10)
+            log_api_request(logger, "POST", url, response.status_code)
+            
+            if response.status_code == 200:
+                result = response.json()
+                logger.info(f"Simulation started - Job ID: {result.get('job_id')}")
+                return result
+            else:
+                logger.error(f"Simulation failed: {response.status_code} - {response.text}")
+                return None
+        except requests.exceptions.RequestException as e:
+            log_api_request(logger, "POST", url, error=str(e))
+            return None
+            
+    def get_simulation_results(self, job_id: str) -> Optional[Dict[str, Any]]:
+        """Get results for a completed simulation.
+        
+        Args:
+            job_id: ID of the simulation job
+            
+        Returns:
+            Simulation results or None if not found
+        """
+        url = f"{self.base_url}/api/simulations/{job_id}/results"
+        log_api_request(logger, "GET", url)
+        
+        try:
+            response = requests.get(url, timeout=5)
+            log_api_request(logger, "GET", url, response.status_code)
+            
+            if response.status_code == 200:
+                return response.json()
+            else:
+                logger.error(f"Results not found for job: {job_id}")
+                return None
+        except requests.exceptions.RequestException as e:
+            log_api_request(logger, "GET", url, error=str(e))
             return None

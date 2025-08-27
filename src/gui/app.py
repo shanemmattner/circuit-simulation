@@ -1,7 +1,7 @@
 """Circuit Analysis Dashboard - Main Dash Application."""
 
 import dash
-from dash import dcc, html, Input, Output
+from dash import dcc, html, Input, Output, State, callback_context
 import dash_bootstrap_components as dbc
 
 try:
@@ -26,7 +26,8 @@ gui_logger = setup_gui_logging()
 app = dash.Dash(
     __name__,
     external_stylesheets=[dbc.themes.BOOTSTRAP],
-    title="Circuit Analysis Dashboard"
+    title="Circuit Analysis Dashboard",
+    suppress_callback_exceptions=True  # Allow callbacks for dynamically generated components
 )
 
 # Basic layout structure for testing
@@ -134,6 +135,55 @@ def update_tab_content(selected_circuit, active_tab):
             f"Error updating content: {str(e)}",
             className="text-danger text-center mt-5"
         )
+
+
+# Callback for DC analysis button
+@app.callback(
+    Output("dc-results-table", "children"),
+    Input("run-dc-button", "n_clicks"),
+    State("circuit-selector", "value"),
+    prevent_initial_call=True
+)
+def run_dc_analysis(n_clicks, circuit_id):
+    """Run DC analysis when button is clicked."""
+    if not circuit_id or not n_clicks:
+        return html.P("Select a circuit first.", className="text-warning")
+    
+    gui_logger.info(f"Running DC analysis for circuit: {circuit_id}")
+    
+    try:
+        # Start DC simulation
+        result = api_client.start_simulation(circuit_id, "dc", {})
+        
+        if not result:
+            return html.P("❌ Simulation failed to start", className="text-danger")
+            
+        status = result.get('status', 'unknown')
+        job_id = result.get('job_id', 'unknown')
+        message = result.get('message', 'No message')
+        
+        if status == 'failed':
+            return html.Div([
+                html.P(f"❌ Simulation Failed", className="text-danger fw-bold"),
+                html.P(f"Job ID: {job_id}"),
+                html.P(f"Error: {message}", className="small text-muted")
+            ])
+        elif status == 'completed':
+            return html.Div([
+                html.P(f"✅ DC Analysis Complete", className="text-success fw-bold"),
+                html.P(f"Job ID: {job_id}"),
+                html.P("Results ready for display", className="text-info")
+            ])
+        else:
+            return html.Div([
+                html.P(f"🔄 Simulation {status.title()}", className="text-primary fw-bold"),
+                html.P(f"Job ID: {job_id}"),
+                html.P(f"Status: {message}")
+            ])
+            
+    except Exception as e:
+        gui_logger.error(f"Exception in DC analysis: {str(e)}")
+        return html.P(f"❌ Error: {str(e)}", className="text-danger")
 
 
 def create_dc_analysis_content(circuit_id: str, circuit_name: str, circuit_details: dict) -> html.Div:
