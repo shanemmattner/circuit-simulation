@@ -336,6 +336,7 @@ def create_html_report(circuits_data):
                 </div>
                 <div class="power-card">
                     <h4>🔧 Components</h4>
+                    <p>{len([comp for comp in circuit.components if comp.get('type') not in ['voltage_source', 'current_source']])} total</p>
                     <p>{len(power_analysis.component_power)} analyzed</p>
                     <p>Max: {max([info.power for info in power_analysis.component_power.values()], default=0):.3f}W</p>
                 </div>

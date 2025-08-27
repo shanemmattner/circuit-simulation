@@ -343,10 +343,18 @@ class PowerAnalyzer(ValidationRule):
     def _parse_resistance(self, resistance_str: str) -> float:
         """Parse resistance value from string."""
         try:
-            # Handle string values like "1k", "10M"
-            resistance_str = str(resistance_str).upper()
-            resistance_str = resistance_str.replace('K', '000').replace('M', '000000')
+            # Handle string values like "1k", "10M", "1.5k"
+            resistance_str = str(resistance_str).upper().strip()
             resistance_str = resistance_str.replace('Ω', '').replace('OHM', '')
-            return float(resistance_str)
+            
+            # Handle k and M multipliers properly
+            if 'K' in resistance_str:
+                base = float(resistance_str.replace('K', ''))
+                return base * 1000.0
+            elif 'M' in resistance_str:
+                base = float(resistance_str.replace('M', ''))
+                return base * 1000000.0
+            else:
+                return float(resistance_str)
         except (ValueError, AttributeError):
             return 0.0
