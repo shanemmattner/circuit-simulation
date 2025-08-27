@@ -114,13 +114,24 @@ class SpiceParser:
         
         # Parse each line after title
         start_line = (title_line + 1) if title_line is not None else 1
-        for line in lines[start_line:]:
+        
+        i = start_line
+        while i < len(lines):
+            line = lines[i]
             tokens = self.tokenizer.parse_line(line)
             if not tokens:
+                i += 1
                 continue
                 
             if tokens[0].upper() == '.END':
                 break
+            elif tokens[0].upper() == '.MODEL':
+                self._parse_model_definition(tokens)
+                i += 1
+                continue
+            elif tokens[0].upper() == '.SUBCKT':
+                i = self._parse_subcircuit_definition(tokens, lines, i)
+                continue
                 
             # Parse component based on first character
             first_char = tokens[0][0].upper()
@@ -135,7 +146,14 @@ class SpiceParser:
                 self._parse_voltage_source(circuit, tokens)
             elif first_char == 'I':
                 self._parse_current_source(circuit, tokens)
-            # More component types will be added in later segments
+            elif first_char == 'Q':
+                self._parse_bjt_transistor(circuit, tokens)
+            elif first_char == 'M':
+                self._parse_mosfet(circuit, tokens)
+            elif first_char == 'D':
+                self._parse_diode(circuit, tokens)
+            
+            i += 1  # Move to next line
         
         return circuit
     
@@ -177,3 +195,97 @@ class SpiceParser:
             else:
                 value = tokens[3]
             circuit.add_current_source(name, node_pos, node_neg, value)
+    
+    def _parse_model_definition(self, tokens: List[str]):
+        """Parse .MODEL definition: .MODEL name type(param=val ...)"""
+        if len(tokens) >= 3:
+            model_name = tokens[1]
+            model_type = tokens[2].split('(')[0]  # Remove parameters from type
+            
+            # Extract parameters from parentheses
+            params = {}
+            if len(tokens) > 3:
+                param_str = ' '.join(tokens[3:])
+                if '(' in param_str and ')' in param_str:
+                    param_part = param_str.split('(')[1].split(')')[0]
+                    for param in param_part.split():
+                        if '=' in param:
+                            key, val = param.split('=', 1)
+                            try:
+                                params[key] = float(val)
+                            except ValueError:
+                                params[key] = val
+            
+            self.models[model_name] = {
+                "type": model_type,
+                "parameters": params
+            }
+    
+    def _parse_bjt_transistor(self, circuit: Circuit, tokens: List[str]):
+        """Parse BJT transistor: Q<name> nc nb ne <model>"""
+        if len(tokens) >= 5:
+            name, collector, base, emitter, model = tokens[:5]
+            # Store as metadata - will be enhanced when we extend Circuit API
+            if not hasattr(circuit, '_advanced_components'):
+                circuit._advanced_components = []
+            circuit._advanced_components.append({
+                'name': name,
+                'type': 'transistor',
+                'collector': collector,
+                'base': base,
+                'emitter': emitter,
+                'model': model
+            })
+    
+    def _parse_mosfet(self, circuit: Circuit, tokens: List[str]):
+        """Parse MOSFET: M<name> nd ng ns nb <model>"""
+        if len(tokens) >= 6:
+            name, drain, gate, source, bulk, model = tokens[:6]
+            circuit.add_component({
+                'name': name,
+                'type': 'mosfet',
+                'drain': drain,
+                'gate': gate,
+                'source': source,
+                'bulk': bulk,
+                'model': model
+            })
+    
+    def _parse_diode(self, circuit: Circuit, tokens: List[str]):
+        """Parse diode: D<name> n+ n- <model>"""
+        if len(tokens) >= 4:
+            name, anode, cathode, model = tokens[:4]
+            circuit.add_component({
+                'name': name,
+                'type': 'diode',
+                'anode': anode,
+                'cathode': cathode,
+                'model': model
+            })
+    
+    def _parse_subcircuit_definition(self, tokens: List[str], all_lines: List[str], start_index: int) -> int:
+        """Parse .SUBCKT definition and find matching .ENDS"""
+        if len(tokens) >= 3:
+            subckt_name = tokens[1]
+            ports = tokens[2:]  # All remaining tokens are port names
+            
+            # Find matching .ENDS and collect subcircuit lines
+            subckt_lines = []
+            end_index = start_index + 1
+            
+            for j in range(start_index + 1, len(all_lines)):
+                line = all_lines[j].strip()
+                if line.upper().startswith('.ENDS'):
+                    end_index = j
+                    break
+                subckt_lines.append(all_lines[j])
+            
+            self.subcircuits[subckt_name] = {
+                "ports": ports,
+                "components": subckt_lines,
+                "parsed_components": []  # Will be filled when subcircuit is instantiated
+            }
+            
+            return end_index  # Return index after .ENDS
+        
+        return start_index + 1

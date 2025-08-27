@@ -80,3 +80,43 @@ R2 out gnd 1k
         assert "V1" in component_names
         assert "R1" in component_names  
         assert "R2" in component_names
+        
+    def test_parse_transistor_with_model(self):
+        """Test parsing BJT transistor with model reference."""
+        parser = SpiceParser()
+        
+        spice_content = """
+* Transistor amplifier
+.MODEL 2N3904 NPN(BF=300 IS=1e-14)
+Q1 collector base emitter 2N3904
+.END
+        """
+        
+        circuit = parser.parse_content(spice_content)
+        
+        # Check transistor was parsed and stored
+        assert hasattr(circuit, '_advanced_components')
+        advanced_names = [comp['name'] for comp in circuit._advanced_components]
+        assert "Q1" in advanced_names
+        assert "2N3904" in parser.models
+        assert parser.models["2N3904"]["type"] == "NPN"
+        
+    def test_parse_subcircuit_definition(self):
+        """Test parsing .SUBCKT definition."""
+        parser = SpiceParser()
+        
+        spice_content = """
+* Op-amp subcircuit
+.SUBCKT OPAMP inp inn vcc vee out
+R1 inp 1 1meg
+R2 inn 1 1meg
+.ENDS OPAMP
+.END
+        """
+        
+        circuit = parser.parse_content(spice_content)
+        
+        assert "OPAMP" in parser.subcircuits
+        subckt = parser.subcircuits["OPAMP"]
+        assert subckt["ports"] == ["inp", "inn", "vcc", "vee", "out"]
+        assert len(subckt["components"]) == 2  # R1, R2
