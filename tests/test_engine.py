@@ -195,6 +195,142 @@ class TestSimulationEngine:
                 variation="lin",
             )
 
+    def test_simulate_ac_basic_rc_circuit(self):
+        """Test basic AC simulation with RC circuit - TDD failing test."""
+        # Create RC low-pass filter: R=1k, C=1µF, fc ≈ 159Hz
+        circuit = Circuit("RC Filter")
+        circuit.add_voltage_source("V1", 1, 0, "DC 0V AC 1V")  # 1V AC source with 0V DC
+        circuit.add_resistor("R1", 1, 2, "1k")       # 1kΩ resistor
+        circuit.add_capacitor("C1", 2, 0, "1u")      # 1µF capacitor
+
+        engine = SimulationEngine()
+        
+        # This should work after we implement AC analysis
+        results = engine.simulate_ac(
+            circuit,
+            start_frequency=10,      # 10 Hz
+            stop_frequency=10000,    # 10 kHz  
+            points_per_decade=20
+        )
+        
+        # Verify results structure
+        assert results.analysis_type == "ac"
+        assert results.frequency is not None
+        assert len(results.frequency) > 0
+        
+        # Should have complex voltage at output node (node 2)
+        v_out = results.voltage(2)
+        assert v_out is not None
+        assert len(v_out) == len(results.frequency)
+        
+        # At DC (low freq), magnitude should be ≈ 1V (no attenuation)
+        # AC analysis at 10Hz should pass through the RC filter easily
+        assert abs(abs(v_out[0]) - 1.0) < 0.1
+        
+        # At high frequencies, should have significant attenuation
+        # At 10x cutoff frequency, should be < 0.1V magnitude
+        fc_theoretical = 1 / (2 * np.pi * 1000 * 1e-6)  # ≈159Hz
+        high_freq_idx = -1  # Last frequency point (10kHz)
+        assert abs(v_out[high_freq_idx]) < 0.1
+
+    def test_frequency_vector_generation_logarithmic(self):
+        """Test logarithmic frequency vector generation - isolated unit test."""
+        engine = SimulationEngine()
+        
+        # Test decade variation
+        frequencies = engine._generate_frequency_vector(
+            start_freq=10,       # 10 Hz
+            stop_freq=10000,     # 10 kHz (3 decades)
+            points_per_decade=20,
+            variation="dec"
+        )
+        
+        # Should have approximately 3 decades * 20 points/decade + 1 = 61 points
+        expected_points = int(3 * 20) + 1
+        assert len(frequencies) == expected_points
+        
+        # First frequency should be 10 Hz
+        assert abs(frequencies[0] - 10.0) < 1e-6
+        
+        # Last frequency should be 10000 Hz
+        assert abs(frequencies[-1] - 10000.0) < 1e-3
+        
+        # Should be logarithmically spaced
+        # Check that ratios between adjacent points are approximately constant
+        ratios = frequencies[1:] / frequencies[:-1]
+        ratio_mean = np.mean(ratios)
+        ratio_std = np.std(ratios)
+        
+        # For logarithmic spacing, ratios should be very consistent
+        assert ratio_std / ratio_mean < 0.01  # Less than 1% variation
+        
+        # Ratio should be approximately 10^(1/20) for 20 points per decade
+        expected_ratio = 10.0 ** (1.0 / 20.0)
+        assert abs(ratio_mean - expected_ratio) < 0.01
+
+    def test_frequency_vector_generation_linear(self):
+        """Test linear frequency vector generation."""
+        engine = SimulationEngine()
+        
+        # Test linear variation
+        frequencies = engine._generate_frequency_vector(
+            start_freq=1000,     # 1 kHz
+            stop_freq=2000,      # 2 kHz
+            points_per_decade=10,  # Ignored for linear
+            variation="lin"
+        )
+        
+        # Should have 1000 points (default for linear)
+        assert len(frequencies) == 1000
+        
+        # First frequency should be 1000 Hz
+        assert abs(frequencies[0] - 1000.0) < 1e-6
+        
+        # Last frequency should be 2000 Hz  
+        assert abs(frequencies[-1] - 2000.0) < 1e-6
+        
+        # Should be linearly spaced
+        # Check that differences between adjacent points are constant
+        diffs = np.diff(frequencies)
+        diff_std = np.std(diffs)
+        diff_mean = np.mean(diffs)
+        
+        # For linear spacing, differences should be very consistent
+        assert diff_std / diff_mean < 1e-10  # Very small variation
+
+    def test_complex_impedance_calculation(self):
+        """Test complex impedance calculation for R, L, C components."""
+        engine = SimulationEngine()
+        
+        # Test resistor impedance: Z_R = R (purely real)
+        z_resistor = engine._calculate_component_impedance("resistor", 1000.0, 1000.0)  # 1kΩ at 1kHz
+        assert abs(z_resistor.real - 1000.0) < 1e-6
+        assert abs(z_resistor.imag) < 1e-6
+        
+        # Test capacitor impedance: Z_C = 1/(jωC) = -j/(ωC)
+        # For C=1µF at f=1kHz: ω = 2π×1000, Z = -j/(2π×1000×1e-6) = -j159.15Ω
+        z_capacitor = engine._calculate_component_impedance("capacitor", 1e-6, 1000.0)  # 1µF at 1kHz
+        expected_imag = -1.0 / (2 * np.pi * 1000.0 * 1e-6)
+        assert abs(z_capacitor.real) < 1e-6  # Real part should be ~0
+        assert abs(z_capacitor.imag - expected_imag) < 1e-3
+        
+        # Test inductor impedance: Z_L = jωL
+        # For L=10mH at f=1kHz: ω = 2π×1000, Z = j×2π×1000×10e-3 = j62.83Ω
+        z_inductor = engine._calculate_component_impedance("inductor", 10e-3, 1000.0)  # 10mH at 1kHz
+        expected_imag = 2 * np.pi * 1000.0 * 10e-3
+        assert abs(z_inductor.real) < 1e-6  # Real part should be ~0
+        assert abs(z_inductor.imag - expected_imag) < 1e-3
+        
+        # Test frequency dependence - capacitor impedance should decrease with frequency
+        z_cap_10hz = engine._calculate_component_impedance("capacitor", 1e-6, 10.0)
+        z_cap_10khz = engine._calculate_component_impedance("capacitor", 1e-6, 10000.0)
+        assert abs(z_cap_10hz) > abs(z_cap_10khz)  # Lower freq = higher impedance for capacitor
+        
+        # Test frequency dependence - inductor impedance should increase with frequency  
+        z_ind_10hz = engine._calculate_component_impedance("inductor", 10e-3, 10.0)
+        z_ind_10khz = engine._calculate_component_impedance("inductor", 10e-3, 10000.0)
+        assert abs(z_ind_10hz) < abs(z_ind_10khz)  # Higher freq = higher impedance for inductor
+
     def test_empty_circuit(self):
         """Test simulation with empty circuit."""
         circuit = Circuit("Empty")

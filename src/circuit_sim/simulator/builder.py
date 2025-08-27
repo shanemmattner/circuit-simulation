@@ -119,15 +119,61 @@ class PySpiceBuilder:
         node1 = self._node_to_pyspice(comp["positive"], pyspice_circuit)
         node2 = self._node_to_pyspice(comp["negative"], pyspice_circuit)
 
-        # Parse voltage value
-        voltage = parse_value(comp["dc_value"])
+        # Parse voltage value - handle both simple values and DC/AC specification
+        dc_value, ac_value = self._parse_voltage_spec(comp["dc_value"])
 
         # Add to circuit (remove the prefix from name since PySpice adds it)
         if name.upper().startswith("V"):
             name = name[1:]  # Remove V prefix
 
-        # Use PySpice units correctly (using @ operator with unit objects)
-        pyspice_circuit.V(name, node1, node2, voltage @ u_V)
+        # Create voltage source with AC specification if provided
+        if ac_value is not None:
+            # For AC analysis, use SPICE syntax: V1 node1 node2 DC dc_value AC ac_value
+            # PySpice handles this through the V() method with proper parameters
+            voltage_source = pyspice_circuit.V(name, node1, node2, dc_value @ u_V)
+            # Set AC magnitude directly on the voltage source
+            voltage_source.ac = ac_value @ u_V
+        else:
+            # Simple DC voltage source
+            pyspice_circuit.V(name, node1, node2, dc_value @ u_V)
+
+    def _parse_voltage_spec(self, voltage_str: str) -> tuple:
+        """
+        Parse voltage specification that may include DC and AC components.
+        
+        Examples:
+            "5V" -> (5.0, None)
+            "DC 5V" -> (5.0, None) 
+            "DC 0V AC 1V" -> (0.0, 1.0)
+            "AC 1V" -> (0.0, 1.0)
+            
+        Returns:
+            Tuple of (dc_value, ac_value) where ac_value is None if not specified
+        """
+        import re
+        
+        voltage_str = voltage_str.strip().upper()
+        
+        # Check for DC and AC specifications
+        dc_match = re.search(r'DC\s+([^\s]+)', voltage_str)
+        ac_match = re.search(r'AC\s+([^\s]+)', voltage_str)
+        
+        dc_value = 0.0
+        ac_value = None
+        
+        if dc_match:
+            dc_value = parse_value(dc_match.group(1))
+        elif ac_match:
+            # If only AC is specified, DC defaults to 0
+            dc_value = 0.0
+        else:
+            # Simple voltage specification (no DC/AC keywords)
+            dc_value = parse_value(voltage_str)
+            
+        if ac_match:
+            ac_value = parse_value(ac_match.group(1))
+            
+        return dc_value, ac_value
 
     def _add_current_source(self, pyspice_circuit: Any, comp: Dict, counts: Dict[str, int]):
         """Add current source to PySpice circuit."""
