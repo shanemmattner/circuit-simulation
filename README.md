@@ -7,9 +7,11 @@ A professional Python library for electronic circuit simulation with an easy-to-
 - **Simple API**: Define circuits with human-readable component values
 - **Real Simulations**: Powered by PySpice and ngspice 
 - **Docker Support**: No installation conflicts, works everywhere
-- **Visualization**: Generate publication-quality plots
+- **Visualization**: Generate publication-quality plots with Plotly
 - **🤖 MCP Integration**: Full AI assistant integration via Model Context Protocol
 - **🔧 Claude Code Ready**: Connect directly to Claude Code with `claude mcp add`
+- **📚 Example Library**: 10+ working circuits with documentation (in progress)
+- **🔌 50k+ Components**: KiCad-Spice-Library integration with real models
 - **Comprehensive Testing**: 85%+ code coverage with validation scripts
 - **Production Ready**: Type hints, formatting, linting configured
 - **🍎 macOS Native**: Optimized setup and testing for Apple Silicon
@@ -97,6 +99,28 @@ circuit = (
 )
 ```
 
+## Example Circuits 📚
+
+The library includes a growing collection of professionally-implemented example circuits:
+
+### Available Examples
+- **Voltage Divider** - Fundamental resistor network with tolerance analysis
+- **RC Filter** (coming soon) - Low-pass and high-pass configurations
+- **RLC Resonance** (coming soon) - Series and parallel resonant circuits
+- **Op-Amp Amplifier** (coming soon) - Inverting, non-inverting, differential
+- **555 Timer** (coming soon) - Astable, monostable, and bistable modes
+- **More coming...** - Bridge rectifier, transistor amplifier, active filters
+
+### Using Examples
+```python
+from examples.basic.voltage_divider import VoltageDividerCircuit, simulate_voltage_divider
+
+# Create and simulate a voltage divider
+circuit = VoltageDividerCircuit(r1=1000, r2=2000, vin=5.0)
+results = simulate_voltage_divider(circuit, analysis_type="dc")
+print(f"Output voltage: {results['output_voltage']:.2f}V")
+```
+
 ## Supported Components 🔧
 
 - **Resistors**: `add_resistor("R1", n1, n2, "1k")`
@@ -104,6 +128,7 @@ circuit = (
 - **Inductors**: `add_inductor("L1", n1, n2, "100mH")`
 - **Voltage Sources**: `add_voltage_source("V1", n1, n2, "5V")`
 - **Current Sources**: `add_current_source("I1", n1, n2, "10mA")`
+- **Real Components**: 50,000+ SPICE models from KiCad-Spice-Library
 
 ## 🤖 AI Integration with Claude Code
 
