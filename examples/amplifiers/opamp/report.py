@@ -1,10 +1,10 @@
 """Report generation for op-amp amplifier circuits."""
 
+from typing import Any, Dict
+
+import numpy as np
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
-import numpy as np
-from typing import Dict, Any, Optional
-from pathlib import Path
 
 
 class AmplifierReport:

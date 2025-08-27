@@ -1,7 +1,9 @@
 """Design functions for bridge rectifier power supplies."""
 
-import numpy as np
 from typing import Optional
+
+import numpy as np
+
 from .circuit import BridgeRectifierCircuit
 
 

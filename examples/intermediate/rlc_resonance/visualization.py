@@ -1,9 +1,11 @@
 """Visualization functions for RLC resonance circuit."""
 
+from typing import Any, Dict, Optional, Tuple
+
+import numpy as np
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
-import numpy as np
-from typing import Dict, Any, Optional, Tuple, List
+
 from .circuit import RLCResonanceCircuit
 
 
@@ -109,7 +111,7 @@ def _create_bode_plot(
             mode="markers+text",
             name=f"f₀ = {circuit.resonant_frequency:.1f} Hz",
             marker=dict(size=10, color="red", symbol="x"),
-            text=[f"f₀"],
+            text=["f₀"],
             textposition="top center",
             hovertemplate=f"Resonance: {circuit.resonant_frequency:.1f} Hz<br>{f0_mag:.2f} dB<extra></extra>",
         ),

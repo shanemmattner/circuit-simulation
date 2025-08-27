@@ -1,8 +1,9 @@
 """RC filter circuit implementation."""
 
-import numpy as np
-from typing import Optional, Dict, Any, List
 from pathlib import Path
+from typing import Any, Dict, List
+
+import numpy as np
 
 
 class RCFilterCircuit:

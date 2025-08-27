@@ -1,7 +1,9 @@
 """Analysis functions for RLC resonance circuit."""
 
+from typing import Any, Dict
+
 import numpy as np
-from typing import Dict, Any, Optional, Tuple
+
 from .circuit import RLCResonanceCircuit
 
 
@@ -119,7 +121,7 @@ def design_bandpass_filter(
     actual_bw = circuit.bandwidth
     actual_q = circuit.q_factor
 
-    print(f"Designed Bandpass Filter:")
+    print("Designed Bandpass Filter:")
     print(f"  Target: f0={center_frequency:.1f}Hz, BW={bandwidth:.1f}Hz, Q={q_factor:.2f}")
     print(f"  Actual: f0={actual_f0:.1f}Hz, BW={actual_bw:.1f}Hz, Q={actual_q:.2f}")
     print(f"  Components: R={r:.2f}Ω, L={l*1e3:.3f}mH, C={c*1e9:.3f}nF")
@@ -158,7 +160,7 @@ def design_notch_filter(
     z_at_low = abs(circuit.calculate_impedance(10))
     notch_depth_db = 20 * np.log10(z_at_notch / z_at_low)
 
-    print(f"Designed Notch Filter:")
+    print("Designed Notch Filter:")
     print(f"  Notch frequency: {notch_frequency:.1f}Hz")
     print(f"  Q factor: {circuit.q_factor:.2f}")
     print(f"  Notch depth: {notch_depth_db:.1f}dB")

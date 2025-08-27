@@ -1,7 +1,9 @@
 """Design functions for 555 timer circuits."""
 
-import numpy as np
 from typing import Optional
+
+import numpy as np
+
 from .circuit import Timer555Circuit
 
 

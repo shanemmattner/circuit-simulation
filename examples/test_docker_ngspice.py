@@ -4,8 +4,8 @@ Test script to verify ngspice is working correctly in Docker.
 Run with: docker-compose run circuit-sim python examples/test_docker_ngspice.py
 """
 
-import sys
 import os
+import sys
 
 
 def test_imports():
@@ -39,7 +39,7 @@ def test_imports():
     try:
         from circuit_sim import Circuit
 
-        print(f"  ✓ circuit_sim package")
+        print("  ✓ circuit_sim package")
     except ImportError as e:
         print(f"  ✗ circuit_sim import failed: {e}")
         return False
@@ -56,7 +56,7 @@ def test_ngspice_library():
     if lib_path:
         print(f"  PYSPICE_NGSPICE_LIBRARY = {lib_path}")
         if os.path.exists(lib_path):
-            print(f"  ✓ Library file exists")
+            print("  ✓ Library file exists")
         else:
             print(f"  ✗ Library file not found at {lib_path}")
             return False

@@ -1,7 +1,9 @@
 """Simulation functions for transistor amplifiers."""
 
+from typing import Any, Dict, Optional
+
 import numpy as np
-from typing import Dict, Any, Optional
+
 from .circuit import TransistorAmplifierCircuit
 
 

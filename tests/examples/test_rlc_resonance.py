@@ -1,15 +1,13 @@
 """Tests for RLC resonance circuit example."""
 
-import pytest
 import numpy as np
-from pathlib import Path
 
 from examples.intermediate.rlc_resonance import (
     RLCResonanceCircuit,
-    simulate_rlc_circuit,
-    calculate_impedance_spectrum,
     analyze_resonance,
+    calculate_impedance_spectrum,
     generate_resonance_plots,
+    simulate_rlc_circuit,
 )
 
 

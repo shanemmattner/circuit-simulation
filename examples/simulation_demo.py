@@ -92,7 +92,7 @@ def demo_rc_transient():
             if v_cap is not None:
                 v_at_tau = v_cap[tau_index]
                 print(f"\n✓ Capacitor voltage at t=τ (10ms): {v_at_tau:.3f} V")
-                print(f"  Expected: ~3.16 V (63.2% of 5V)")
+                print("  Expected: ~3.16 V (63.2% of 5V)")
 
     except ImportError as e:
         print(f"\n⚠ Simulation requires ngspice: {e}")

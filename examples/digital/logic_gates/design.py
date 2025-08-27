@@ -1,6 +1,7 @@
 """Design functions for logic gates."""
 
 from typing import List, Tuple
+
 from .circuit import LogicGateCircuit
 
 

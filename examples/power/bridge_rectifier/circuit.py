@@ -1,7 +1,8 @@
 """Bridge rectifier circuit implementation."""
 
-import numpy as np
 from typing import Optional
+
+import numpy as np
 
 
 class BridgeRectifierCircuit:

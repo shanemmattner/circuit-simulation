@@ -1,9 +1,11 @@
 """Report generation for voltage divider circuit."""
 
-from typing import Dict, Any, List, Optional
+from pathlib import Path
+from typing import Any, Dict, List
+
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
-from pathlib import Path
+
 from .circuit import VoltageDividerCircuit
 
 

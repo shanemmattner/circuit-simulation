@@ -1,7 +1,9 @@
 """Simulation functions for logic gates."""
 
+from typing import Any, Dict, List, Optional
+
 import numpy as np
-from typing import List, Dict, Any, Optional
+
 from .circuit import LogicGateCircuit
 
 

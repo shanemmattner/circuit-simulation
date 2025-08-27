@@ -1,7 +1,9 @@
 """Simulation functions for voltage divider circuit."""
 
-from typing import Dict, Any, Optional, Tuple
+from typing import Any, Dict, Tuple
+
 import numpy as np
+
 from .circuit import VoltageDividerCircuit
 
 

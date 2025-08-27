@@ -1,7 +1,9 @@
 """Simulation functions for RLC resonance circuit."""
 
+from typing import Any, Dict
+
 import numpy as np
-from typing import Dict, Any, Optional, List
+
 from .circuit import RLCResonanceCircuit
 
 

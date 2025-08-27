@@ -1,13 +1,12 @@
 """Tests for complete power supply circuit."""
 
-import pytest
 import numpy as np
 
 from examples.power.power_supply import (
     PowerSupplyCircuit,
-    simulate_power_supply,
     calculate_efficiency,
     design_regulated_supply,
+    simulate_power_supply,
 )
 
 

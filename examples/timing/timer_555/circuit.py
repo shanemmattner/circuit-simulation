@@ -1,7 +1,6 @@
 """555 timer circuit implementation."""
 
-import numpy as np
-from typing import Optional, Dict, Any
+from typing import Dict, Optional
 
 
 class Timer555Circuit:

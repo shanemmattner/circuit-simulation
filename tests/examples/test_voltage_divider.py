@@ -1,14 +1,14 @@
 """Tests for voltage divider example circuit."""
 
-import pytest
 from pathlib import Path
+
 import numpy as np
 
 from examples.basic.voltage_divider import (
     VoltageDividerCircuit,
-    simulate_voltage_divider,
     analyze_divider_ratio,
     generate_report,
+    simulate_voltage_divider,
 )
 
 

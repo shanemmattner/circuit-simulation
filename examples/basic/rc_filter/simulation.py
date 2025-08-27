@@ -1,7 +1,9 @@
 """Simulation functions for RC filter circuit."""
 
+from typing import Any, Dict
+
 import numpy as np
-from typing import Dict, Any, List, Optional, Tuple
+
 from .circuit import RCFilterCircuit
 
 

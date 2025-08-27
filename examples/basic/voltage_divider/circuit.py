@@ -1,7 +1,7 @@
 """Voltage divider circuit implementation."""
 
-from typing import Optional
 from pathlib import Path
+from typing import Optional
 
 
 class VoltageDividerCircuit:

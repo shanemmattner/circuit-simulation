@@ -1,14 +1,12 @@
 """Tests for RC filter example circuit."""
 
-import pytest
 import numpy as np
-from pathlib import Path
 
 from examples.basic.rc_filter import (
     RCFilterCircuit,
-    simulate_rc_filter,
     calculate_frequency_response,
     generate_bode_plot,
+    simulate_rc_filter,
 )
 
 

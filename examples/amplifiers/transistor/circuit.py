@@ -1,6 +1,5 @@
 """Transistor amplifier circuit implementation."""
 
-import numpy as np
 from typing import Optional
 
 

@@ -1,14 +1,13 @@
 """Tests for 555 timer circuit examples."""
 
-import pytest
 import numpy as np
 
 from examples.timing.timer_555 import (
     Timer555Circuit,
-    simulate_555_timer,
     calculate_timing_parameters,
     design_astable_555,
     design_monostable_555,
+    simulate_555_timer,
 )
 
 

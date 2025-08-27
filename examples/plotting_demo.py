@@ -6,8 +6,9 @@ This script shows how to visualize simulation results using the built-in
 plotting functionality.
 """
 
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
+
 from circuit_sim import Circuit
 from circuit_sim.simulator import SimulationEngine
 
@@ -32,7 +33,7 @@ def demo_dc_plot():
     # Plot all node voltages
     results.plot()
 
-    print(f"Node voltages:")
+    print("Node voltages:")
     for node in results.nodes:
         v = results.voltage(node)
         if v is not None:
@@ -144,8 +145,8 @@ def demo_custom_plot():
     plt.tight_layout()
     plt.show()
 
-    print(f"RL time constant τ = L/R = 1ms")
-    print(f"Steady-state current = V/R = 120mA")
+    print("RL time constant τ = L/R = 1ms")
+    print("Steady-state current = V/R = 120mA")
 
 
 def demo_save_plots():
@@ -177,7 +178,7 @@ def demo_save_plots():
     ax.grid(True, axis="y", alpha=0.3)
 
     # Add value labels on bars
-    for bar, v in zip(bars, voltages):
+    for bar, v in zip(bars, voltages, strict=False):
         ax.text(
             bar.get_x() + bar.get_width() / 2,
             bar.get_height() + 0.05,
@@ -199,8 +200,8 @@ def demo_save_plots():
 
 def main():
     """Run all plotting demonstrations."""
-    import sys
     import os
+    import sys
 
     # Set matplotlib backend for non-interactive environments
     if os.environ.get("DISPLAY") is None:

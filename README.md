@@ -103,13 +103,17 @@ circuit = (
 
 The library includes a growing collection of professionally-implemented example circuits:
 
-### Available Examples
+### Available Examples ✅ All Complete!
 - **Voltage Divider** - Fundamental resistor network with tolerance analysis
-- **RC Filter** (coming soon) - Low-pass and high-pass configurations
-- **RLC Resonance** (coming soon) - Series and parallel resonant circuits
-- **Op-Amp Amplifier** (coming soon) - Inverting, non-inverting, differential
-- **555 Timer** (coming soon) - Astable, monostable, and bistable modes
-- **More coming...** - Bridge rectifier, transistor amplifier, active filters
+- **RC Filter** - Low-pass and high-pass with Bode plots and step response
+- **RLC Resonance** - Series and parallel with Q-factor and impedance analysis
+- **Op-Amp Amplifier** - Inverting, non-inverting, differential with real models
+- **555 Timer** - Astable, monostable, and PWM modes with timing calculations
+- **Bridge Rectifier** - Full-wave rectification with ripple analysis
+- **Transistor Amplifier** - Common emitter/collector with bias calculations
+- **Power Supply** - Complete regulated supply with efficiency analysis
+- **Logic Gates** - Digital gates (AND/OR/NOT/XOR) with truth tables
+- **Active Filter** - Butterworth/Chebyshev designs integrated with op-amps
 
 ### Using Examples
 ```python

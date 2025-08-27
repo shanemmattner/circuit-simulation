@@ -1,13 +1,12 @@
 """Tests for bridge rectifier circuit."""
 
-import pytest
 import numpy as np
 
 from examples.power.bridge_rectifier import (
     BridgeRectifierCircuit,
-    simulate_rectifier,
     calculate_ripple,
     design_power_supply,
+    simulate_rectifier,
 )
 
 

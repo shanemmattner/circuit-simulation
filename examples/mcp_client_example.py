@@ -8,7 +8,6 @@ This demonstrates how to connect to the MCP server and use its tools.
 import asyncio
 import json
 import sys
-from typing import Any, Dict
 
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
@@ -133,7 +132,7 @@ async def test_circuit_simulation():
             transient_data = json.loads(transient_result.content[0].text)
 
             if transient_data["status"] == "success":
-                print(f"Transient simulation completed")
+                print("Transient simulation completed")
                 print(f"Time points: {transient_data['parameters']['time_points']}")
                 for node, stats in transient_data["results"]["node_voltages"].items():
                     print(
@@ -161,7 +160,7 @@ async def test_circuit_simulation():
             )
             plot_data = json.loads(plot_result.content[0].text)
             if plot_data["status"] == "success":
-                print(f"Plot generated successfully (base64 encoded PNG)")
+                print("Plot generated successfully (base64 encoded PNG)")
                 # In a real application, you would decode and save/display the image
                 print(f"Plot data length: {len(plot_data['plot']['data'])} characters")
 

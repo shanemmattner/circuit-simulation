@@ -3,7 +3,6 @@ Exploration of PySpice API to understand how it works.
 This is research code to inform our integration design.
 """
 
-import numpy as np
 from PySpice.Spice.Netlist import Circuit as PySpiceCircuit
 from PySpice.Unit import *
 

@@ -1,15 +1,13 @@
 """Tests for op-amp amplifier example circuits."""
 
-import pytest
 import numpy as np
-from pathlib import Path
 
 from examples.amplifiers.opamp import (
     OpAmpCircuit,
-    simulate_opamp,
     analyze_amplifier,
     calculate_gain_bandwidth,
     generate_amplifier_report,
+    simulate_opamp,
 )
 
 

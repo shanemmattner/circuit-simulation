@@ -1,13 +1,12 @@
 """Tests for transistor amplifier circuits."""
 
-import pytest
 import numpy as np
 
 from examples.amplifiers.transistor import (
     TransistorAmplifierCircuit,
-    simulate_transistor_amp,
     calculate_bias_point,
     design_common_emitter,
+    simulate_transistor_amp,
 )
 
 

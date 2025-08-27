@@ -1,13 +1,11 @@
 """Tests for logic gate circuits."""
 
-import pytest
-import numpy as np
 
 from examples.digital.logic_gates import (
     LogicGateCircuit,
-    simulate_logic_gate,
     create_truth_table,
     design_logic_function,
+    simulate_logic_gate,
 )
 
 

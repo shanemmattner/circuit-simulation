@@ -5,8 +5,9 @@ Run with: docker-compose run circuit-sim python3 examples/generate_plots.py
 """
 
 import os
-import numpy as np
+
 import matplotlib
+import numpy as np
 
 matplotlib.use("Agg")  # Non-interactive backend for saving files
 import matplotlib.pyplot as plt
@@ -53,7 +54,7 @@ def generate_voltage_divider():
     ax1.set_ylim(0, 13)
 
     # Add value labels on bars
-    for bar, v in zip(bars, voltages):
+    for bar, v in zip(bars, voltages, strict=False):
         ax1.text(
             bar.get_x() + bar.get_width() / 2,
             bar.get_height() + 0.2,

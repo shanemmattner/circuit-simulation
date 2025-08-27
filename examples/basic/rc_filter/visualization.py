@@ -1,9 +1,11 @@
 """Visualization functions for RC filter circuit."""
 
+from typing import Any, Dict, Optional
+
+import numpy as np
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
-import numpy as np
-from typing import Dict, Any, Optional
+
 from .circuit import RCFilterCircuit
 
 

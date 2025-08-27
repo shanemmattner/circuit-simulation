@@ -1,8 +1,8 @@
 """RLC resonance circuit implementation."""
 
+from typing import Any, Dict, Tuple
+
 import numpy as np
-from typing import Optional, Dict, Any, Tuple
-from pathlib import Path
 
 
 class RLCResonanceCircuit:

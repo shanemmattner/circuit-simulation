@@ -1,7 +1,9 @@
 """Simulation functions for 555 timer circuits."""
 
+from typing import Any, Dict, Optional
+
 import numpy as np
-from typing import Dict, Any, Optional
+
 from .circuit import Timer555Circuit
 
 

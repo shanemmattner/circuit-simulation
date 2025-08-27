@@ -1,8 +1,8 @@
 """Transistor amplifier examples."""
 
 from .circuit import TransistorAmplifierCircuit
-from .simulation import simulate_transistor_amp, calculate_bias_point
 from .design import design_common_emitter
+from .simulation import calculate_bias_point, simulate_transistor_amp
 
 __all__ = [
     "TransistorAmplifierCircuit",

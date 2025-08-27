@@ -1,6 +1,6 @@
 """Logic gate circuit implementation."""
 
-from typing import List, Optional
+from typing import List
 
 
 class LogicGateCircuit:
