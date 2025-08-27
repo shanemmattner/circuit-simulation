@@ -96,11 +96,15 @@ class TestSimulationEngine:
 
         engine = SimulationEngine()
 
-        # AC analysis not implemented yet
-        with pytest.raises(NotImplementedError, match="AC analysis"):
-            engine.simulate_ac(
-                circuit, start_frequency=10, stop_frequency=1e6, points_per_decade=20
-            )
+        # AC analysis is now implemented
+        results = engine.simulate_ac(
+            circuit, start_frequency=10, stop_frequency=1e6, points_per_decade=20
+        )
+        
+        # Verify we got AC results
+        assert results.analysis_type == "ac"
+        assert results.frequency is not None
+        assert len(results.frequency) > 0
 
     def test_pyspice_not_available(self):
         """Test error when PySpice is not available."""
@@ -185,15 +189,18 @@ class TestSimulationEngine:
 
         engine = SimulationEngine()
 
-        # AC analysis not implemented yet
-        with pytest.raises(NotImplementedError, match="AC analysis"):
-            engine.simulate_ac(
-                circuit,
-                start_frequency=100,
-                stop_frequency=10000,
-                number_of_points=50,
-                variation="lin",
-            )
+        # AC analysis is now implemented - test with correct parameters
+        results = engine.simulate_ac(
+            circuit,
+            start_frequency=100,
+            stop_frequency=10000,
+            points_per_decade=10,  # Fixed parameter name
+            variation="dec",  # Common variation type
+        )
+        
+        # Verify results
+        assert results.analysis_type == "ac"
+        assert results.frequency is not None
 
     def test_empty_circuit(self):
         """Test simulation with empty circuit."""

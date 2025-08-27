@@ -4,7 +4,7 @@ Tests for job service functionality.
 Tests job submission, status tracking, and fallback behavior.
 """
 
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 from src.api.services.job_service import JobService
 
@@ -22,10 +22,16 @@ class TestJobService:
 
     def test_celery_availability_check(self):
         """Test Celery availability detection."""
-        job_service = JobService()
+        # Mock Redis connection to fail
+        with patch("redis.from_url") as mock_from_url:
+            mock_redis = MagicMock()
+            mock_redis.ping.side_effect = Exception("Connection failed") 
+            mock_from_url.return_value = mock_redis
+            
+            job_service = JobService()
 
-        # Without Redis running, should default to direct execution
-        assert job_service.use_celery == False
+            # Without Redis connection, should default to direct execution
+            assert job_service.use_celery == False
 
     def test_submit_direct_job(self):
         """Test direct job submission (fallback mode)."""
@@ -48,11 +54,17 @@ class TestJobService:
 
     def test_job_service_with_mock_celery(self):
         """Test job service behavior with mocked Celery."""
-        # Test that job service can be created and defaults to direct mode
-        job_service = JobService()
+        # Mock Redis connection to fail
+        with patch("redis.from_url") as mock_from_url:
+            mock_redis = MagicMock()
+            mock_redis.ping.side_effect = Exception("Connection failed") 
+            mock_from_url.return_value = mock_redis
+            
+            # Test that job service can be created and defaults to direct mode
+            job_service = JobService()
 
-        # Without proper Redis/Celery setup, should use direct mode
-        assert job_service.use_celery == False
+            # Without proper Redis/Celery setup, should use direct mode
+            assert job_service.use_celery == False
 
     def test_get_job_status_without_celery(self):
         """Test job status retrieval when Celery unavailable."""
@@ -74,16 +86,27 @@ class TestJobService:
 
     def test_job_service_redis_connection_error(self):
         """Test job service handles Redis connection errors."""
-        # Without Redis available, should fall back to direct execution
-        job_service = JobService()
+        # Mock Redis connection failure
+        with patch("redis.from_url") as mock_from_url:
+            mock_redis = MagicMock()
+            mock_redis.ping.side_effect = Exception("Redis connection failed") 
+            mock_from_url.return_value = mock_redis
+            
+            # Without Redis available, should fall back to direct execution
+            job_service = JobService()
 
-        # Should fall back to direct execution
-        assert job_service.use_celery == False
+            # Should fall back to direct execution
+            assert job_service.use_celery == False
 
     def test_job_service_logging(self):
         """Test that job service logs appropriately."""
         with patch("src.api.services.job_service.logger") as mock_logger:
-            job_service = JobService()
+            with patch("redis.from_url") as mock_from_url:
+                mock_redis = MagicMock()
+                mock_redis.ping.side_effect = Exception("Connection failed") 
+                mock_from_url.return_value = mock_redis
+                
+                job_service = JobService()
 
-            # Should have logged the fallback to direct execution
-            mock_logger.info.assert_called_with("Celery not available, using direct execution")
+                # Should have logged the fallback to direct execution
+                mock_logger.info.assert_called_with("Celery not available, using direct execution")

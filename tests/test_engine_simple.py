@@ -87,8 +87,8 @@ class TestSimulationEngineBasics:
         assert isinstance(results, SimulationResults)
         assert results.analysis_type == "transient"
 
-    def test_simulate_ac_not_implemented(self):
-        """Test that AC simulation is not yet implemented."""
+    def test_simulate_ac_implemented(self):
+        """Test that AC simulation is now implemented."""
         # Create RC filter
         circuit = Circuit("Filter")
         circuit.add_voltage_source("V1", 1, 0, "1V")
@@ -97,11 +97,15 @@ class TestSimulationEngineBasics:
 
         engine = SimulationEngine()
 
-        # AC analysis not implemented yet
-        with pytest.raises(NotImplementedError, match="AC analysis"):
-            engine.simulate_ac(
-                circuit, start_frequency=10, stop_frequency=1e6, points_per_decade=20
-            )
+        # AC analysis is now implemented
+        results = engine.simulate_ac(
+            circuit, start_frequency=10, stop_frequency=1e6, points_per_decade=20
+        )
+        
+        # Verify basic AC results
+        assert results.analysis_type == "ac"
+        assert results.frequency is not None
+        assert len(results.frequency) > 0
 
     def test_transient_default_parameters(self):
         """Test transient simulation with default parameters."""
@@ -125,6 +129,6 @@ class TestSimulationEngineBasics:
         mock_pyspice_circuit.simulator.return_value = mock_simulator
 
         with patch("circuit_sim.simulator.engine.PySpiceBuilder", return_value=mock_builder):
-            # Test with minimal parameters
-            results = engine.simulate_transient(circuit)
+            # Test with minimal parameters (stop_time is required)
+            results = engine.simulate_transient(circuit, stop_time=0.01)
             assert results is not None
