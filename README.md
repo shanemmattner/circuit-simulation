@@ -16,27 +16,43 @@ Professional circuit simulation with REST API, CLI tools, and AI integration.
 
 ## Quick Start
 
-### **🐳 Docker Required for Circuit Simulation**
-**All simulation requires Docker container** with ngspice pre-installed:
+### **🚀 Easy Launch Options**
 
+#### **🎓 Interactive Learning (Recommended)**
 ```bash
-# 1. Build and start simulation container  
-docker-compose -f deployment/docker-compose.yml up -d circuit-sim
+# One command to start everything:
+./learn.sh
+# Opens http://localhost:8888 with working simulation!
+```
 
-# 2. Run circuit operations in container
-docker-compose -f deployment/docker-compose.yml run --rm circuit-sim \
-  uv run circuit-sim init --name "My Project"
+#### **⚡ Quick Launch (if container exists)**
+```bash
+make learn-quick
+# or
+./quick-learn.sh
+```
 
-docker-compose -f deployment/docker-compose.yml run --rm circuit-sim \
-  uv run circuit-sim create --netlist examples/rc_filter.cir --name "RC Filter"
+#### **🔧 All Available Commands**
+```bash
+make help              # Show all available commands
+make learn             # Full learning environment setup
+make test-sim          # Test simulation backend  
+make clean             # Clean up containers
+```
 
-# 3. Interactive learning with working simulation
-docker-compose -f deployment/docker-compose.yml run --rm circuit-sim \
-  uv run jupyter lab docs/learning_modules/ --ip=0.0.0.0 --allow-root
+### **🐳 Manual Docker Commands (Advanced)**
+```bash
+# Build container
+make build-container
 
-# 4. Production API deployment
-docker-compose -f deployment/docker-compose.fastapi.yml up -d --build
-open http://localhost:8000/docs
+# Test simulation
+docker exec circuit-sim python test_interactive_learning.py
+
+# Manual access
+docker exec -it circuit-sim bash
+
+# Production API
+docker-compose -f deployment/docker-compose.fastapi.yml up -d
 ```
 
 ### Alternative: Local Development (No Simulation)
