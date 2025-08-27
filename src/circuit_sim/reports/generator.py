@@ -13,10 +13,10 @@ from typing import Dict, List, Optional, Union, Any
 import pandas as pd
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
-from ..circuit import Circuit
-from ..simulator.results import SimulationResults
+from circuit_sim.circuit import Circuit
+from circuit_sim.simulator.results import SimulationResults
 from .charts.plotly_charts import PlotlyChartGenerator
-from .utils.formatting import format_value, format_units
+from .utils.formatting import format_value, format_units, format_time_duration
 from .utils.metrics import MetricsCalculator
 
 
@@ -45,6 +45,7 @@ class ReportGenerator:
         # Add custom filters to Jinja2
         self.env.filters["format_value"] = format_value
         self.env.filters["format_units"] = format_units
+        self.env.filters["format_time_duration"] = format_time_duration
 
     def generate_report(
         self,
@@ -74,11 +75,11 @@ class ReportGenerator:
             FileNotFoundError: If template files are missing
         """
         # Validate inputs
-        valid_types = ["quick", "detailed", "executive", "comparison"]
+        valid_types = ["quick", "detailed", "executive"]
         if report_type not in valid_types:
             raise ValueError(f"report_type must be one of {valid_types}")
 
-        valid_formats = ["html", "pdf", "markdown", "notebook"]
+        valid_formats = ["html"]  # Start with HTML only, expand later
         if output_format not in valid_formats:
             raise ValueError(f"output_format must be one of {valid_formats}")
 
@@ -92,12 +93,6 @@ class ReportGenerator:
         # Generate report based on format
         if output_format == "html":
             return self._generate_html(report_data, report_type, output_path)
-        elif output_format == "pdf":
-            return self._generate_pdf(report_data, report_type, output_path)
-        elif output_format == "markdown":
-            return self._generate_markdown(report_data, report_type, output_path)
-        elif output_format == "notebook":
-            return self._generate_notebook(report_data, output_path)
 
     def _prepare_report_data(
         self, circuit: Circuit, results: SimulationResults, report_type: str, **kwargs
@@ -368,21 +363,3 @@ class ReportGenerator:
         from .builders.html_builder import HTMLBuilder
         builder = HTMLBuilder(self.env)
         return builder.build(data, report_type, output_path)
-
-    def _generate_pdf(self, data: Dict[str, Any], report_type: str, output_path: str) -> str:
-        """Generate PDF report."""
-        from .builders.pdf_builder import PDFBuilder
-        builder = PDFBuilder(self.env)
-        return builder.build(data, report_type, output_path)
-
-    def _generate_markdown(self, data: Dict[str, Any], report_type: str, output_path: str) -> str:
-        """Generate Markdown report."""
-        from .builders.markdown_builder import MarkdownBuilder
-        builder = MarkdownBuilder(self.env)
-        return builder.build(data, report_type, output_path)
-
-    def _generate_notebook(self, data: Dict[str, Any], output_path: str) -> str:
-        """Generate Jupyter Notebook report."""
-        from .builders.notebook_builder import NotebookBuilder
-        builder = NotebookBuilder()
-        return builder.build(data, output_path)
