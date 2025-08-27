@@ -134,6 +134,39 @@ class PlotlyChartGenerator:
 
         return charts
 
+    def _get_node_label(self, node: int, circuit: Circuit) -> str:
+        """Generate descriptive label for a node based on circuit topology"""
+        
+        # Check if this node is connected to voltage source (input)
+        for component in circuit.components:
+            if component.get("type") == "voltage_source":
+                if component.get("positive") == node:
+                    vs_name = component.get("name", "V1")
+                    return f"Circuit Input - V(Node {node}) [{vs_name}+]"
+        
+        # Check if this node is a filter output (before capacitor to ground)
+        for component in circuit.components:
+            if component.get("type") == "capacitor":
+                node1 = component.get("node1")
+                node2 = component.get("node2")
+                cap_name = component.get("name", "C")
+                
+                if node2 in [0, "gnd"] and node1 == node:
+                    return f"Filter Output - V(Node {node}) [Before {cap_name}]"
+        
+        # Check if this node is between resistors (voltage divider output)
+        resistor_connections = []
+        for component in circuit.components:
+            if component.get("type") == "resistor":
+                resistor_connections.extend([component.get("node1"), component.get("node2")])
+        
+        resistor_count = resistor_connections.count(node)
+        if resistor_count >= 2:  # Node connects to multiple resistors
+            return f"Divider Output - V(Node {node}) [Between Resistors]"
+        
+        # Default descriptive label
+        return f"Circuit Node {node}"
+
     def _create_transient_charts(
         self, results: SimulationResults, circuit: Circuit
     ) -> Dict[str, go.Figure]:
@@ -323,12 +356,15 @@ class PlotlyChartGenerator:
                         magnitude_db = 20 * np.log10(magnitude_linear_safe)
                         phase_deg = np.angle(voltage, deg=True)
 
+                        # Determine node role for better labeling
+                        node_label = self._get_node_label(node, circuit)
+                        
                         fig = make_subplots(
                             rows=2,
                             cols=1,
                             subplot_titles=(
-                                f"Magnitude - V(Node {node})",
-                                f"Phase - V(Node {node})",
+                                f"Magnitude - {node_label}",
+                                f"Phase - {node_label}",
                             ),
                             shared_xaxes=True,
                             vertical_spacing=0.1,
@@ -370,7 +406,7 @@ class PlotlyChartGenerator:
                             height=600,
                             template="plotly_white",
                             title={
-                                "text": f"Bode Plot - V(Node {node})",
+                                "text": f"Bode Plot - {node_label}",
                                 "x": 0.5,
                                 "xanchor": "center",
                             },
@@ -393,17 +429,20 @@ class PlotlyChartGenerator:
                         magnitude_linear_safe = np.maximum(magnitude_linear, 1e-12)
                         magnitude_db = 20 * np.log10(magnitude_linear_safe)
 
+                        # Get descriptive node label
+                        node_description = self._get_node_label(node, circuit).replace(f" - V(Node {node})", "")
+                        
                         fig.add_trace(
                             go.Scatter(
                                 x=results.frequency,
                                 y=magnitude_db,
                                 mode="lines",
-                                name=f"V(Node {node})",
+                                name=node_description,
                                 line=dict(
                                     color=self.color_palette[color_idx % len(self.color_palette)],
                                     width=2,
                                 ),
-                                hovertemplate="Freq: %{x:.2e}Hz<br>Magnitude: %{y:.2f}dB<extra></extra>",
+                                hovertemplate=f"Freq: %{{x:.2e}}Hz<br>Magnitude: %{{y:.2f}}dB<br>Node: {node_description}<extra></extra>",
                             )
                         )
                         color_idx += 1
