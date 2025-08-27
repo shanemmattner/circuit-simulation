@@ -314,14 +314,17 @@ circuit-simulation/
 7. ✅ **FastAPI Web Service** (Complete REST API with WebSocket support)
 8. ✅ **Production Deployment** (Docker Compose with Redis/Celery)
 9. ✅ **API Documentation** (OpenAPI/Swagger with interactive testing)
+10. ✅ **KiCad Netlist Import** (Real .net file parsing with end-to-end simulation)
+11. ✅ **SPICE Parser** (Complete .cir file support with .MODEL/.SUBCKT)
 
 ### Immediate Goals  
 1. ✅ CLI interface with progress bars
 2. 10 working example circuits
 3. ✅ FastAPI web service  
 4. ✅ Production deployment
-5. AC frequency analysis implementation
-6. Performance optimization and benchmarking
+5. ✅ KiCad netlist import capability
+6. AC frequency analysis implementation
+7. Performance optimization and benchmarking
 
 ### Quality Gates
 - ✅ Test coverage > 85% (76% achieved, improving)

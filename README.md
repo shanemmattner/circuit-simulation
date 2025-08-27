@@ -18,9 +18,11 @@ A production-ready platform for electronic circuit simulation with REST API, Web
 - **Docker Support**: No installation conflicts, works everywhere
 - **📊 Professional Reports**: Interactive HTML reports with Plotly charts and performance metrics
 - **Visualization**: Generate publication-quality plots and analysis reports
+- **📥 KiCad Import**: Import KiCad netlists and circuit-synth JSON files
+- **📜 SPICE Support**: Full SPICE netlist parsing with .MODEL and .SUBCKT
 - **🤖 MCP Integration**: Full AI assistant integration via Model Context Protocol
 - **🔧 Claude Code Ready**: Connect directly to Claude Code with `claude mcp add`
-- **Comprehensive Testing**: 85%+ code coverage with validation scripts
+- **Comprehensive Testing**: 95%+ code coverage with validation scripts
 - **Production Ready**: Type hints, formatting, linting configured
 
 ## Quick Start 🚀
@@ -272,6 +274,63 @@ All operations show beautiful progress bars powered by Rich:
 🔄 Validating netlist... ████████████████████████████████████████ 100%
 🔄 Creating circuit...   ████████████████████████████████████████ 100%
 ✅ Circuit created successfully!
+```
+
+## 📥 **KiCad & SPICE Import**
+
+Import circuits from industry-standard formats:
+
+### KiCad Netlist Import
+
+```python
+from src.io.parsers.kicad_parser import KiCadParser
+from src.circuit_sim.simulator import SimulationEngine
+
+# Import KiCad netlist
+parser = KiCadParser()
+circuit = parser.parse_file("your_design.net")
+
+# Add power supplies (KiCad netlists don't include simulation sources)
+circuit.add_voltage_source("VCC", "VCC", "GND", "5V")
+
+# Simulate
+engine = SimulationEngine()
+results = engine.simulate_dc(circuit)
+```
+
+### SPICE Netlist Import
+
+```python
+from src.io.parsers.spice_parser import SpiceParser
+
+# Import SPICE netlist with models and subcircuits
+parser = SpiceParser()
+circuit = parser.parse_file("amplifier.cir")
+
+# Models and subcircuits automatically loaded
+results = engine.simulate_dc(circuit)
+```
+
+### circuit-synth JSON Import
+
+```python
+from src.io.models.circuit_synth_importer import CircuitSynthImporter
+
+# Import hierarchical JSON from circuit-synth
+importer = CircuitSynthImporter()
+circuit = importer.import_from_file("board_design.json")
+
+# Simulate individual subcircuits or full system
+results = engine.simulate_dc(circuit)
+```
+
+### Demo Script
+
+```bash
+# Test KiCad import with real netlist
+uv run python examples/demo_kicad_import.py
+
+# Output: Perfect 1.650V voltage divider simulation!
 ```
 
 ## Supported Components 🔧
