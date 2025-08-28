@@ -257,7 +257,13 @@ class SpiceParser:
         if len(tokens) >= 4:
             name, anode, cathode, model = tokens[:4]
             circuit.add_component(
-                {"name": name, "type": "diode", "anode": anode, "cathode": cathode, "model": model}
+                {
+                    "name": name,
+                    "type": "diode",
+                    "anode": anode,
+                    "cathode": cathode,
+                    "model": model,
+                }
             )
 
     def _parse_subcircuit_definition(

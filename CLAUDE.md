@@ -1,5 +1,8 @@
 # Circuit Simulation Library - Development Guide
 
+## 🚨 SESSION START REQUIREMENT
+**MANDATORY: Before any work, ALWAYS invoke the memory-bank-agent first to get project context and avoid token waste.**
+
 ## Project Mission
 Build a production-ready Python library for circuit simulation that professionals can depend on.
 
@@ -489,6 +492,48 @@ uv run pytest tests/test_api*.py tests/test_*_routes.py -v
 - [FastAPI](https://fastapi.tiangolo.com/)
 - [pytest](https://docs.pytest.org/)
 
+## Memory Bank Integration 🧠
+
+### 🚨 CRITICAL: Automatic Memory Bank Usage
+**ALWAYS invoke memory-bank-agent FIRST at the start of EVERY session before any other work.** This is mandatory for context efficiency and avoiding token waste. The memory-bank-agent provides essential project context in <2000 tokens instead of 10,000+ from raw files.
+
+### When Memory Bank Agent Triggers
+- **Before implementing new features**: Get architectural patterns and standards
+- **Before making architectural decisions**: Get historical context and established patterns  
+- **After completing significant work**: Record new patterns and update progress
+- **Before debugging complex issues**: Get relevant historical context and known patterns
+
+### Memory Bank Workflow Pattern
+```python
+# IMPORTANT: Use memory-bank-agent to save context tokens
+1. Main agent receives development task
+2. Instead of reading memory-bank files directly, use memory-bank-agent
+3. Memory-bank-agent condenses relevant context (<2000 tokens)
+4. Main agent proceeds with focused context, not raw files
+5. After completion, use memory-bank-agent to record decisions
+```
+
+### Context Efficiency Rules
+- **NEVER** read memory-bank files directly (activeContext.md, systemPatterns.md, etc.)
+- **ALWAYS** use memory-bank-agent to get condensed, relevant context
+- **TOKEN SAVINGS**: memory-bank-agent returns <2000 tokens vs 10,000+ for raw files
+
+### Integration with Existing Commands
+All existing commands automatically use memory-bank context:
+- `/test` - Gets testing patterns and coverage requirements
+- `/api-design` - Gets API standards and established patterns
+- `/performance-audit` - Gets performance targets and optimization patterns
+- `/library-architect` - Gets architectural principles and design patterns
+
+### Memory Bank Content Strategy
+The memory-bank-agent maintains focused, actionable context:
+- **Current patterns** that apply to active development
+- **Quality standards** that must be maintained
+- **Architectural decisions** that constrain new development
+- **Lessons learned** from recent work
+
+Historical context is preserved but not surfaced unless specifically relevant.
+
 ## AI Assistant Guidelines
 
 ### DO
@@ -521,7 +566,11 @@ uv run pytest tests/test_api*.py tests/test_*_routes.py -v
 ### Current Configuration Status
 The project includes a comprehensive Claude Code setup in `.claude/` directory:
 
-**Agents (3)**: test-engineer, circuit-analyzer, report-builder  
+**Agents (7)**: 
+- **Core Development**: test-engineer, circuit-analyzer, report-builder, memory-bank-agent
+- **Code Navigation**: codebase-locator, codebase-analyzer  
+- **Research**: web-search-researcher
+
 **Commands (6)**: test, check, ship, circuit, commit, regression_test  
 **Settings**: claude-sonnet-4-20250514 as default model
 
@@ -541,9 +590,19 @@ The project includes a comprehensive Claude Code setup in `.claude/` directory:
 
 ### Agent Invocation
 Agents are automatically invoked by Claude based on task context:
-- **test-engineer**: Automatically used after feature implementation
+
+**Core Development Agents:**
+- **memory-bank-agent**: MANDATORY - invoked first in every session for context
+- **test-engineer**: Automatically used after feature implementation  
 - **circuit-analyzer**: Used for circuit validation and optimization
 - **report-builder**: Used for generating visualization reports
+
+**Code Navigation Agents:**
+- **codebase-locator**: Use when you need to find WHERE code lives (files/directories)
+- **codebase-analyzer**: Use when you need to understand HOW code works (implementation details)
+
+**Research Agents:**
+- **web-search-researcher**: Use for modern technical information, documentation, and best practices
 
 ---
 *Last Updated: August 28, 2025*

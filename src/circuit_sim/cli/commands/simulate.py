@@ -10,7 +10,13 @@ from typing import Optional
 
 import click
 from rich.console import Console
-from rich.progress import BarColumn, Progress, SpinnerColumn, TaskProgressColumn, TextColumn
+from rich.progress import (
+    BarColumn,
+    Progress,
+    SpinnerColumn,
+    TaskProgressColumn,
+    TextColumn,
+)
 
 from circuit_sim.cli.exceptions import SimulationError, UserError
 from circuit_sim.cli.utils.output import print_error, print_info, print_success
@@ -35,7 +41,9 @@ def load_circuit_metadata(circuit_id: str) -> dict:
     metadata_file = circuits_dir / f"{circuit_id}.json"
 
     if not metadata_file.exists():
-        available_circuits = list(circuits_dir.glob("*.json")) if circuits_dir.exists() else []
+        available_circuits = (
+            list(circuits_dir.glob("*.json")) if circuits_dir.exists() else []
+        )
         circuit_ids = [f.stem for f in available_circuits]
 
         suggestion = "Use 'circuit-sim list' to see available circuits"
@@ -55,7 +63,9 @@ def load_circuit_metadata(circuit_id: str) -> dict:
         ) from e
 
 
-def save_simulation_results(circuit_id: str, analysis_type: str, results_data: dict) -> Path:
+def save_simulation_results(
+    circuit_id: str, analysis_type: str, results_data: dict
+) -> Path:
     """
     Save simulation results to file.
 
@@ -127,7 +137,9 @@ def dc(circuit_id: str, output: Optional[Path]):
                 progress.update(task, description="🔄 Running DC analysis...")
 
                 # For CLI, we'll create a mock successful result until simulation is fully integrated
-                print_info("Simulation integration in progress - generating sample results")
+                print_info(
+                    "Simulation integration in progress - generating sample results"
+                )
 
                 results_data = {
                     "circuit_id": circuit_id,
@@ -174,7 +186,9 @@ def dc(circuit_id: str, output: Optional[Path]):
 
             # Save results
             progress.update(task, description="Saving results...")
-            output_file = output or save_simulation_results(circuit_id, "dc", results_data)
+            output_file = output or save_simulation_results(
+                circuit_id, "dc", results_data
+            )
 
             if output:
                 output.write_text(json.dumps(results_data, indent=2))
@@ -200,8 +214,12 @@ def dc(circuit_id: str, output: Optional[Path]):
 @simulate.command()
 @click.option("--circuit-id", required=True, help="Circuit ID to simulate")
 @click.option("--duration", default="10ms", help="Simulation duration (e.g., 10ms, 1s)")
-@click.option("--timestep", default="1us", help="Simulation time step (e.g., 1us, 10ns)")
-@click.option("--output", type=click.Path(path_type=Path), help="Output file for results")
+@click.option(
+    "--timestep", default="1us", help="Simulation time step (e.g., 1us, 10ns)"
+)
+@click.option(
+    "--output", type=click.Path(path_type=Path), help="Output file for results"
+)
 def transient(circuit_id: str, duration: str, timestep: str, output: Optional[Path]):
     """Run transient (time-domain) analysis."""
 
@@ -240,12 +258,16 @@ def transient(circuit_id: str, duration: str, timestep: str, output: Optional[Pa
             }
 
             # Save results
-            output_file = output or save_simulation_results(circuit_id, "transient", results_data)
+            output_file = output or save_simulation_results(
+                circuit_id, "transient", results_data
+            )
             if output:
                 output.write_text(json.dumps(results_data, indent=2))
                 output_file = output
 
-            progress.update(task, description="✅ Transient simulation completed", completed=100)
+            progress.update(
+                task, description="✅ Transient simulation completed", completed=100
+            )
 
         print_success(f"Transient analysis completed for circuit '{metadata['name']}'")
         console.print(f"  ⏱️  Duration: {duration}, Step: {timestep}")

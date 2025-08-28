@@ -71,10 +71,14 @@ def design_astable_555(
     r1 = _round_to_standard(r1)
     r2 = _round_to_standard(r2)
 
-    return Timer555Circuit(mode="astable", r1=r1, r2=r2, c=capacitor, has_diode=has_diode)
+    return Timer555Circuit(
+        mode="astable", r1=r1, r2=r2, c=capacitor, has_diode=has_diode
+    )
 
 
-def design_monostable_555(pulse_width: float, capacitor: Optional[float] = None) -> Timer555Circuit:
+def design_monostable_555(
+    pulse_width: float, capacitor: Optional[float] = None
+) -> Timer555Circuit:
     """Design monostable 555 one-shot.
 
     Args:

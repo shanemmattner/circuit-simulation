@@ -102,7 +102,9 @@ def save_circuit_metadata(circuit_id: str, name: str, netlist_path: Path) -> Pat
 )
 @click.option("--name", required=True, help="Descriptive name for the circuit")
 @click.option(
-    "--validate-only", is_flag=True, help="Only validate the netlist without creating circuit"
+    "--validate-only",
+    is_flag=True,
+    help="Only validate the netlist without creating circuit",
 )
 def create(netlist: Path, name: str, validate_only: bool):
     """Create a new circuit from a SPICE netlist file."""
@@ -129,7 +131,7 @@ def create(netlist: Path, name: str, validate_only: bool):
             progress.update(task, description="Creating circuit...")
             try:
                 # Use existing Circuit class if available
-                circuit = Circuit(name)
+                Circuit(name)
                 circuit_id = str(uuid.uuid4())[:8]  # Short UUID for CLI
 
             except Exception:
@@ -152,7 +154,9 @@ def create(netlist: Path, name: str, validate_only: bool):
         console.print(
             f"  • Run simulation: [bold]circuit-sim simulate dc --circuit-id {circuit_id}[/bold]"
         )
-        console.print(f"  • View info: [bold]circuit-sim info --circuit-id {circuit_id}[/bold]")
+        console.print(
+            f"  • View info: [bold]circuit-sim info --circuit-id {circuit_id}[/bold]"
+        )
 
     except (FileNotFoundError, InvalidNetlistError) as e:
         print_error(e)

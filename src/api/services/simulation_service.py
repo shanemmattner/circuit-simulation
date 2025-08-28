@@ -11,7 +11,11 @@ from typing import Any, Dict, Optional
 
 import numpy as np
 
-from src.api.models.simulation import SimulationRequest, SimulationStatus, SimulationType
+from src.api.models.simulation import (
+    SimulationRequest,
+    SimulationStatus,
+    SimulationType,
+)
 from src.api.services.circuit_service import CircuitService
 from src.circuit_sim.simulator.engine import SimulationEngine
 
@@ -25,7 +29,9 @@ class SimulationService:
         self.engine = SimulationEngine()
         self._jobs: Dict[str, dict] = {}
 
-    def start_simulation(self, circuit_id: str, sim_request: SimulationRequest) -> SimulationStatus:
+    def start_simulation(
+        self, circuit_id: str, sim_request: SimulationRequest
+    ) -> SimulationStatus:
         """
         Start a new simulation job.
 
@@ -134,7 +140,12 @@ class SimulationService:
         # Convert to response format
         simulation_statuses = [SimulationStatus(**job) for job in paginated_jobs]
 
-        return {"simulations": simulation_statuses, "total": total, "skip": skip, "limit": limit}
+        return {
+            "simulations": simulation_statuses,
+            "total": total,
+            "skip": skip,
+            "limit": limit,
+        }
 
     def get_simulation_results(self, job_id: str) -> Optional[Dict[str, Any]]:
         """
@@ -205,7 +216,9 @@ class SimulationService:
 
             elif job_record["type"] == SimulationType.TRANSIENT:
                 job_record["progress"] = 60.0
-                self._send_websocket_update(job_id, 60.0, "Running transient analysis...")
+                self._send_websocket_update(
+                    job_id, 60.0, "Running transient analysis..."
+                )
 
                 params = job_record["parameters"]
                 stop_time = params.get("stop_time", 0.001)
@@ -215,7 +228,9 @@ class SimulationService:
 
             elif job_record["type"] == SimulationType.AC:
                 job_record["progress"] = 60.0
-                self._send_websocket_update(job_id, 60.0, "Running AC frequency analysis...")
+                self._send_websocket_update(
+                    job_id, 60.0, "Running AC frequency analysis..."
+                )
 
                 params = job_record["parameters"]
                 start_freq = params.get("start_frequency", 1.0)
@@ -240,7 +255,10 @@ class SimulationService:
 
             # Process voltages (handle both real and complex data)
             for node, voltage_data in results.voltages.items():
-                if isinstance(voltage_data, np.ndarray) and voltage_data.dtype == complex:
+                if (
+                    isinstance(voltage_data, np.ndarray)
+                    and voltage_data.dtype == complex
+                ):
                     # AC analysis - store magnitude and phase
                     magnitude = np.abs(voltage_data).tolist()
                     phase = np.angle(voltage_data, deg=True).tolist()
@@ -258,7 +276,10 @@ class SimulationService:
 
             # Process currents similarly
             for branch, current_data in results.currents.items():
-                if isinstance(current_data, np.ndarray) and current_data.dtype == complex:
+                if (
+                    isinstance(current_data, np.ndarray)
+                    and current_data.dtype == complex
+                ):
                     magnitude = np.abs(current_data).tolist()
                     phase = np.angle(current_data, deg=True).tolist()
                     result_data["currents"][str(branch)] = {
@@ -318,7 +339,9 @@ class SimulationService:
             try:
                 loop = asyncio.get_event_loop()
                 if loop.is_running():
-                    asyncio.create_task(manager.send_progress_update(job_id, progress, message))
+                    asyncio.create_task(
+                        manager.send_progress_update(job_id, progress, message)
+                    )
             except RuntimeError:
                 # No event loop running, skip WebSocket update
                 pass
@@ -327,7 +350,9 @@ class SimulationService:
             # WebSocket manager not available, skip update
             pass
 
-    def _send_websocket_completion(self, job_id: str, status: str, results: Optional[Dict] = None):
+    def _send_websocket_completion(
+        self, job_id: str, status: str, results: Optional[Dict] = None
+    ):
         """
         Send WebSocket completion notification.
 
@@ -346,7 +371,9 @@ class SimulationService:
             try:
                 loop = asyncio.get_event_loop()
                 if loop.is_running():
-                    asyncio.create_task(manager.send_result_notification(job_id, status, results))
+                    asyncio.create_task(
+                        manager.send_result_notification(job_id, status, results)
+                    )
             except RuntimeError:
                 # No event loop running, skip WebSocket update
                 pass

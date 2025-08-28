@@ -49,7 +49,9 @@ def generate_voltage_divider():
 
     bars = ax1.bar([f"Node {n}" for n in nodes], voltages, color=colors)
     ax1.set_ylabel("Voltage (V)", fontsize=12)
-    ax1.set_title("DC Operating Point - Voltage Divider", fontsize=14, fontweight="bold")
+    ax1.set_title(
+        "DC Operating Point - Voltage Divider", fontsize=14, fontweight="bold"
+    )
     ax1.grid(True, axis="y", alpha=0.3)
     ax1.set_ylim(0, 13)
 
@@ -124,8 +126,16 @@ def generate_rc_charging():
         tau_ms = tau * 1000
         v_at_tau = 5 * (1 - 1 / np.e)  # 63.2% of 5V
 
-        ax.axvline(tau_ms, color="r", linestyle="--", alpha=0.5, label=f"τ = {tau_ms:.0f}ms")
-        ax.axhline(v_at_tau, color="g", linestyle="--", alpha=0.5, label=f"V(τ) = {v_at_tau:.2f}V")
+        ax.axvline(
+            tau_ms, color="r", linestyle="--", alpha=0.5, label=f"τ = {tau_ms:.0f}ms"
+        )
+        ax.axhline(
+            v_at_tau,
+            color="g",
+            linestyle="--",
+            alpha=0.5,
+            label=f"V(τ) = {v_at_tau:.2f}V",
+        )
         ax.axhline(5, color="gray", linestyle="--", alpha=0.3, label="V_final = 5V")
 
         # Add annotations
@@ -138,7 +148,9 @@ def generate_rc_charging():
 
         ax.set_xlabel("Time (ms)", fontsize=12)
         ax.set_ylabel("Voltage (V)", fontsize=12)
-        ax.set_title("RC Circuit Charging Curve (R=10kΩ, C=10µF)", fontsize=14, fontweight="bold")
+        ax.set_title(
+            "RC Circuit Charging Curve (R=10kΩ, C=10µF)", fontsize=14, fontweight="bold"
+        )
         ax.grid(True, alpha=0.3)
         ax.legend(loc="lower right")
         ax.set_xlim(0, 200)
@@ -178,13 +190,19 @@ def generate_rl_response():
         if results.voltage(2) is not None:
             ax1.plot(time_ms, results.voltage(2), "b-", linewidth=2)
             ax1.set_ylabel("Inductor Voltage (V)", fontsize=12)
-            ax1.set_title("RL Circuit Response (R=100Ω, L=50mH)", fontsize=14, fontweight="bold")
+            ax1.set_title(
+                "RL Circuit Response (R=100Ω, L=50mH)", fontsize=14, fontweight="bold"
+            )
             ax1.grid(True, alpha=0.3)
 
             # Mark time constant
             tau = 0.05 / 100  # L/R = 50mH / 100Ω = 0.5ms
             ax1.axvline(
-                tau * 1000, color="r", linestyle="--", alpha=0.5, label=f"τ = {tau*1000:.1f}ms"
+                tau * 1000,
+                color="r",
+                linestyle="--",
+                alpha=0.5,
+                label=f"τ = {tau*1000:.1f}ms",
             )
             ax1.legend()
 
@@ -200,10 +218,18 @@ def generate_rl_response():
             # Show steady state
             i_ss = 12 / 100 * 1000  # V/R in mA
             ax2.axhline(
-                i_ss, color="g", linestyle="--", alpha=0.5, label=f"I_steady = {i_ss:.0f}mA"
+                i_ss,
+                color="g",
+                linestyle="--",
+                alpha=0.5,
+                label=f"I_steady = {i_ss:.0f}mA",
             )
             ax2.axvline(
-                tau * 1000, color="r", linestyle="--", alpha=0.5, label=f"τ = {tau*1000:.1f}ms"
+                tau * 1000,
+                color="r",
+                linestyle="--",
+                alpha=0.5,
+                label=f"τ = {tau*1000:.1f}ms",
             )
             ax2.legend()
 
@@ -243,7 +269,9 @@ def generate_rc_filter():
     ax1.axvline(fc, color="r", linestyle="--", alpha=0.5, label=f"f_c = {fc:.0f} Hz")
     ax1.axhline(-3, color="g", linestyle="--", alpha=0.5, label="-3 dB point")
     ax1.set_ylabel("Magnitude (dB)", fontsize=12)
-    ax1.set_title(f"RC Low-Pass Filter (R={R}Ω, C={C*1e9:.0f}nF)", fontsize=14, fontweight="bold")
+    ax1.set_title(
+        f"RC Low-Pass Filter (R={R}Ω, C={C*1e9:.0f}nF)", fontsize=14, fontweight="bold"
+    )
     ax1.grid(True, which="both", alpha=0.3)
     ax1.legend()
     ax1.set_ylim(-60, 5)
@@ -295,19 +323,27 @@ def generate_comparison_plot():
         engine = SimulationEngine()
         tau = R * C
         stop_time = min(5 * tau, 2.0)  # 5 time constants or 2 seconds max
-        results = engine.simulate_transient(circuit, stop_time=stop_time, step_time=stop_time / 500)
+        results = engine.simulate_transient(
+            circuit, stop_time=stop_time, step_time=stop_time / 500
+        )
 
         if results.time is not None and results.voltage(2) is not None:
             time_ms = results.time * 1000
             voltage = results.voltage(2)
             ax.plot(
-                time_ms, voltage, linewidth=2, label=f"{name} (τ={tau*1000:.1f}ms)", color=color
+                time_ms,
+                voltage,
+                linewidth=2,
+                label=f"{name} (τ={tau*1000:.1f}ms)",
+                color=color,
             )
 
     ax.axhline(5 * 0.632, color="gray", linestyle="--", alpha=0.3, label="63.2% of 5V")
     ax.set_xlabel("Time (ms)", fontsize=12)
     ax.set_ylabel("Voltage (V)", fontsize=12)
-    ax.set_title("RC Circuit Charging: Time Constant Comparison", fontsize=14, fontweight="bold")
+    ax.set_title(
+        "RC Circuit Charging: Time Constant Comparison", fontsize=14, fontweight="bold"
+    )
     ax.grid(True, alpha=0.3)
     ax.legend(loc="lower right")
     ax.set_xlim(0, 1000)

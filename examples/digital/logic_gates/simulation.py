@@ -25,7 +25,9 @@ def simulate_logic_gate(
         Simulation results
     """
     if timestep is None:
-        timestep = circuit.propagation_delay / 10 if circuit.propagation_delay > 0 else 1e-9
+        timestep = (
+            circuit.propagation_delay / 10 if circuit.propagation_delay > 0 else 1e-9
+        )
 
     # Create time array
     num_samples = max(len(sig) for sig in input_signals)

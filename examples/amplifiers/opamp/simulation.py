@@ -7,7 +7,9 @@ import numpy as np
 from .circuit import OpAmpCircuit
 
 
-def simulate_opamp(circuit: OpAmpCircuit, analysis_type: str = "dc", **kwargs) -> Dict[str, Any]:
+def simulate_opamp(
+    circuit: OpAmpCircuit, analysis_type: str = "dc", **kwargs
+) -> Dict[str, Any]:
     """Simulate op-amp circuit.
 
     Args:
@@ -28,7 +30,9 @@ def simulate_opamp(circuit: OpAmpCircuit, analysis_type: str = "dc", **kwargs) -
         raise ValueError(f"Unknown analysis type: {analysis_type}")
 
 
-def _simulate_dc(circuit: OpAmpCircuit, vin_range: tuple = (-1, 1, 0.01)) -> Dict[str, Any]:
+def _simulate_dc(
+    circuit: OpAmpCircuit, vin_range: tuple = (-1, 1, 0.01)
+) -> Dict[str, Any]:
     """Run DC sweep simulation.
 
     Args:
@@ -225,7 +229,9 @@ def calculate_transient_response(
         dt = time[1] - time[0] if len(time) > 1 else 1e-6
         for i in range(1, len(time)):
             # Integration: Vout = -(1/RC) * integral(Vin dt)
-            output[i] = output[i - 1] - (input_signal[i] * dt) / (circuit.r_in * circuit.c_feedback)
+            output[i] = output[i - 1] - (input_signal[i] * dt) / (
+                circuit.r_in * circuit.c_feedback
+            )
 
             # Apply saturation
             output[i] = np.clip(output[i], circuit.vee + 1, circuit.vcc - 1)
@@ -265,7 +271,9 @@ def calculate_transient_response(
                 output[i] = 0
             else:
                 # First-order response
-                output[i] = output[i - 1] + (target - output[i - 1]) * (1 - np.exp(-dt / tau))
+                output[i] = output[i - 1] + (target - output[i - 1]) * (
+                    1 - np.exp(-dt / tau)
+                )
 
             # Apply saturation
             output[i] = np.clip(output[i], circuit.vee + 1, circuit.vcc - 1)
@@ -273,7 +281,9 @@ def calculate_transient_response(
     return output
 
 
-def calculate_frequency_response(circuit: OpAmpCircuit, frequencies: np.ndarray) -> Dict[str, Any]:
+def calculate_frequency_response(
+    circuit: OpAmpCircuit, frequencies: np.ndarray
+) -> Dict[str, Any]:
     """Calculate frequency response at specific frequencies.
 
     Args:

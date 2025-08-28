@@ -64,7 +64,10 @@ def _create_bode_plot(
     fig = make_subplots(
         rows=2,
         cols=1,
-        subplot_titles=(f"Magnitude Response - {circuit.topology.title()} RLC", "Phase Response"),
+        subplot_titles=(
+            f"Magnitude Response - {circuit.topology.title()} RLC",
+            "Phase Response",
+        ),
         shared_xaxes=True,
         vertical_spacing=0.12,
     )
@@ -76,7 +79,9 @@ def _create_bode_plot(
             # This is impedance spectrum, need to generate transfer function
             from .simulation import calculate_frequency_response
 
-            freq_response = calculate_frequency_response(circuit, np.array(spectrum["frequency"]))
+            freq_response = calculate_frequency_response(
+                circuit, np.array(spectrum["frequency"])
+            )
             spectrum.update(freq_response)
 
         # Convert magnitude to dB if needed
@@ -101,7 +106,9 @@ def _create_bode_plot(
     )
 
     # Mark resonant frequency
-    f0_index = np.argmin(np.abs(np.array(spectrum["frequency"]) - circuit.resonant_frequency))
+    f0_index = np.argmin(
+        np.abs(np.array(spectrum["frequency"]) - circuit.resonant_frequency)
+    )
     f0_mag = spectrum["magnitude_db"][f0_index]
 
     fig.add_trace(
@@ -244,14 +251,21 @@ def _create_nyquist_plot(
             mode="lines+markers",
             name="Impedance",
             line=dict(color="blue", width=2),
-            marker=dict(size=4, color=spectrum["frequency"], colorscale="Viridis", showscale=True),
+            marker=dict(
+                size=4,
+                color=spectrum["frequency"],
+                colorscale="Viridis",
+                showscale=True,
+            ),
             text=[f"{f:.1f} Hz" for f in spectrum["frequency"]],
             hovertemplate="%{text}<br>Z = %{x:.2f} + j%{y:.2f} Ω<extra></extra>",
         )
     )
 
     # Mark resonant frequency
-    f0_index = np.argmin(np.abs(np.array(spectrum["frequency"]) - circuit.resonant_frequency))
+    f0_index = np.argmin(
+        np.abs(np.array(spectrum["frequency"]) - circuit.resonant_frequency)
+    )
 
     fig.add_trace(
         go.Scatter(
@@ -507,11 +521,17 @@ def generate_3d_response(
     """
     # Default ranges
     if param_range is None:
-        original_value = getattr(circuit, vary_param) if vary_param != "q" else circuit.q_factor
+        original_value = (
+            getattr(circuit, vary_param) if vary_param != "q" else circuit.q_factor
+        )
         param_range = (original_value * 0.1, original_value * 10, 20)
 
     if frequency_range is None:
-        frequency_range = (circuit.resonant_frequency / 100, circuit.resonant_frequency * 100, 50)
+        frequency_range = (
+            circuit.resonant_frequency / 100,
+            circuit.resonant_frequency * 100,
+            50,
+        )
 
     # Create parameter and frequency arrays
     if vary_param == "q":
@@ -527,9 +547,11 @@ def generate_3d_response(
     else:
         param_values = np.linspace(param_range[0], param_range[1], param_range[2])
         param_display = param_values
-        param_label = {"r": "Resistance (Ω)", "l": "Inductance (H)", "c": "Capacitance (F)"}[
-            vary_param
-        ]
+        param_label = {
+            "r": "Resistance (Ω)",
+            "l": "Inductance (H)",
+            "c": "Capacitance (F)",
+        }[vary_param]
 
     frequencies = np.logspace(
         np.log10(frequency_range[0]), np.log10(frequency_range[1]), frequency_range[2]

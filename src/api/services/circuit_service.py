@@ -42,11 +42,17 @@ class CircuitService:
                     comp.name, comp.positive_node, comp.negative_node, comp.value
                 )
             elif comp.type == "resistor":
-                circuit.add_resistor(comp.name, comp.positive_node, comp.negative_node, comp.value)
+                circuit.add_resistor(
+                    comp.name, comp.positive_node, comp.negative_node, comp.value
+                )
             elif comp.type == "capacitor":
-                circuit.add_capacitor(comp.name, comp.positive_node, comp.negative_node, comp.value)
+                circuit.add_capacitor(
+                    comp.name, comp.positive_node, comp.negative_node, comp.value
+                )
             elif comp.type == "inductor":
-                circuit.add_inductor(comp.name, comp.positive_node, comp.negative_node, comp.value)
+                circuit.add_inductor(
+                    comp.name, comp.positive_node, comp.negative_node, comp.value
+                )
             elif comp.type == "current_source":
                 circuit.add_current_source(
                     comp.name, comp.positive_node, comp.negative_node, comp.value
@@ -85,7 +91,9 @@ class CircuitService:
             return None
 
         # Don't include circuit_object in response
-        response_data = {k: v for k, v in circuit_record.items() if k != "circuit_object"}
+        response_data = {
+            k: v for k, v in circuit_record.items() if k != "circuit_object"
+        }
         return CircuitResponse(**response_data)
 
     def list_circuits(self, skip: int = 0, limit: int = 100) -> Dict:
@@ -108,10 +116,17 @@ class CircuitService:
         # Convert to response format
         circuit_responses = []
         for circuit_record in paginated_circuits:
-            response_data = {k: v for k, v in circuit_record.items() if k != "circuit_object"}
+            response_data = {
+                k: v for k, v in circuit_record.items() if k != "circuit_object"
+            }
             circuit_responses.append(CircuitResponse(**response_data))
 
-        return {"circuits": circuit_responses, "total": total, "skip": skip, "limit": limit}
+        return {
+            "circuits": circuit_responses,
+            "total": total,
+            "skip": skip,
+            "limit": limit,
+        }
 
     def delete_circuit(self, circuit_id: str) -> bool:
         """

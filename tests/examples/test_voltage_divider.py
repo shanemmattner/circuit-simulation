@@ -91,7 +91,9 @@ class TestVoltageDividerSimulation:
         assert len(results["sweep_values"]) == len(results["output_voltages"])
 
         # Output should be proportional to input
-        ratios = np.array(results["output_voltages"]) / np.array(results["sweep_values"])
+        ratios = np.array(results["output_voltages"]) / np.array(
+            results["sweep_values"]
+        )
         expected_ratio = 0.5  # For equal resistors
         assert all(abs(r - expected_ratio) < 0.01 for r in ratios[1:])  # Skip 0V
 
@@ -137,7 +139,10 @@ class TestVoltageDividerReport:
         """Test report with parameter sweep."""
         circuit = VoltageDividerCircuit(r1=1000, r2=1000, vin=5.0)
         results = simulate_voltage_divider(
-            circuit, analysis_type="sweep", sweep_param="r2", sweep_range=(100, 10000, 100)
+            circuit,
+            analysis_type="sweep",
+            sweep_param="r2",
+            sweep_range=(100, 10000, 100),
         )
 
         report = generate_report(circuit, results, include_sweep=True)

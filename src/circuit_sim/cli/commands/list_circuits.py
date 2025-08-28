@@ -90,7 +90,9 @@ def list_circuits():
         table.add_row(circuit_id, name, status_display, sim_count, netlist_display)
 
     console.print(table)
-    console.print("\n💡 To simulate: [bold]circuit-sim simulate dc --circuit-id <ID>[/bold]")
+    console.print(
+        "\n💡 To simulate: [bold]circuit-sim simulate dc --circuit-id <ID>[/bold]"
+    )
 
 
 @click.command()

@@ -1,6 +1,5 @@
 """Tests for logic gate circuits."""
 
-
 from examples.digital.logic_gates import (
     LogicGateCircuit,
     create_truth_table,
@@ -84,7 +83,9 @@ class TestLogicSimulation:
 
     def test_propagation_delay(self):
         """Test gate propagation delay."""
-        circuit = LogicGateCircuit(gate_type="NOT", num_inputs=1, propagation_delay=10e-9)  # 10ns
+        circuit = LogicGateCircuit(
+            gate_type="NOT", num_inputs=1, propagation_delay=10e-9
+        )  # 10ns
 
         results = simulate_logic_gate(
             circuit, input_signals=[[0, 1]], duration=100e-9, timestep=1e-9

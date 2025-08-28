@@ -4,7 +4,6 @@ Tests for WebSocket real-time simulation updates.
 Tests WebSocket connection, message handling, and real-time progress updates.
 """
 
-
 import pytest
 from fastapi.testclient import TestClient
 
@@ -54,7 +53,7 @@ class TestWebSocketConnections:
         """Test WebSocket connection with invalid job ID format."""
         with pytest.raises(Exception):
             # Should raise connection error for invalid job ID
-            with client.websocket_connect("/ws/simulation/") as websocket:
+            with client.websocket_connect("/ws/simulation/"):
                 pass
 
     def test_websocket_simulation_progress_messages(self, client, sample_circuit_data):
@@ -64,9 +63,15 @@ class TestWebSocketConnections:
         circuit_id = create_response.json()["id"]
 
         # Start simulation
-        sim_request = {"type": "dc", "parameters": {"analysis": "operating_point"}, "priority": 5}
+        sim_request = {
+            "type": "dc",
+            "parameters": {"analysis": "operating_point"},
+            "priority": 5,
+        }
 
-        sim_response = client.post(f"/api/circuits/{circuit_id}/simulate", json=sim_request)
+        sim_response = client.post(
+            f"/api/circuits/{circuit_id}/simulate", json=sim_request
+        )
         job_id = sim_response.json()["job_id"]
 
         # Connect to WebSocket for this job
@@ -85,7 +90,11 @@ class TestWebSocketConnections:
 
         sim_response = client.post(
             f"/api/circuits/{circuit_id}/simulate",
-            json={"type": "transient", "parameters": {"stop_time": 0.001}, "priority": 5},
+            json={
+                "type": "transient",
+                "parameters": {"stop_time": 0.001},
+                "priority": 5,
+            },
         )
         job_id = sim_response.json()["job_id"]
 

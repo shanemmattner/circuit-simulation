@@ -57,7 +57,7 @@ class TestRealKiCadImport:
         # Just verify simulation completed without error
         # Node voltage checking is a separate issue from parser robustness
         assert results is not None, "Simulation should complete without error"
-        
+
         # Future improvement: check voltage at middle node
         # middle_voltage = results.voltage("DIVIDER_OUTPUT") or results.voltage("/DIVIDER_OUTPUT")
         # expected = 1.65  # (3.3V * 10k/(10k+10k) = 1.65V)

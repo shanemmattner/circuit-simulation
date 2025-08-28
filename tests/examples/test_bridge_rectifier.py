@@ -33,7 +33,10 @@ class TestBridgeRectifier:
     def test_with_filter_capacitor(self):
         """Test rectifier with smoothing capacitor."""
         circuit = BridgeRectifierCircuit(
-            v_ac_rms=12, frequency=60, load_resistance=100, filter_capacitor=1000e-6  # 1000µF
+            v_ac_rms=12,
+            frequency=60,
+            load_resistance=100,
+            filter_capacitor=1000e-6,  # 1000µF
         )
 
         assert circuit.filter_capacitor == 1000e-6

@@ -69,7 +69,7 @@ class TestPySpiceBuilder:
             circuit.add_resistor("R1", 1, 0, "1k")
 
             # Build PySpice circuit
-            result = builder.build_circuit(circuit)
+            builder.build_circuit(circuit)
 
             # Verify PySpice circuit was created
             mock_pyspice.Spice.Netlist.Circuit.assert_called_once_with("Test")
@@ -118,7 +118,7 @@ class TestPySpiceBuilder:
             )
 
             # Build PySpice circuit
-            result = builder.build_circuit(circuit)
+            builder.build_circuit(circuit)
 
             pyspice_instance = mock_pyspice.Spice.Netlist.Circuit.return_value
 
@@ -166,7 +166,7 @@ class TestPySpiceBuilder:
             circuit.add_capacitor("C", 2, 0, "100n")
 
             # Build PySpice circuit
-            result = builder.build_circuit(circuit)
+            builder.build_circuit(circuit)
 
             pyspice_instance = mock_pyspice.Spice.Netlist.Circuit.return_value
 
@@ -213,7 +213,7 @@ class TestPySpiceBuilder:
             circuit.add_resistor("R1", 2, 0, "100")
 
             # Build PySpice circuit
-            result = builder.build_circuit(circuit)
+            builder.build_circuit(circuit)
 
             pyspice_instance = mock_pyspice.Spice.Netlist.Circuit.return_value
 
@@ -259,7 +259,7 @@ class TestPySpiceBuilder:
             circuit.add_resistor("R_load", 1, 0, "1k")
 
             # Build PySpice circuit
-            result = builder.build_circuit(circuit)
+            builder.build_circuit(circuit)
 
             pyspice_instance = mock_pyspice.Spice.Netlist.Circuit.return_value
 
@@ -307,7 +307,7 @@ class TestPySpiceBuilder:
             circuit.add_resistor("R3", 1, "GND", "3k")  # uppercase "GND"
 
             # Build PySpice circuit
-            result = builder.build_circuit(circuit)
+            builder.build_circuit(circuit)
 
             pyspice_instance = mock_pyspice.Spice.Netlist.Circuit.return_value
 

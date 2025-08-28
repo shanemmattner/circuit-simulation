@@ -157,7 +157,9 @@ def _simulate_dc(circuit: RCFilterCircuit) -> Dict[str, Any]:
     }
 
 
-def calculate_frequency_response(circuit: RCFilterCircuit, frequencies) -> Dict[str, Any]:
+def calculate_frequency_response(
+    circuit: RCFilterCircuit, frequencies
+) -> Dict[str, Any]:
     """Calculate analytical frequency response.
 
     Args:
@@ -217,14 +219,18 @@ def calculate_step_response(
         for i in range(1, len(time)):
             dt = time[i] - time[i - 1]
             # Exponential charging/discharging
-            output[i] = output[i - 1] + (input_signal[i] - output[i - 1]) * (1 - np.exp(-dt / tau))
+            output[i] = output[i - 1] + (input_signal[i] - output[i - 1]) * (
+                1 - np.exp(-dt / tau)
+            )
 
     else:  # highpass
         # Highpass step response: Vout = Vin * exp(-t/tau)
         for i in range(1, len(time)):
             dt = time[i] - time[i - 1]
             # Derivative of input plus exponential decay
-            input_derivative = (input_signal[i] - input_signal[i - 1]) / dt if dt > 0 else 0
+            input_derivative = (
+                (input_signal[i] - input_signal[i - 1]) / dt if dt > 0 else 0
+            )
             output[i] = output[i - 1] * np.exp(-dt / tau) + input_derivative * tau
 
     return output

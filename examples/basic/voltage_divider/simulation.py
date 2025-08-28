@@ -110,7 +110,10 @@ def _simulate_sweep(
 
 
 def _simulate_transient(
-    circuit: VoltageDividerCircuit, duration: float = 1e-3, timestep: float = 1e-6, **kwargs
+    circuit: VoltageDividerCircuit,
+    duration: float = 1e-3,
+    timestep: float = 1e-6,
+    **kwargs,
 ) -> Dict[str, Any]:
     """Run transient analysis (step response).
 

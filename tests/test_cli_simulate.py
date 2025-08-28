@@ -57,7 +57,7 @@ C1 2 0 1u
             original_cwd = os.getcwd()
             try:
                 os.chdir(temp_dir)
-                circuit_id = self.setup_test_circuit(temp_dir)
+                self.setup_test_circuit(temp_dir)
 
                 runner = CliRunner()
                 result = runner.invoke(cli, ["simulate", "--help"])
@@ -94,7 +94,9 @@ C1 2 0 1u
                 os.chdir(temp_dir)
 
                 runner = CliRunner()
-                result = runner.invoke(cli, ["simulate", "dc", "--circuit-id", "nonexistent"])
+                result = runner.invoke(
+                    cli, ["simulate", "dc", "--circuit-id", "nonexistent"]
+                )
 
                 # Should show error about circuit not found
                 assert result.exit_code == 1  # User error
@@ -112,7 +114,9 @@ C1 2 0 1u
                 circuit_id = self.setup_test_circuit(temp_dir)
 
                 runner = CliRunner()
-                result = runner.invoke(cli, ["simulate", "dc", "--circuit-id", circuit_id])
+                result = runner.invoke(
+                    cli, ["simulate", "dc", "--circuit-id", circuit_id]
+                )
 
                 # Should complete successfully (may skip actual simulation in test mode)
                 assert result.exit_code in [0, 1]  # Success or graceful skip

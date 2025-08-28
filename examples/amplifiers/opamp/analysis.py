@@ -46,7 +46,9 @@ def analyze_amplifier(
 
     # Power consumption
     analysis["supply_current"] = _estimate_supply_current(circuit)
-    analysis["power_dissipation"] = analysis["supply_current"] * (circuit.vcc - circuit.vee)
+    analysis["power_dissipation"] = analysis["supply_current"] * (
+        circuit.vcc - circuit.vee
+    )
 
     # Noise analysis
     if include_noise:

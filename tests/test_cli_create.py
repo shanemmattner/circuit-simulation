@@ -46,7 +46,14 @@ C1 2 0 1u
 
                 runner = CliRunner()
                 result = runner.invoke(
-                    cli, ["create", "--netlist", str(netlist_file), "--name", "Test Circuit"]
+                    cli,
+                    [
+                        "create",
+                        "--netlist",
+                        str(netlist_file),
+                        "--name",
+                        "Test Circuit",
+                    ],
                 )
 
                 assert result.exit_code == 0
@@ -64,7 +71,14 @@ C1 2 0 1u
 
                 runner = CliRunner()
                 result = runner.invoke(
-                    cli, ["create", "--netlist", "nonexistent.cir", "--name", "Test Circuit"]
+                    cli,
+                    [
+                        "create",
+                        "--netlist",
+                        "nonexistent.cir",
+                        "--name",
+                        "Test Circuit",
+                    ],
                 )
 
                 assert result.exit_code == 2  # Click's path validation error
@@ -86,7 +100,14 @@ C1 2 0 1u
 
                 runner = CliRunner()
                 result = runner.invoke(
-                    cli, ["create", "--netlist", str(invalid_netlist), "--name", "Test Circuit"]
+                    cli,
+                    [
+                        "create",
+                        "--netlist",
+                        str(invalid_netlist),
+                        "--name",
+                        "Test Circuit",
+                    ],
                 )
 
                 # Should handle gracefully, might warn but not crash

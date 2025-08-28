@@ -11,6 +11,6 @@ from .simulator import SimulationEngine
 
 __all__ = [
     "Circuit",
-    "SimulationResults", 
+    "SimulationResults",
     "SimulationEngine",
 ]

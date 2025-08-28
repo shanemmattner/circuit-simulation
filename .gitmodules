@@ -10,3 +10,9 @@
 [submodule "submodules/circuit-synth"]
 	path = submodules/circuit-synth
 	url = https://github.com/circuit-synth/circuit-synth
+[submodule "research/12-factor-agents"]
+	path = research/12-factor-agents
+	url = https://github.com/humanlayer/12-factor-agents
+[submodule "research/humanlayer"]
+	path = research/humanlayer
+	url = https://github.com/humanlayer/humanlayer

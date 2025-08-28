@@ -71,7 +71,9 @@ class InvalidNetlistError(UserError):
         message = f"Invalid netlist file: {filepath}"
         if line_number:
             message += f" (line {line_number})"
-        super().__init__(message, suggestion="Check the netlist syntax and component definitions")
+        super().__init__(
+            message, suggestion="Check the netlist syntax and component definitions"
+        )
 
 
 class ConvergenceError(SimulationError):

@@ -80,7 +80,10 @@ def analyze_resonance(circuit: RLCResonanceCircuit) -> Dict[str, Any]:
 
 
 def design_bandpass_filter(
-    center_frequency: float, bandwidth: float, impedance: float = 50, topology: str = "series"
+    center_frequency: float,
+    bandwidth: float,
+    impedance: float = 50,
+    topology: str = "series",
 ) -> RLCResonanceCircuit:
     """Design an RLC bandpass filter.
 
@@ -122,7 +125,9 @@ def design_bandpass_filter(
     actual_q = circuit.q_factor
 
     print("Designed Bandpass Filter:")
-    print(f"  Target: f0={center_frequency:.1f}Hz, BW={bandwidth:.1f}Hz, Q={q_factor:.2f}")
+    print(
+        f"  Target: f0={center_frequency:.1f}Hz, BW={bandwidth:.1f}Hz, Q={q_factor:.2f}"
+    )
     print(f"  Actual: f0={actual_f0:.1f}Hz, BW={actual_bw:.1f}Hz, Q={actual_q:.2f}")
     print(f"  Components: R={r:.2f}Ω, L={l*1e3:.3f}mH, C={c*1e9:.3f}nF")
 
@@ -218,7 +223,9 @@ def analyze_stability(circuit: RLCResonanceCircuit) -> Dict[str, Any]:
         "natural_frequency": omega_n,
         "phase_margin_degrees": phase_margin,
         "gain_margin_db": gain_margin_db,
-        "time_to_half_amplitude": np.log(2) / (zeta * omega_n) if zeta > 0 else float("inf"),
+        "time_to_half_amplitude": (
+            np.log(2) / (zeta * omega_n) if zeta > 0 else float("inf")
+        ),
         "oscillation_frequency": (
             circuit.damped_frequency if circuit.damping_type == "underdamped" else 0
         ),

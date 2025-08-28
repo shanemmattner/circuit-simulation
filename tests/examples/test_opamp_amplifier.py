@@ -34,7 +34,9 @@ class TestOpAmpCircuit:
 
     def test_non_inverting_amplifier_creation(self):
         """Test creating a non-inverting amplifier."""
-        circuit = OpAmpCircuit(config="non_inverting", r_in=10000, r_feedback=90000, model="TL072")
+        circuit = OpAmpCircuit(
+            config="non_inverting", r_in=10000, r_feedback=90000, model="TL072"
+        )
 
         assert circuit.config == "non_inverting"
 
@@ -89,7 +91,10 @@ class TestOpAmpCircuit:
 
         # Verify model is loaded
         assert circuit.spice_model is not None
-        assert "LM358" in circuit.spice_model.upper() or ".subckt" in circuit.spice_model.lower()
+        assert (
+            "LM358" in circuit.spice_model.upper()
+            or ".subckt" in circuit.spice_model.lower()
+        )
 
 
 class TestOpAmpSimulation:
@@ -116,9 +121,13 @@ class TestOpAmpSimulation:
 
     def test_ac_frequency_response(self):
         """Test AC frequency response."""
-        circuit = OpAmpCircuit(config="non_inverting", r_in=10000, r_feedback=90000, model="ideal")
+        circuit = OpAmpCircuit(
+            config="non_inverting", r_in=10000, r_feedback=90000, model="ideal"
+        )
 
-        results = simulate_opamp(circuit, analysis_type="ac", start_freq=1, stop_freq=1e6)
+        results = simulate_opamp(
+            circuit, analysis_type="ac", start_freq=1, stop_freq=1e6
+        )
 
         assert "frequency" in results
         assert "gain_db" in results
@@ -149,7 +158,9 @@ class TestOpAmpSimulation:
 
     def test_slew_rate_limitation(self):
         """Test slew rate limiting in transient response."""
-        circuit = OpAmpCircuit(config="buffer", model="LM358", slew_rate=0.5e6)  # 0.5V/µs
+        circuit = OpAmpCircuit(
+            config="buffer", model="LM358", slew_rate=0.5e6
+        )  # 0.5V/µs
 
         results = simulate_opamp(
             circuit,
@@ -178,7 +189,11 @@ class TestAmplifierAnalysis:
     def test_gain_bandwidth_product(self):
         """Test gain-bandwidth product calculation."""
         circuit = OpAmpCircuit(
-            config="inverting", r_in=1000, r_feedback=10000, model="TL072", gbw=3e6  # 3MHz GBW
+            config="inverting",
+            r_in=1000,
+            r_feedback=10000,
+            model="TL072",
+            gbw=3e6,  # 3MHz GBW
         )
 
         analysis = calculate_gain_bandwidth(circuit)
@@ -189,7 +204,9 @@ class TestAmplifierAnalysis:
 
         # Bandwidth = GBW / |Gain|
         expected_bw = 3e6 / 10  # Gain magnitude is 10 for inverting with -10 gain
-        assert abs(analysis["bandwidth"] - expected_bw) < expected_bw * 0.2  # Allow 20% tolerance
+        assert (
+            abs(analysis["bandwidth"] - expected_bw) < expected_bw * 0.2
+        )  # Allow 20% tolerance
 
     def test_input_output_impedance(self):
         """Test input/output impedance calculation."""
@@ -209,7 +226,10 @@ class TestAmplifierAnalysis:
     def test_noise_analysis(self):
         """Test noise performance analysis."""
         circuit = OpAmpCircuit(
-            config="inverting", r_in=1000, r_feedback=10000, model="LF351"  # Low noise op-amp
+            config="inverting",
+            r_in=1000,
+            r_feedback=10000,
+            model="LF351",  # Low noise op-amp
         )
 
         analysis = analyze_amplifier(circuit, include_noise=True)
@@ -238,7 +258,7 @@ class TestAmplifierAnalysis:
         assert "is_stable" in analysis
 
         # Should be stable with compensation
-        assert analysis["is_stable"] == True
+        assert analysis["is_stable"]
         assert analysis["phase_margin"] > 45  # Degrees
 
 
@@ -247,7 +267,9 @@ class TestAmplifierReport:
 
     def test_report_generation(self):
         """Test generating amplifier analysis report."""
-        circuit = OpAmpCircuit(config="non_inverting", r_in=10000, r_feedback=90000, model="TL072")
+        circuit = OpAmpCircuit(
+            config="non_inverting", r_in=10000, r_feedback=90000, model="TL072"
+        )
 
         results = simulate_opamp(circuit, analysis_type="ac")
         analysis = analyze_amplifier(circuit)

@@ -57,7 +57,11 @@ class TestSimulationJobs:
         circuit_id = create_response.json()["id"]
 
         # Start simulation
-        sim_request = {"type": "dc", "parameters": {"analysis": "operating_point"}, "priority": 5}
+        sim_request = {
+            "type": "dc",
+            "parameters": {"analysis": "operating_point"},
+            "priority": 5,
+        }
 
         response = client.post(f"/api/circuits/{circuit_id}/simulate", json=sim_request)
 
@@ -102,7 +106,9 @@ class TestSimulationJobs:
         circuit_id = create_response.json()["id"]
 
         sim_request = {"type": "dc", "parameters": {}}
-        sim_response = client.post(f"/api/circuits/{circuit_id}/simulate", json=sim_request)
+        sim_response = client.post(
+            f"/api/circuits/{circuit_id}/simulate", json=sim_request
+        )
         job_id = sim_response.json()["job_id"]
 
         # Get status
@@ -126,8 +132,13 @@ class TestSimulationJobs:
         create_response = client.post("/api/circuits", json=sample_circuit_data)
         circuit_id = create_response.json()["id"]
 
-        sim_request = {"type": "transient", "parameters": {"stop_time": 10.0}}  # Long simulation
-        sim_response = client.post(f"/api/circuits/{circuit_id}/simulate", json=sim_request)
+        sim_request = {
+            "type": "transient",
+            "parameters": {"stop_time": 10.0},
+        }  # Long simulation
+        sim_response = client.post(
+            f"/api/circuits/{circuit_id}/simulate", json=sim_request
+        )
         job_id = sim_response.json()["job_id"]
 
         # Cancel simulation

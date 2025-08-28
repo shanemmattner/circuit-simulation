@@ -71,7 +71,12 @@ def _simulate_ac(
         gains.append(abs(h_total))
         phases.append(np.degrees(np.angle(h_total)))
 
-    return {"frequency": frequencies.tolist(), "gain": gains, "phase": phases, "midband_gain": av}
+    return {
+        "frequency": frequencies.tolist(),
+        "gain": gains,
+        "phase": phases,
+        "midband_gain": av,
+    }
 
 
 def _simulate_transient(

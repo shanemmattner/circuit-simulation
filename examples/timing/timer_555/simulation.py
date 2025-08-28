@@ -136,7 +136,7 @@ def _simulate_monostable(
 
     # Get threshold
     thresholds = circuit.get_threshold_voltages()
-    v_threshold = thresholds["upper_threshold"]
+    thresholds["upper_threshold"]
 
     # Simulate
     triggered = False

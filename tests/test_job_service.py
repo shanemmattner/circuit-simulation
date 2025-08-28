@@ -25,13 +25,13 @@ class TestJobService:
         # Mock Redis connection to fail
         with patch("redis.from_url") as mock_from_url:
             mock_redis = MagicMock()
-            mock_redis.ping.side_effect = Exception("Connection failed") 
+            mock_redis.ping.side_effect = Exception("Connection failed")
             mock_from_url.return_value = mock_redis
-            
+
             job_service = JobService()
 
             # Without Redis connection, should default to direct execution
-            assert job_service.use_celery == False
+            assert not job_service.use_celery
 
     def test_submit_direct_job(self):
         """Test direct job submission (fallback mode)."""
@@ -57,14 +57,14 @@ class TestJobService:
         # Mock Redis connection to fail
         with patch("redis.from_url") as mock_from_url:
             mock_redis = MagicMock()
-            mock_redis.ping.side_effect = Exception("Connection failed") 
+            mock_redis.ping.side_effect = Exception("Connection failed")
             mock_from_url.return_value = mock_redis
-            
+
             # Test that job service can be created and defaults to direct mode
             job_service = JobService()
 
             # Without proper Redis/Celery setup, should use direct mode
-            assert job_service.use_celery == False
+            assert not job_service.use_celery
 
     def test_get_job_status_without_celery(self):
         """Test job status retrieval when Celery unavailable."""
@@ -82,31 +82,33 @@ class TestJobService:
 
         # Should return False when Celery not available
         cancelled = job_service.cancel_job("test-job-123")
-        assert cancelled == False
+        assert not cancelled
 
     def test_job_service_redis_connection_error(self):
         """Test job service handles Redis connection errors."""
         # Mock Redis connection failure
         with patch("redis.from_url") as mock_from_url:
             mock_redis = MagicMock()
-            mock_redis.ping.side_effect = Exception("Redis connection failed") 
+            mock_redis.ping.side_effect = Exception("Redis connection failed")
             mock_from_url.return_value = mock_redis
-            
+
             # Without Redis available, should fall back to direct execution
             job_service = JobService()
 
             # Should fall back to direct execution
-            assert job_service.use_celery == False
+            assert not job_service.use_celery
 
     def test_job_service_logging(self):
         """Test that job service logs appropriately."""
         with patch("src.api.services.job_service.logger") as mock_logger:
             with patch("redis.from_url") as mock_from_url:
                 mock_redis = MagicMock()
-                mock_redis.ping.side_effect = Exception("Connection failed") 
+                mock_redis.ping.side_effect = Exception("Connection failed")
                 mock_from_url.return_value = mock_redis
-                
-                job_service = JobService()
+
+                JobService()
 
                 # Should have logged the fallback to direct execution
-                mock_logger.info.assert_called_with("Celery not available, using direct execution")
+                mock_logger.info.assert_called_with(
+                    "Celery not available, using direct execution"
+                )

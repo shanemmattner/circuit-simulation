@@ -12,6 +12,7 @@ from ..circuit import Circuit
 
 class Severity(Enum):
     """Severity levels for validation issues."""
+
     INFO = "info"
     WARNING = "warning"
     ERROR = "error"
@@ -46,10 +47,16 @@ class ValidationResult:
         """Organize issues by severity."""
         # Separate issues by severity if not already done
         if not self.warnings and not self.info:
-            self.warnings = [issue for issue in self.issues if issue.severity == Severity.WARNING]
-            self.info = [issue for issue in self.issues if issue.severity == Severity.INFO]
+            self.warnings = [
+                issue for issue in self.issues if issue.severity == Severity.WARNING
+            ]
+            self.info = [
+                issue for issue in self.issues if issue.severity == Severity.INFO
+            ]
             # Keep only errors in issues
-            self.issues = [issue for issue in self.issues if issue.severity == Severity.ERROR]
+            self.issues = [
+                issue for issue in self.issues if issue.severity == Severity.ERROR
+            ]
 
     @property
     def has_errors(self) -> bool:
@@ -73,7 +80,7 @@ class ValidationRule(ABC):
     def __init__(self, name: Optional[str] = None):
         """
         Initialize validation rule.
-        
+
         Args:
             name: Optional custom name for the rule
         """
@@ -83,10 +90,10 @@ class ValidationRule(ABC):
     def validate(self, circuit: Circuit) -> ValidationResult:
         """
         Validate a circuit against this rule.
-        
+
         Args:
             circuit: Circuit to validate
-            
+
         Returns:
             ValidationResult with any issues found
         """
@@ -96,16 +103,16 @@ class ValidationRule(ABC):
         self,
         is_valid: bool = True,
         issues: Optional[List[ValidationIssue]] = None,
-        metadata: Optional[dict] = None
+        metadata: Optional[dict] = None,
     ) -> ValidationResult:
         """
         Helper to create validation result.
-        
+
         Args:
             is_valid: Whether validation passed
             issues: List of issues found
             metadata: Optional metadata
-            
+
         Returns:
             ValidationResult instance
         """
@@ -124,7 +131,7 @@ class ValidationRule(ABC):
             warnings=[],
             info=[],
             suggestions=suggestions,
-            metadata=metadata
+            metadata=metadata,
         )
 
     def _create_issue(
@@ -139,7 +146,7 @@ class ValidationRule(ABC):
     ) -> ValidationIssue:
         """
         Helper to create validation issue.
-        
+
         Args:
             issue_type: Type of issue (e.g., "short_circuit")
             severity: Severity level
@@ -148,7 +155,7 @@ class ValidationRule(ABC):
             nodes: Optional list of node numbers involved
             suggestion: Optional suggestion to fix the issue
             **metadata: Additional metadata
-            
+
         Returns:
             ValidationIssue instance
         """
@@ -159,5 +166,5 @@ class ValidationRule(ABC):
             components=components,
             nodes=nodes,
             suggestion=suggestion,
-            metadata=metadata if metadata else None
+            metadata=metadata if metadata else None,
         )

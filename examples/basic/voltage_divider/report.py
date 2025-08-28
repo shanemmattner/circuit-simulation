@@ -99,7 +99,9 @@ def generate_report(
     return report
 
 
-def _create_dc_analysis_plot(circuit: VoltageDividerCircuit, results: Dict[str, Any]) -> go.Figure:
+def _create_dc_analysis_plot(
+    circuit: VoltageDividerCircuit, results: Dict[str, Any]
+) -> go.Figure:
     """Create DC analysis visualization.
 
     Args:
@@ -140,7 +142,9 @@ def _create_dc_analysis_plot(circuit: VoltageDividerCircuit, results: Dict[str, 
         currents.append(results["load_current"])
 
     fig.add_trace(
-        go.Bar(x=components_i, y=[c * 1000 for c in currents], name="Current (mA)"), row=1, col=2
+        go.Bar(x=components_i, y=[c * 1000 for c in currents], name="Current (mA)"),
+        row=1,
+        col=2,
     )
 
     # Circuit schematic (simplified representation)
@@ -172,7 +176,9 @@ def _create_dc_analysis_plot(circuit: VoltageDividerCircuit, results: Dict[str, 
         values = [power[k] * 1000 for k in labels]  # Convert to mW
 
         fig.add_trace(
-            go.Bar(x=labels, y=values, name="Power (mW)", marker_color="orange"), row=2, col=2
+            go.Bar(x=labels, y=values, name="Power (mW)", marker_color="orange"),
+            row=2,
+            col=2,
         )
 
     fig.update_layout(title="Voltage Divider DC Analysis", showlegend=False, height=800)

@@ -1,36 +1,36 @@
 """Plot styling and theming configuration."""
 
-from dataclasses import dataclass, field
-from typing import Tuple, Optional, Dict, Any
+from dataclasses import dataclass
+from typing import Tuple, Dict, Any
 
 
 @dataclass
 class PlotStyle:
     """Configuration for plot styling and theming."""
-    
+
     # Figure settings
     figure_size: Tuple[float, float] = (10, 8)
     dpi: int = 100
-    
+
     # Grid settings
     grid_alpha: float = 0.3
     grid_style: str = "-"
-    
+
     # Line settings
     line_width: float = 2.0
     marker_size: float = 8.0
-    
+
     # Font settings
     font_size: int = 12
     font_family: str = "sans-serif"
-    
+
     # Theme
     theme: str = "default"
-    
+
     # Interactive settings (for Plotly)
     hover_data: bool = False
     enable_zoom: bool = False
-    
+
     @classmethod
     def professional(cls) -> "PlotStyle":
         """Create professional publication-quality style."""
@@ -42,9 +42,9 @@ class PlotStyle:
             line_width=2.5,
             font_size=14,
             font_family="serif",
-            theme="professional"
+            theme="professional",
         )
-    
+
     @classmethod
     def interactive(cls) -> "PlotStyle":
         """Create interactive style for Plotly plots."""
@@ -53,18 +53,14 @@ class PlotStyle:
             dpi=100,
             theme="plotly_white",
             hover_data=True,
-            enable_zoom=True
+            enable_zoom=True,
         )
-    
+
     @classmethod
     def dark(cls) -> "PlotStyle":
         """Create dark theme style."""
-        return cls(
-            theme="dark",
-            grid_alpha=0.2,
-            grid_style=":"
-        )
-    
+        return cls(theme="dark", grid_alpha=0.2, grid_style=":")
+
     def to_matplotlib_params(self) -> Dict[str, Any]:
         """Convert to matplotlib rcParams."""
         params = {
@@ -78,29 +74,31 @@ class PlotStyle:
             "font.size": self.font_size,
             "font.family": self.font_family,
         }
-        
+
         if self.theme == "dark":
-            params.update({
-                "axes.facecolor": "#1e1e1e",
-                "figure.facecolor": "#1e1e1e",
-                "axes.edgecolor": "white",
-                "text.color": "white",
-                "axes.labelcolor": "white",
-                "xtick.color": "white",
-                "ytick.color": "white",
-                "grid.color": "white"
-            })
-        
+            params.update(
+                {
+                    "axes.facecolor": "#1e1e1e",
+                    "figure.facecolor": "#1e1e1e",
+                    "axes.edgecolor": "white",
+                    "text.color": "white",
+                    "axes.labelcolor": "white",
+                    "xtick.color": "white",
+                    "ytick.color": "white",
+                    "grid.color": "white",
+                }
+            )
+
         return params
-    
+
     def to_plotly_params(self) -> Dict[str, Any]:
         """Convert to Plotly template parameters."""
         template = self.theme if self.theme.startswith("plotly") else "plotly_white"
-        
+
         return {
             "template": template,
             "width": self.figure_size[0] * 100,
             "height": self.figure_size[1] * 100,
             "hovermode": "closest" if self.hover_data else False,
-            "dragmode": "zoom" if self.enable_zoom else "pan"
+            "dragmode": "zoom" if self.enable_zoom else "pan",
         }

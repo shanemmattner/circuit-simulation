@@ -12,7 +12,7 @@ __all__ = [
     "ShortCircuitDetector",
     "BasicCircuitValidator",
     "PowerAnalyzer",
-    "PowerAnalysisResult", 
+    "PowerAnalysisResult",
     "ComponentPowerInfo",
     "CircuitValidator",
 ]

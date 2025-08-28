@@ -7,7 +7,11 @@ class LogicGateCircuit:
     """Digital logic gate circuit."""
 
     def __init__(
-        self, gate_type: str, num_inputs: int = 2, vcc: float = 5.0, propagation_delay: float = 1e-9
+        self,
+        gate_type: str,
+        num_inputs: int = 2,
+        vcc: float = 5.0,
+        propagation_delay: float = 1e-9,
     ):
         """Initialize logic gate.
 

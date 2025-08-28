@@ -8,7 +8,9 @@ from scipy import signal
 
 
 def step_response(
-    transfer_function, time: Optional[np.ndarray] = None, settle_time: Optional[float] = None
+    transfer_function,
+    time: Optional[np.ndarray] = None,
+    settle_time: Optional[float] = None,
 ) -> Tuple[np.ndarray, np.ndarray]:
     """
     Calculate unit step response of transfer function.

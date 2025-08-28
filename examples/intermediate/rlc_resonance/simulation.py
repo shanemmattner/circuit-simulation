@@ -125,7 +125,9 @@ def _simulate_transient(
         input_signal[0] = circuit.vin / timestep  # Unit impulse
     elif input_type == "sine":
         # Sine at resonant frequency
-        input_signal = circuit.vin * np.sin(2 * np.pi * circuit.resonant_frequency * time)
+        input_signal = circuit.vin * np.sin(
+            2 * np.pi * circuit.resonant_frequency * time
+        )
     else:
         raise ValueError(f"Unknown input type: {input_type}")
 
@@ -241,7 +243,10 @@ def calculate_step_response(
                 voltage[i] = input_signal[i] * (
                     1
                     - np.exp(-zeta * omega_n * t)
-                    * (np.cos(omega_d * t) + (zeta * omega_n / omega_d) * np.sin(omega_d * t))
+                    * (
+                        np.cos(omega_d * t)
+                        + (zeta * omega_n / omega_d) * np.sin(omega_d * t)
+                    )
                 )
                 # Current through circuit
                 current[i] = (
@@ -251,7 +256,9 @@ def calculate_step_response(
                 )
             else:  # parallel
                 # Different response for parallel
-                voltage[i] = input_signal[i] * np.exp(-zeta * omega_n * t) * np.cos(omega_d * t)
+                voltage[i] = (
+                    input_signal[i] * np.exp(-zeta * omega_n * t) * np.cos(omega_d * t)
+                )
                 current[i] = (input_signal[i] / circuit.r) * (
                     1 - np.exp(-zeta * omega_n * t) * np.cos(omega_d * t)
                 )
@@ -261,8 +268,12 @@ def calculate_step_response(
         for i in range(1, len(time)):
             t = time[i]
             if circuit.topology == "series":
-                voltage[i] = input_signal[i] * (1 - np.exp(-omega_n * t) * (1 + omega_n * t))
-                current[i] = (input_signal[i] / circuit.r) * omega_n * t * np.exp(-omega_n * t)
+                voltage[i] = input_signal[i] * (
+                    1 - np.exp(-omega_n * t) * (1 + omega_n * t)
+                )
+                current[i] = (
+                    (input_signal[i] / circuit.r) * omega_n * t * np.exp(-omega_n * t)
+                )
             else:
                 voltage[i] = input_signal[i] * np.exp(-omega_n * t) * (1 + omega_n * t)
                 current[i] = (input_signal[i] / circuit.r) * (
@@ -290,7 +301,9 @@ def calculate_step_response(
                     ((alpha + beta) / (2 * beta)) * np.exp(-(alpha - beta) * t)
                     - ((alpha - beta) / (2 * beta)) * np.exp(-(alpha + beta) * t)
                 )
-                current[i] = (input_signal[i] / circuit.r) * (1 - voltage[i] / input_signal[i])
+                current[i] = (input_signal[i] / circuit.r) * (
+                    1 - voltage[i] / input_signal[i]
+                )
 
     return voltage, current
 

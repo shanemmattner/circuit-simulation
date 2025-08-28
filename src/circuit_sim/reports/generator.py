@@ -88,7 +88,9 @@ class ReportGenerator:
 
         # Determine output path
         if output_path is None:
-            output_path = self._generate_output_path(circuit.name, report_type, output_format)
+            output_path = self._generate_output_path(
+                circuit.name, report_type, output_format
+            )
 
         # Generate report based on format
         if output_format == "html":
@@ -112,7 +114,9 @@ class ReportGenerator:
         # Circuit metadata
         metadata = {
             "circuit_name": circuit.name,
-            "description": kwargs.get("description", f"Circuit analysis report for {circuit.name}"),
+            "description": kwargs.get(
+                "description", f"Circuit analysis report for {circuit.name}"
+            ),
             "component_count": len(circuit.components),
             "node_count": len(circuit.nodes),
             "analysis_type": results.analysis_type,
@@ -181,7 +185,9 @@ class ReportGenerator:
             "component_types": component_types,
             "total_components": len(circuit.components),
             "total_nodes": len(circuit.nodes),
-            "nodes_list": sorted([n for n in circuit.nodes if n != 0]),  # Exclude ground
+            "nodes_list": sorted(
+                [n for n in circuit.nodes if n != 0]
+            ),  # Exclude ground
         }
 
     def _get_component_value(self, component: Dict[str, Any]) -> str:
@@ -272,7 +278,9 @@ class ReportGenerator:
         return {
             "text": summary_text,
             "key_findings": self._extract_key_findings(results, metrics),
-            "recommendations": self._generate_recommendations(results, metrics, circuit),
+            "recommendations": self._generate_recommendations(
+                results, metrics, circuit
+            ),
         }
 
     def _create_summary_text(
@@ -313,11 +321,15 @@ class ReportGenerator:
             if "rise_time" in metrics:
                 findings.append(f"Rise time: {format_value(metrics['rise_time'], 's')}")
             if "settling_time" in metrics:
-                findings.append(f"Settling time: {format_value(metrics['settling_time'], 's')}")
+                findings.append(
+                    f"Settling time: {format_value(metrics['settling_time'], 's')}"
+                )
 
         elif results.analysis_type == "ac" and metrics:
             if "bandwidth" in metrics:
-                findings.append(f"Bandwidth: {format_value(metrics['bandwidth'], 'Hz')}")
+                findings.append(
+                    f"Bandwidth: {format_value(metrics['bandwidth'], 'Hz')}"
+                )
             if "gain" in metrics:
                 findings.append(f"Maximum gain: {metrics['gain']:.2f} dB")
 
@@ -334,14 +346,20 @@ class ReportGenerator:
 
         # Generic recommendations based on circuit complexity
         if len(circuit.components) > 20:
-            recommendations.append("Consider circuit optimization to reduce component count.")
+            recommendations.append(
+                "Consider circuit optimization to reduce component count."
+            )
 
         if results.analysis_type == "transient":
-            recommendations.append("Verify transient response meets timing requirements.")
+            recommendations.append(
+                "Verify transient response meets timing requirements."
+            )
             recommendations.append("Consider adding damping if overshoot is excessive.")
 
         elif results.analysis_type == "ac":
-            recommendations.append("Validate frequency response against specifications.")
+            recommendations.append(
+                "Validate frequency response against specifications."
+            )
             recommendations.append("Check phase margin for stability requirements.")
 
         if not recommendations:
@@ -349,14 +367,18 @@ class ReportGenerator:
 
         return recommendations
 
-    def _generate_output_path(self, circuit_name: str, report_type: str, output_format: str) -> str:
+    def _generate_output_path(
+        self, circuit_name: str, report_type: str, output_format: str
+    ) -> str:
         """Generate default output file path."""
         # Create reports directory if it doesn't exist
         reports_dir = Path("reports")
         reports_dir.mkdir(exist_ok=True)
 
         # Clean circuit name for filename
-        safe_name = "".join(c for c in circuit_name if c.isalnum() or c in (" ", "-", "_")).strip()
+        safe_name = "".join(
+            c for c in circuit_name if c.isalnum() or c in (" ", "-", "_")
+        ).strip()
         safe_name = safe_name.replace(" ", "_")
 
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -364,7 +386,9 @@ class ReportGenerator:
 
         return str(reports_dir / filename)
 
-    def _generate_html(self, data: Dict[str, Any], report_type: str, output_path: str) -> str:
+    def _generate_html(
+        self, data: Dict[str, Any], report_type: str, output_path: str
+    ) -> str:
         """Generate HTML report."""
         from .builders.html_builder import HTMLBuilder
 

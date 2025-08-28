@@ -1,7 +1,7 @@
 ---
 name: commit
 description: Streamlined commit workflow with quality checks and cleanup
-tools: [Bash, Read, Write, Edit, Grep]
+tools: [Bash, Read, Write, Edit, Grep, Task]
 model: claude-sonnet-4-20250514
 ---
 
@@ -20,8 +20,9 @@ Streamlined commit workflow with quality checks and cleanup.
 1. **Clean and organize** - Move temp files, clean up repo
 2. **Quality checks** - Format, lint, type check, test  
 3. **Documentation** - Update README, CLAUDE.md if needed
-4. **Git workflow** - Stage changes, commit with proper message
-5. **Validation** - Verify MCP server and core functionality
+4. **Memory Bank Update** - Record decisions and progress via memory-bank-agent
+5. **Git workflow** - Stage changes, commit with proper message
+6. **Validation** - Verify MCP server and core functionality
 
 ```bash
 set -e  # Exit on any error
@@ -86,10 +87,35 @@ git log --oneline -1
 - ✅ MCP server functional
 - ✅ Documentation updated
 
+## Implementation Workflow
+
+When executing `/commit`, follow these steps:
+
+1. **Pre-commit Quality Checks** (run all bash commands)
+2. **Memory Bank Recording** (use Task tool with memory-bank-agent)
+3. **Git Commit** (stage and commit changes)
+4. **Final Validation** (verify functionality)
+
+### Memory Bank Integration
+
+After quality checks pass but BEFORE committing:
+
+```
+Use Task tool to invoke memory-bank-agent with:
+- Description: "Record commit progress and decisions"
+- Prompt: "Record the following commit and any important decisions made:
+  Commit: [COMMIT_MSG]
+  Files changed: [list key files]
+  Decisions made: [any architectural or implementation decisions]
+  Progress updates: [features completed, milestones reached]"
+- subagent_type: memory-bank-agent
+```
+
 ## Notes
 
 - Uses `uv run` for consistent macOS/Apple Silicon execution
+- **MANDATORY**: Uses memory-bank-agent to record progress before committing
 - Automatically moves validation scripts to proper directories
-- Updates memory-bank context files
+- Updates memory-bank context files via specialized agent
 - Follows conventional commit message format
 - Includes Claude Code attribution in commits

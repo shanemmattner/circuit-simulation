@@ -142,7 +142,9 @@ class TestReportGenerator:
                 content = f.read()
 
             assert "Transient Analysis" in content
-            assert "Rise Time" in content or "Settling Time" in content  # Should have metrics
+            assert (
+                "Rise Time" in content or "Settling Time" in content
+            )  # Should have metrics
 
     def test_generate_report_with_custom_description(self):
         """Test report generation with custom description."""
@@ -166,7 +168,10 @@ class TestReportGenerator:
     def test_generate_report_auto_path(self):
         """Test report generation with automatic path generation."""
         result_path = self.generator.generate_report(
-            circuit=self.circuit, results=self.dc_results, report_type="quick", output_format="html"
+            circuit=self.circuit,
+            results=self.dc_results,
+            report_type="quick",
+            output_format="html",
         )
 
         try:
@@ -187,19 +192,25 @@ class TestReportGenerator:
         """Test error handling for invalid report type."""
         with pytest.raises(ValueError, match="report_type must be one of"):
             self.generator.generate_report(
-                circuit=self.circuit, results=self.dc_results, report_type="invalid_type"
+                circuit=self.circuit,
+                results=self.dc_results,
+                report_type="invalid_type",
             )
 
     def test_invalid_output_format(self):
         """Test error handling for invalid output format."""
         with pytest.raises(ValueError, match="output_format must be one of"):
             self.generator.generate_report(
-                circuit=self.circuit, results=self.dc_results, output_format="invalid_format"
+                circuit=self.circuit,
+                results=self.dc_results,
+                output_format="invalid_format",
             )
 
     def test_prepare_report_data(self):
         """Test the internal _prepare_report_data method."""
-        report_data = self.generator._prepare_report_data(self.circuit, self.dc_results, "detailed")
+        report_data = self.generator._prepare_report_data(
+            self.circuit, self.dc_results, "detailed"
+        )
 
         # Check all expected keys are present
         expected_keys = [
@@ -287,7 +298,9 @@ class TestReportGenerator:
         # Mock metrics for testing
         mock_metrics = {"power_dissipation": 0.025, "efficiency": 0.85}
 
-        summary = self.generator._generate_summary(self.dc_results, mock_metrics, self.circuit)
+        summary = self.generator._generate_summary(
+            self.dc_results, mock_metrics, self.circuit
+        )
 
         assert "text" in summary
         assert "key_findings" in summary
@@ -321,7 +334,9 @@ class TestReportGenerator:
 
     def test_generate_output_path(self):
         """Test automatic output path generation."""
-        path = self.generator._generate_output_path("My Test Circuit", "detailed", "html")
+        path = self.generator._generate_output_path(
+            "My Test Circuit", "detailed", "html"
+        )
 
         assert path.endswith(".html")
         assert "My_Test_Circuit" in path or "My-Test-Circuit" in path

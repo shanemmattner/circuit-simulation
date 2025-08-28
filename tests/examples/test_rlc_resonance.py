@@ -107,7 +107,11 @@ class TestRLCSimulation:
         circuit = RLCResonanceCircuit(r=10, l=1e-3, c=1e-6)
 
         results = simulate_rlc_circuit(
-            circuit, analysis_type="ac", start_freq=100, stop_freq=100000, points_per_decade=20
+            circuit,
+            analysis_type="ac",
+            start_freq=100,
+            stop_freq=100000,
+            points_per_decade=20,
         )
 
         assert "frequency" in results
@@ -116,7 +120,9 @@ class TestRLCSimulation:
         assert "impedance" in results
 
         # Find peak response near resonance
-        f0_index = np.argmin(np.abs(np.array(results["frequency"]) - circuit.resonant_frequency))
+        f0_index = np.argmin(
+            np.abs(np.array(results["frequency"]) - circuit.resonant_frequency)
+        )
 
         # For series RLC, current is maximum at resonance
         # For parallel RLC, voltage is maximum at resonance
@@ -264,7 +270,11 @@ class TestResonancePlots:
 
         # Vary both frequency and a parameter (e.g., resistance)
         fig = generate_resonance_plots(
-            circuit, None, plot_type="3d_surface", vary_param="r", param_range=(1, 100, 10)
+            circuit,
+            None,
+            plot_type="3d_surface",
+            vary_param="r",
+            param_range=(1, 100, 10),
         )
 
         assert fig is not None
@@ -313,7 +323,10 @@ class TestRLCApplications:
         # Tank circuit with very HIGH parallel resistance for high Q
         # In parallel topology, high R means high Q
         tank = RLCResonanceCircuit(
-            r=100000, l=100e-6, c=1e-9, topology="parallel"  # Very high parallel resistance
+            r=100000,
+            l=100e-6,
+            c=1e-9,
+            topology="parallel",  # Very high parallel resistance
         )
 
         # Very high Q for oscillation

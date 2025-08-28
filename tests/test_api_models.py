@@ -8,7 +8,11 @@ import pytest
 from pydantic import ValidationError
 
 from src.api.models.circuit import CircuitCreate, ComponentInput
-from src.api.models.simulation import SimulationRequest, SimulationStatus, SimulationType
+from src.api.models.simulation import (
+    SimulationRequest,
+    SimulationStatus,
+    SimulationType,
+)
 
 
 class TestCircuitModels:
@@ -27,17 +31,29 @@ class TestCircuitModels:
         """Test invalid component type raises validation error."""
         with pytest.raises(ValidationError):
             ComponentInput(
-                type="invalid_type", name="R1", positive_node="1", negative_node="0", value="1k"
+                type="invalid_type",
+                name="R1",
+                positive_node="1",
+                negative_node="0",
+                value="1k",
             )
 
     def test_circuit_create_valid(self):
         """Test valid circuit creation request."""
         components = [
             ComponentInput(
-                type="voltage_source", name="V1", positive_node="1", negative_node="0", value="5V"
+                type="voltage_source",
+                name="V1",
+                positive_node="1",
+                negative_node="0",
+                value="5V",
             ),
             ComponentInput(
-                type="resistor", name="R1", positive_node="1", negative_node="0", value="1k"
+                type="resistor",
+                name="R1",
+                positive_node="1",
+                negative_node="0",
+                value="1k",
             ),
         ]
 
@@ -63,7 +79,9 @@ class TestSimulationModels:
     def test_simulation_request_valid(self):
         """Test valid simulation request creation."""
         request = SimulationRequest(
-            type=SimulationType.DC, parameters={"analysis": "operating_point"}, priority=5
+            type=SimulationType.DC,
+            parameters={"analysis": "operating_point"},
+            priority=5,
         )
 
         assert request.type == SimulationType.DC

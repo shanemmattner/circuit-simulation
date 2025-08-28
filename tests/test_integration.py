@@ -67,9 +67,15 @@ class TestEndToEndWorkflow:
         assert circuit["component_count"] == 3
 
         # 2. Start DC simulation
-        sim_request = {"type": "dc", "parameters": {"analysis": "operating_point"}, "priority": 8}
+        sim_request = {
+            "type": "dc",
+            "parameters": {"analysis": "operating_point"},
+            "priority": 8,
+        }
 
-        sim_response = client.post(f"/api/circuits/{circuit_id}/simulate", json=sim_request)
+        sim_response = client.post(
+            f"/api/circuits/{circuit_id}/simulate", json=sim_request
+        )
         assert sim_response.status_code == 202
 
         simulation = sim_response.json()
@@ -96,7 +102,9 @@ class TestEndToEndWorkflow:
             attempts += 1
 
         # 4. Verify simulation completed
-        assert final_status == "completed", f"Simulation failed with status: {final_status}"
+        assert (
+            final_status == "completed"
+        ), f"Simulation failed with status: {final_status}"
 
         # 5. Get simulation results
         results_response = client.get(f"/api/simulations/{job_id}/results")
@@ -138,7 +146,9 @@ class TestEndToEndWorkflow:
             "priority": 9,
         }
 
-        sim_response = client.post(f"/api/circuits/{circuit_id}/simulate", json=sim_request)
+        sim_response = client.post(
+            f"/api/circuits/{circuit_id}/simulate", json=sim_request
+        )
         assert sim_response.status_code == 202
 
         job_id = sim_response.json()["job_id"]
@@ -178,7 +188,9 @@ class TestEndToEndWorkflow:
         # Start simulation
         sim_request = {"type": "dc", "parameters": {}, "priority": 7}
 
-        sim_response = client.post(f"/api/circuits/{circuit_id}/simulate", json=sim_request)
+        sim_response = client.post(
+            f"/api/circuits/{circuit_id}/simulate", json=sim_request
+        )
         job_id = sim_response.json()["job_id"]
 
         # Test WebSocket connection
@@ -233,11 +245,15 @@ class TestEndToEndWorkflow:
         for i in range(3):
             sim_request = {
                 "type": "dc" if i % 2 == 0 else "transient",
-                "parameters": {"stop_time": 0.001, "step_time": 0.0001} if i % 2 == 1 else {},
+                "parameters": (
+                    {"stop_time": 0.001, "step_time": 0.0001} if i % 2 == 1 else {}
+                ),
                 "priority": 5 + i,
             }
 
-            sim_response = client.post(f"/api/circuits/{circuit_id}/simulate", json=sim_request)
+            sim_response = client.post(
+                f"/api/circuits/{circuit_id}/simulate", json=sim_request
+            )
             assert sim_response.status_code == 202
 
             job_ids.append(sim_response.json()["job_id"])
@@ -247,7 +263,9 @@ class TestEndToEndWorkflow:
         max_wait = 10.0  # 10 seconds total
         start_time = time.time()
 
-        while len(completed_jobs) < len(job_ids) and (time.time() - start_time) < max_wait:
+        while (
+            len(completed_jobs) < len(job_ids) and (time.time() - start_time) < max_wait
+        ):
             for job_id in job_ids:
                 if job_id not in completed_jobs:
                     status_response = client.get(f"/api/simulations/{job_id}")
@@ -259,7 +277,9 @@ class TestEndToEndWorkflow:
             time.sleep(0.3)
 
         # Verify all jobs completed
-        assert len(completed_jobs) == len(job_ids), "All concurrent simulations should complete"
+        assert len(completed_jobs) == len(
+            job_ids
+        ), "All concurrent simulations should complete"
 
         # Verify results are available for completed jobs
         for job_id in completed_jobs:
@@ -386,7 +406,9 @@ class TestPerformanceAndLimits:
         circuit_id = circuit["id"]
         sim_request = {"type": "dc", "parameters": {}, "priority": 10}
 
-        sim_response = client.post(f"/api/circuits/{circuit_id}/simulate", json=sim_request)
+        sim_response = client.post(
+            f"/api/circuits/{circuit_id}/simulate", json=sim_request
+        )
         assert sim_response.status_code == 202
 
     def test_pagination_functionality(self, client, complex_circuit_data):

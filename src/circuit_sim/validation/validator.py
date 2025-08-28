@@ -18,7 +18,7 @@ class CircuitValidator:
     def add_rule(self, rule: ValidationRule) -> None:
         """
         Add a validation rule.
-        
+
         Args:
             rule: ValidationRule instance to add
         """
@@ -27,10 +27,10 @@ class CircuitValidator:
     def remove_rule(self, rule_name: str) -> bool:
         """
         Remove a validation rule by name.
-        
+
         Args:
             rule_name: Name of rule to remove
-            
+
         Returns:
             True if rule was removed, False if not found
         """
@@ -38,14 +38,16 @@ class CircuitValidator:
         self.rules = [rule for rule in self.rules if rule.name != rule_name]
         return len(self.rules) < initial_count
 
-    def validate(self, circuit: Circuit, rule_names: Optional[List[str]] = None) -> Dict[str, ValidationResult]:
+    def validate(
+        self, circuit: Circuit, rule_names: Optional[List[str]] = None
+    ) -> Dict[str, ValidationResult]:
         """
         Validate circuit against all or specified rules.
-        
+
         Args:
             circuit: Circuit to validate
             rule_names: Optional list of specific rule names to run
-            
+
         Returns:
             Dictionary mapping rule names to their results
         """
@@ -62,11 +64,12 @@ class CircuitValidator:
             except Exception as e:
                 # Create error result for failed validation
                 from .base import Severity, ValidationIssue
+
                 error_issue = ValidationIssue(
                     type="validation_error",
                     severity=Severity.ERROR,
                     message=f"Validation rule '{rule.name}' failed: {str(e)}",
-                    components=[]
+                    components=[],
                 )
                 results[rule.name] = ValidationResult(
                     rule_name=rule.name,
@@ -74,19 +77,21 @@ class CircuitValidator:
                     issues=[error_issue],
                     warnings=[],
                     info=[],
-                    suggestions=[]
+                    suggestions=[],
                 )
 
         return results
 
-    def is_valid(self, circuit: Circuit, rule_names: Optional[List[str]] = None) -> bool:
+    def is_valid(
+        self, circuit: Circuit, rule_names: Optional[List[str]] = None
+    ) -> bool:
         """
         Check if circuit passes all validation rules.
-        
+
         Args:
             circuit: Circuit to validate
             rule_names: Optional list of specific rule names to check
-            
+
         Returns:
             True if all rules pass, False otherwise
         """
@@ -96,10 +101,10 @@ class CircuitValidator:
     def get_summary(self, results: Dict[str, ValidationResult]) -> Dict[str, int]:
         """
         Get summary statistics from validation results.
-        
+
         Args:
             results: Results from validate() method
-            
+
         Returns:
             Dictionary with summary statistics
         """
@@ -115,5 +120,5 @@ class CircuitValidator:
             "total_errors": total_errors,
             "total_warnings": total_warnings,
             "total_info": total_info,
-            "overall_valid": total_errors == 0
+            "overall_valid": total_errors == 0,
         }

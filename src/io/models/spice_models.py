@@ -43,7 +43,9 @@ class ModelLibrary:
         """List all models, optionally filtered by type."""
         if model_type:
             return {
-                name: model for name, model in self.models.items() if model.model_type == model_type
+                name: model
+                for name, model in self.models.items()
+                if model.model_type == model_type
             }
         return self.models.copy()
 

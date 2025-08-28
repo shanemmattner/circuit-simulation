@@ -38,7 +38,13 @@ class TestTransistorAmplifier:
     def test_bias_calculation(self):
         """Test DC bias point calculation."""
         circuit = TransistorAmplifierCircuit(
-            config="common_emitter", vcc=12, rc=1000, re=100, r1=10000, r2=2200, beta=100
+            config="common_emitter",
+            vcc=12,
+            rc=1000,
+            re=100,
+            r1=10000,
+            r2=2200,
+            beta=100,
         )
 
         bias = calculate_bias_point(circuit)
@@ -94,10 +100,18 @@ class TestTransistorSimulation:
     def test_ac_response(self):
         """Test AC frequency response."""
         circuit = TransistorAmplifierCircuit(
-            config="common_emitter", vcc=12, rc=1000, re=100, r1=10000, r2=2200, beta=100
+            config="common_emitter",
+            vcc=12,
+            rc=1000,
+            re=100,
+            r1=10000,
+            r2=2200,
+            beta=100,
         )
 
-        results = simulate_transistor_amp(circuit, analysis_type="ac", start_freq=10, stop_freq=1e6)
+        results = simulate_transistor_amp(
+            circuit, analysis_type="ac", start_freq=10, stop_freq=1e6
+        )
 
         assert "frequency" in results
         assert "gain" in results
@@ -110,11 +124,20 @@ class TestTransistorSimulation:
     def test_transient_response(self):
         """Test transient response."""
         circuit = TransistorAmplifierCircuit(
-            config="common_emitter", vcc=12, rc=1000, re=100, r1=10000, r2=2200, beta=100
+            config="common_emitter",
+            vcc=12,
+            rc=1000,
+            re=100,
+            r1=10000,
+            r2=2200,
+            beta=100,
         )
 
         results = simulate_transistor_amp(
-            circuit, analysis_type="transient", duration=10e-3, input_amplitude=0.1  # 100mV input
+            circuit,
+            analysis_type="transient",
+            duration=10e-3,
+            input_amplitude=0.1,  # 100mV input
         )
 
         assert "time" in results
@@ -138,7 +161,9 @@ class TestDesignFunctions:
     def test_design_common_emitter(self):
         """Test common emitter design."""
         circuit = design_common_emitter(
-            gain=-10, vcc=12, ic_target=5e-3  # Target gain of -10  # 5mA collector current
+            gain=-10,
+            vcc=12,
+            ic_target=5e-3,  # Target gain of -10  # 5mA collector current
         )
 
         assert circuit is not None

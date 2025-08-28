@@ -139,7 +139,13 @@ class OpAmpCircuit:
             circuit["components"]["U1"] = {
                 "type": "subcircuit",
                 "model": self.spice_model,
-                "pins": {"IN+": "v_plus", "IN-": "v_minus", "OUT": "out", "V+": "vcc", "V-": "vee"},
+                "pins": {
+                    "IN+": "v_plus",
+                    "IN-": "v_minus",
+                    "OUT": "out",
+                    "V+": "vcc",
+                    "V-": "vee",
+                },
             }
         else:
             # Ideal op-amp representation
@@ -150,11 +156,23 @@ class OpAmpCircuit:
             }
 
         # Add power supplies
-        circuit["components"]["VCC"] = {"type": "voltage", "value": self.vcc, "nodes": ("vcc", "0")}
-        circuit["components"]["VEE"] = {"type": "voltage", "value": self.vee, "nodes": ("0", "vee")}
+        circuit["components"]["VCC"] = {
+            "type": "voltage",
+            "value": self.vcc,
+            "nodes": ("vcc", "0"),
+        }
+        circuit["components"]["VEE"] = {
+            "type": "voltage",
+            "value": self.vee,
+            "nodes": ("0", "vee"),
+        }
 
         # Add input voltage source
-        circuit["components"]["VIN"] = {"type": "voltage", "value": self.vin, "nodes": ("in", "0")}
+        circuit["components"]["VIN"] = {
+            "type": "voltage",
+            "value": self.vin,
+            "nodes": ("in", "0"),
+        }
 
         # Configuration-specific components
         if self.config == "inverting":
@@ -231,7 +249,10 @@ class OpAmpCircuit:
                 "nodes": ("in", "v_plus"),
             }
             # Direct feedback
-            circuit["components"]["WIRE"] = {"type": "wire", "nodes": ("out", "v_minus")}
+            circuit["components"]["WIRE"] = {
+                "type": "wire",
+                "nodes": ("out", "v_minus"),
+            }
 
         elif self.config == "integrator":
             # Integrator with capacitor feedback
@@ -500,7 +521,11 @@ class ActiveFilter:
             # Butterworth lowpass
             h = self.passband_gain / (1 + (s / omega_c) ** self.order)
         elif self.filter_type == "highpass":
-            h = self.passband_gain * (s / omega_c) ** self.order / (1 + (s / omega_c) ** self.order)
+            h = (
+                self.passband_gain
+                * (s / omega_c) ** self.order
+                / (1 + (s / omega_c) ** self.order)
+            )
         else:
             h = self.passband_gain
 
@@ -511,7 +536,11 @@ class Comparator:
     """Op-amp as comparator with hysteresis."""
 
     def __init__(
-        self, threshold: float = 0, hysteresis: float = 0, model: str = "LM358", vcc: float = 5.0
+        self,
+        threshold: float = 0,
+        hysteresis: float = 0,
+        model: str = "LM358",
+        vcc: float = 5.0,
     ):
         """Initialize comparator.
 

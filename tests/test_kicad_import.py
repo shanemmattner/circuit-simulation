@@ -68,7 +68,12 @@ class TestKiCadImport:
                 }
             },
             "nets": {
-                "VCC": [{"component": "R1", "pin": {"number": "1", "name": "~", "type": "passive"}}]
+                "VCC": [
+                    {
+                        "component": "R1",
+                        "pin": {"number": "1", "name": "~", "type": "passive"},
+                    }
+                ]
             },
             "subcircuits": [
                 {

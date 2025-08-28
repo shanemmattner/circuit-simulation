@@ -43,7 +43,9 @@ class PySpiceBuilder:
             ValueError: If circuit has invalid components
         """
         if not self._pyspice_available:
-            raise ImportError("PySpice is not installed. Install it with: pip install PySpice")
+            raise ImportError(
+                "PySpice is not installed. Install it with: pip install PySpice"
+            )
 
         from PySpice.Spice.Netlist import Circuit as PySpiceCircuit
 
@@ -111,9 +113,10 @@ class PySpiceBuilder:
             return pyspice_circuit.gnd
         return node
 
-    def _add_voltage_source(self, pyspice_circuit: Any, comp: Dict, counts: Dict[str, int]):
+    def _add_voltage_source(
+        self, pyspice_circuit: Any, comp: Dict, counts: Dict[str, int]
+    ):
         """Add voltage source to PySpice circuit."""
-        from PySpice.Unit import u_V
 
         name = self._get_component_id(comp, counts)
         node1 = self._node_to_pyspice(comp["positive"], pyspice_circuit)
@@ -130,11 +133,13 @@ class PySpiceBuilder:
         # For AC analysis, we need to specify both DC and AC values
         # Use SPICE syntax: "DC <dc_value> AC <ac_magnitude>"
         dc_value = float(voltage)
-        
-        # Create voltage source with explicit DC and AC values for proper frequency analysis
-        voltage_source = pyspice_circuit.V(name, node1, node2, f"DC {dc_value} AC 1")
 
-    def _add_current_source(self, pyspice_circuit: Any, comp: Dict, counts: Dict[str, int]):
+        # Create voltage source with explicit DC and AC values for proper frequency analysis
+        pyspice_circuit.V(name, node1, node2, f"DC {dc_value} AC 1")
+
+    def _add_current_source(
+        self, pyspice_circuit: Any, comp: Dict, counts: Dict[str, int]
+    ):
         """Add current source to PySpice circuit."""
         from PySpice.Unit import u_A
 

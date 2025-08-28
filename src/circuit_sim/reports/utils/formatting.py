@@ -229,7 +229,9 @@ def format_frequency(freq_hz: float) -> str:
     return format_value(freq_hz, "Hz")
 
 
-def format_table_value(value: Union[float, int, str, None], unit: Optional[str] = None) -> str:
+def format_table_value(
+    value: Union[float, int, str, None], unit: Optional[str] = None
+) -> str:
     """
     Format values for display in tables with consistent width.
 

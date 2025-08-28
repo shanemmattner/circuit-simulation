@@ -71,9 +71,15 @@ class TestAPIIntegration:
         assert circuit_details["name"] == simple_circuit_data["name"]
 
         # 4. Start simulation
-        sim_request = {"type": "dc", "parameters": {"analysis": "operating_point"}, "priority": 5}
+        sim_request = {
+            "type": "dc",
+            "parameters": {"analysis": "operating_point"},
+            "priority": 5,
+        }
 
-        sim_response = client.post(f"/api/circuits/{circuit_id}/simulate", json=sim_request)
+        sim_response = client.post(
+            f"/api/circuits/{circuit_id}/simulate", json=sim_request
+        )
         assert sim_response.status_code == 202
 
         simulation = sim_response.json()

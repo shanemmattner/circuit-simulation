@@ -25,7 +25,7 @@ class TestCeleryConfiguration:
         assert celery_app.conf.task_serializer == "json"
         assert celery_app.conf.result_serializer == "json"
         assert celery_app.conf.timezone == "UTC"
-        assert celery_app.conf.enable_utc == True
+        assert celery_app.conf.enable_utc
 
     def test_task_routing(self):
         """Test task routing configuration."""
@@ -78,7 +78,9 @@ class TestSimulationTask:
 
         # Test that task raises error for missing circuit
         with pytest.raises(ValueError, match="not found"):
-            run_simulation.apply(args=["test-job-123", "invalid-circuit-id", "dc", {}]).get()
+            run_simulation.apply(
+                args=["test-job-123", "invalid-circuit-id", "dc", {}]
+            ).get()
 
     def test_cleanup_task_execution(self):
         """Test cleanup task can execute."""

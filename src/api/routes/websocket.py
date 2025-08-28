@@ -99,7 +99,9 @@ class ConnectionManager:
 
         await self.broadcast_to_job(update_message, job_id)
 
-    async def send_result_notification(self, job_id: str, status: str, results: dict = None):
+    async def send_result_notification(
+        self, job_id: str, status: str, results: dict = None
+    ):
         """Send simulation completion notification."""
         result_message = {
             "type": "result",

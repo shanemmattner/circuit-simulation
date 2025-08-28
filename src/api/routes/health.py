@@ -23,7 +23,7 @@ async def readiness_check():
     """Readiness check endpoint."""
     # Add any service dependency checks here
     # For example: database connectivity, external service availability
-    
+
     return {
         "status": "ready",
         "timestamp": datetime.now().isoformat(),

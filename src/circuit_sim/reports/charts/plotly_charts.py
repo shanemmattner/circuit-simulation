@@ -33,7 +33,9 @@ class PlotlyChartGenerator:
             "#17becf",
         ]
 
-    def create_charts(self, results: SimulationResults, circuit: Circuit) -> Dict[str, go.Figure]:
+    def create_charts(
+        self, results: SimulationResults, circuit: Circuit
+    ) -> Dict[str, go.Figure]:
         """
         Create all relevant charts based on analysis type.
 
@@ -87,7 +89,11 @@ class PlotlyChartGenerator:
                 )
 
                 fig.update_layout(
-                    title={"text": "DC Operating Points", "x": 0.5, "xanchor": "center"},
+                    title={
+                        "text": "DC Operating Points",
+                        "x": 0.5,
+                        "xanchor": "center",
+                    },
                     xaxis_title="Node",
                     yaxis_title="Voltage (V)",
                     showlegend=False,
@@ -136,34 +142,36 @@ class PlotlyChartGenerator:
 
     def _get_node_label(self, node: int, circuit: Circuit) -> str:
         """Generate descriptive label for a node based on circuit topology"""
-        
+
         # Check if this node is connected to voltage source (input)
         for component in circuit.components:
             if component.get("type") == "voltage_source":
                 if component.get("positive") == node:
                     vs_name = component.get("name", "V1")
                     return f"Circuit Input - V(Node {node}) [{vs_name}+]"
-        
+
         # Check if this node is a filter output (before capacitor to ground)
         for component in circuit.components:
             if component.get("type") == "capacitor":
                 node1 = component.get("node1")
                 node2 = component.get("node2")
                 cap_name = component.get("name", "C")
-                
+
                 if node2 in [0, "gnd"] and node1 == node:
                     return f"Filter Output - V(Node {node}) [Before {cap_name}]"
-        
+
         # Check if this node is between resistors (voltage divider output)
         resistor_connections = []
         for component in circuit.components:
             if component.get("type") == "resistor":
-                resistor_connections.extend([component.get("node1"), component.get("node2")])
-        
+                resistor_connections.extend(
+                    [component.get("node1"), component.get("node2")]
+                )
+
         resistor_count = resistor_connections.count(node)
         if resistor_count >= 2:  # Node connects to multiple resistors
             return f"Divider Output - V(Node {node}) [Between Resistors]"
-        
+
         # Default descriptive label
         return f"Circuit Node {node}"
 
@@ -192,7 +200,9 @@ class PlotlyChartGenerator:
                                 mode="lines",
                                 name=f"V(Node {node})",
                                 line=dict(
-                                    color=self.color_palette[color_idx % len(self.color_palette)],
+                                    color=self.color_palette[
+                                        color_idx % len(self.color_palette)
+                                    ],
                                     width=2,
                                 ),
                                 hovertemplate="Time: %{x:.3e}s<br>Voltage: %{y:.3f}V<extra></extra>",
@@ -206,7 +216,9 @@ class PlotlyChartGenerator:
                 yaxis_title="Voltage (V)",
                 template="plotly_white",
                 height=500,
-                legend=dict(orientation="v", yanchor="top", y=1, xanchor="left", x=1.02),
+                legend=dict(
+                    orientation="v", yanchor="top", y=1, xanchor="left", x=1.02
+                ),
             )
 
             charts["transient_voltages"] = fig
@@ -226,7 +238,9 @@ class PlotlyChartGenerator:
                             mode="lines",
                             name=f"I({component})",
                             line=dict(
-                                color=self.color_palette[color_idx % len(self.color_palette)],
+                                color=self.color_palette[
+                                    color_idx % len(self.color_palette)
+                                ],
                                 width=2,
                             ),
                             hovertemplate="Time: %{x:.3e}s<br>Current: %{y:.3f}A<extra></extra>",
@@ -236,12 +250,18 @@ class PlotlyChartGenerator:
 
             if fig.data:  # Only create chart if we have data
                 fig.update_layout(
-                    title={"text": "Component Currents vs Time", "x": 0.5, "xanchor": "center"},
+                    title={
+                        "text": "Component Currents vs Time",
+                        "x": 0.5,
+                        "xanchor": "center",
+                    },
                     xaxis_title="Time (s)",
                     yaxis_title="Current (A)",
                     template="plotly_white",
                     height=500,
-                    legend=dict(orientation="v", yanchor="top", y=1, xanchor="left", x=1.02),
+                    legend=dict(
+                        orientation="v", yanchor="top", y=1, xanchor="left", x=1.02
+                    ),
                 )
 
                 charts["transient_currents"] = fig
@@ -269,7 +289,9 @@ class PlotlyChartGenerator:
                                 mode="lines",
                                 name=f"V(Node {node})",
                                 line=dict(
-                                    color=self.color_palette[color_idx % len(self.color_palette)],
+                                    color=self.color_palette[
+                                        color_idx % len(self.color_palette)
+                                    ],
                                     width=2,
                                 ),
                                 hovertemplate="Time: %{x:.3e}s<br>Voltage: %{y:.3f}V<extra></extra>",
@@ -290,7 +312,9 @@ class PlotlyChartGenerator:
                             mode="lines",
                             name=f"I({component})",
                             line=dict(
-                                color=self.color_palette[color_idx % len(self.color_palette)],
+                                color=self.color_palette[
+                                    color_idx % len(self.color_palette)
+                                ],
                                 width=2,
                             ),
                             hovertemplate="Time: %{x:.3e}s<br>Current: %{y:.3f}A<extra></extra>",
@@ -307,7 +331,11 @@ class PlotlyChartGenerator:
             fig.update_layout(
                 height=800,
                 template="plotly_white",
-                title={"text": "Transient Analysis - Complete View", "x": 0.5, "xanchor": "center"},
+                title={
+                    "text": "Transient Analysis - Complete View",
+                    "x": 0.5,
+                    "xanchor": "center",
+                },
             )
 
             charts["transient_combined"] = fig
@@ -327,11 +355,15 @@ class PlotlyChartGenerator:
         try:
             input_node = self._find_input_node(circuit)
             output_node = self._find_output_node(circuit, results)
-            
+
             if input_node is not None and output_node is not None:
                 tf = results.to_transfer_function(input_node, output_node)
-                charts.update(self._create_transfer_function_charts(tf, results, input_node, output_node))
-        except Exception as e:
+                charts.update(
+                    self._create_transfer_function_charts(
+                        tf, results, input_node, output_node
+                    )
+                )
+        except Exception:
             # If transfer function extraction fails, continue without it
             pass
 
@@ -339,7 +371,7 @@ class PlotlyChartGenerator:
         if results.nodes:
             # Find nodes with interesting frequency response (not flat)
             interesting_nodes = []
-            
+
             for node in results.nodes:
                 if node != 0:
                     voltage = results.voltage(node)
@@ -347,85 +379,93 @@ class PlotlyChartGenerator:
                         magnitude = np.abs(voltage)
                         # Check if node has significant frequency variation
                         mag_variation = magnitude.max() - magnitude.min()
-                        
+
                         if mag_variation > 0.01:  # More than 1% variation
                             interesting_nodes.append(node)
-            
+
             # If no interesting nodes, show all (fallback)
-            nodes_to_plot = interesting_nodes if interesting_nodes else [n for n in results.nodes if n != 0]
-            
+            nodes_to_plot = (
+                interesting_nodes
+                if interesting_nodes
+                else [n for n in results.nodes if n != 0]
+            )
+
             # Prioritize higher-numbered nodes (usually outputs) if we have multiple
-            nodes_to_plot = sorted(nodes_to_plot, reverse=True)[:2]  # Max 2 nodes to avoid clutter
-            
+            nodes_to_plot = sorted(nodes_to_plot, reverse=True)[
+                :2
+            ]  # Max 2 nodes to avoid clutter
+
             for node in nodes_to_plot:
                 voltage = results.voltage(node)
                 if voltage is not None and np.iscomplexobj(voltage):
-                        # Calculate magnitude and phase with proper handling of small values
-                        magnitude_linear = np.abs(voltage)
-                        
-                        # Avoid log of zero by setting minimum value
-                        magnitude_linear_safe = np.maximum(magnitude_linear, 1e-12)
-                        magnitude_db = 20 * np.log10(magnitude_linear_safe)
-                        phase_deg = np.angle(voltage, deg=True)
+                    # Calculate magnitude and phase with proper handling of small values
+                    magnitude_linear = np.abs(voltage)
 
-                        # Determine node role for better labeling
-                        node_label = self._get_node_label(node, circuit)
-                        
-                        fig = make_subplots(
-                            rows=2,
-                            cols=1,
-                            subplot_titles=(
-                                f"Magnitude - {node_label}",
-                                f"Phase - {node_label}",
-                            ),
-                            shared_xaxes=True,
-                            vertical_spacing=0.1,
-                        )
+                    # Avoid log of zero by setting minimum value
+                    magnitude_linear_safe = np.maximum(magnitude_linear, 1e-12)
+                    magnitude_db = 20 * np.log10(magnitude_linear_safe)
+                    phase_deg = np.angle(voltage, deg=True)
 
-                        # Magnitude plot
-                        fig.add_trace(
-                            go.Scatter(
-                                x=results.frequency,
-                                y=magnitude_db,
-                                mode="lines",
-                                name="Magnitude",
-                                line=dict(color="#1f77b4", width=2),
-                                hovertemplate="Freq: %{x:.2e}Hz<br>Magnitude: %{y:.2f}dB<extra></extra>",
-                            ),
-                            row=1,
-                            col=1,
-                        )
+                    # Determine node role for better labeling
+                    node_label = self._get_node_label(node, circuit)
 
-                        # Phase plot
-                        fig.add_trace(
-                            go.Scatter(
-                                x=results.frequency,
-                                y=phase_deg,
-                                mode="lines",
-                                name="Phase",
-                                line=dict(color="#ff7f0e", width=2),
-                                hovertemplate="Freq: %{x:.2e}Hz<br>Phase: %{y:.2f}°<extra></extra>",
-                            ),
-                            row=2,
-                            col=1,
-                        )
+                    fig = make_subplots(
+                        rows=2,
+                        cols=1,
+                        subplot_titles=(
+                            f"Magnitude - {node_label}",
+                            f"Phase - {node_label}",
+                        ),
+                        shared_xaxes=True,
+                        vertical_spacing=0.1,
+                    )
 
-                        fig.update_xaxes(type="log", title_text="Frequency (Hz)", row=2, col=1)
-                        fig.update_yaxes(title_text="Magnitude (dB)", row=1, col=1)
-                        fig.update_yaxes(title_text="Phase (°)", row=2, col=1)
+                    # Magnitude plot
+                    fig.add_trace(
+                        go.Scatter(
+                            x=results.frequency,
+                            y=magnitude_db,
+                            mode="lines",
+                            name="Magnitude",
+                            line=dict(color="#1f77b4", width=2),
+                            hovertemplate="Freq: %{x:.2e}Hz<br>Magnitude: %{y:.2f}dB<extra></extra>",
+                        ),
+                        row=1,
+                        col=1,
+                    )
 
-                        fig.update_layout(
-                            height=600,
-                            template="plotly_white",
-                            title={
-                                "text": f"Bode Plot - {node_label}",
-                                "x": 0.5,
-                                "xanchor": "center",
-                            },
-                            showlegend=False,
-                        )
+                    # Phase plot
+                    fig.add_trace(
+                        go.Scatter(
+                            x=results.frequency,
+                            y=phase_deg,
+                            mode="lines",
+                            name="Phase",
+                            line=dict(color="#ff7f0e", width=2),
+                            hovertemplate="Freq: %{x:.2e}Hz<br>Phase: %{y:.2f}°<extra></extra>",
+                        ),
+                        row=2,
+                        col=1,
+                    )
 
-                        charts[f"bode_node_{node}"] = fig
+                    fig.update_xaxes(
+                        type="log", title_text="Frequency (Hz)", row=2, col=1
+                    )
+                    fig.update_yaxes(title_text="Magnitude (dB)", row=1, col=1)
+                    fig.update_yaxes(title_text="Phase (°)", row=2, col=1)
+
+                    fig.update_layout(
+                        height=600,
+                        template="plotly_white",
+                        title={
+                            "text": f"Bode Plot - {node_label}",
+                            "x": 0.5,
+                            "xanchor": "center",
+                        },
+                        showlegend=False,
+                    )
+
+                    charts[f"bode_node_{node}"] = fig
 
         # Frequency Response Overview
         if results.nodes and len([n for n in results.nodes if n != 0]) > 1:
@@ -442,8 +482,10 @@ class PlotlyChartGenerator:
                         magnitude_db = 20 * np.log10(magnitude_linear_safe)
 
                         # Get descriptive node label
-                        node_description = self._get_node_label(node, circuit).replace(f" - V(Node {node})", "")
-                        
+                        node_description = self._get_node_label(node, circuit).replace(
+                            f" - V(Node {node})", ""
+                        )
+
                         fig.add_trace(
                             go.Scatter(
                                 x=results.frequency,
@@ -451,7 +493,9 @@ class PlotlyChartGenerator:
                                 mode="lines",
                                 name=node_description,
                                 line=dict(
-                                    color=self.color_palette[color_idx % len(self.color_palette)],
+                                    color=self.color_palette[
+                                        color_idx % len(self.color_palette)
+                                    ],
                                     width=2,
                                 ),
                                 hovertemplate=f"Freq: %{{x:.2e}}Hz<br>Magnitude: %{{y:.2f}}dB<br>Node: {node_description}<extra></extra>",
@@ -460,13 +504,19 @@ class PlotlyChartGenerator:
                         color_idx += 1
 
             fig.update_layout(
-                title={"text": "Frequency Response - All Nodes", "x": 0.5, "xanchor": "center"},
+                title={
+                    "text": "Frequency Response - All Nodes",
+                    "x": 0.5,
+                    "xanchor": "center",
+                },
                 xaxis_title="Frequency (Hz)",
                 yaxis_title="Magnitude (dB)",
                 xaxis_type="log",
                 template="plotly_white",
                 height=500,
-                legend=dict(orientation="v", yanchor="top", y=1, xanchor="left", x=1.02),
+                legend=dict(
+                    orientation="v", yanchor="top", y=1, xanchor="left", x=1.02
+                ),
             )
 
             charts["frequency_response"] = fig
@@ -484,7 +534,7 @@ class PlotlyChartGenerator:
         """Find the output node (node with most interesting frequency response)."""
         best_node = None
         max_variation = 0
-        
+
         for node in results.nodes:
             if node != 0:  # Skip ground
                 voltage = results.voltage(node)
@@ -495,30 +545,33 @@ class PlotlyChartGenerator:
                     if variation > max_variation:
                         max_variation = variation
                         best_node = node
-        
+
         return best_node
 
-    def _create_transfer_function_charts(self, tf, results: SimulationResults, input_node: int, output_node: int) -> Dict[str, go.Figure]:
+    def _create_transfer_function_charts(
+        self, tf, results: SimulationResults, input_node: int, output_node: int
+    ) -> Dict[str, go.Figure]:
         """Create charts specific to transfer function analysis."""
         charts = {}
-        
+
         # Transfer Function Bode Plot
         frequencies = 2 * np.pi * results.frequency  # Convert to rad/s
         h_response = tf.frequency_response(frequencies)
-        
+
         magnitude_db = 20 * np.log10(np.abs(h_response))
         phase_deg = np.angle(h_response, deg=True)
-        
+
         fig = make_subplots(
-            rows=2, cols=1,
+            rows=2,
+            cols=1,
             subplot_titles=(
                 f"Transfer Function Magnitude: H(s) = V({output_node})/V({input_node})",
-                f"Transfer Function Phase: H(s) = V({output_node})/V({input_node})"
+                f"Transfer Function Phase: H(s) = V({output_node})/V({input_node})",
             ),
             shared_xaxes=True,
             vertical_spacing=0.1,
         )
-        
+
         # Magnitude plot
         fig.add_trace(
             go.Scatter(
@@ -529,9 +582,10 @@ class PlotlyChartGenerator:
                 line=dict(color="#2E86C1", width=3),
                 hovertemplate="Freq: %{x:.2e}Hz<br>Magnitude: %{y:.2f}dB<extra></extra>",
             ),
-            row=1, col=1,
+            row=1,
+            col=1,
         )
-        
+
         # Phase plot
         fig.add_trace(
             go.Scatter(
@@ -542,13 +596,14 @@ class PlotlyChartGenerator:
                 line=dict(color="#E74C3C", width=3),
                 hovertemplate="Freq: %{x:.2e}Hz<br>Phase: %{y:.2f}°<extra></extra>",
             ),
-            row=2, col=1,
+            row=2,
+            col=1,
         )
-        
+
         fig.update_xaxes(type="log", title_text="Frequency (Hz)", row=2, col=1)
         fig.update_yaxes(title_text="Magnitude (dB)", row=1, col=1)
         fig.update_yaxes(title_text="Phase (°)", row=2, col=1)
-        
+
         fig.update_layout(
             height=600,
             template="plotly_white",
@@ -559,16 +614,16 @@ class PlotlyChartGenerator:
             },
             showlegend=False,
         )
-        
+
         charts["transfer_function"] = fig
-        
+
         # Pole-Zero Plot
-        if hasattr(tf, 'poles') and hasattr(tf, 'zeros'):
+        if hasattr(tf, "poles") and hasattr(tf, "zeros"):
             poles = tf.poles
             zeros = tf.zeros
-            
+
             fig_pz = go.Figure()
-            
+
             # Add poles
             if len(poles) > 0:
                 fig_pz.add_trace(
@@ -576,12 +631,14 @@ class PlotlyChartGenerator:
                         x=np.real(poles),
                         y=np.imag(poles),
                         mode="markers",
-                        marker=dict(symbol="x", size=12, color="red", line=dict(width=2)),
+                        marker=dict(
+                            symbol="x", size=12, color="red", line=dict(width=2)
+                        ),
                         name="Poles",
                         hovertemplate="Pole: %{x:.2e} + j%{y:.2e}<extra></extra>",
                     )
                 )
-            
+
             # Add zeros
             if len(zeros) > 0:
                 fig_pz.add_trace(
@@ -589,17 +646,19 @@ class PlotlyChartGenerator:
                         x=np.real(zeros),
                         y=np.imag(zeros),
                         mode="markers",
-                        marker=dict(symbol="circle", size=10, color="blue", line=dict(width=2)),
+                        marker=dict(
+                            symbol="circle", size=10, color="blue", line=dict(width=2)
+                        ),
                         name="Zeros",
                         hovertemplate="Zero: %{x:.2e} + j%{y:.2e}<extra></extra>",
                     )
                 )
-            
+
             # Add unit circle for reference
-            theta = np.linspace(0, 2*np.pi, 100)
+            theta = np.linspace(0, 2 * np.pi, 100)
             unit_circle_x = np.cos(theta)
             unit_circle_y = np.sin(theta)
-            
+
             fig_pz.add_trace(
                 go.Scatter(
                     x=unit_circle_x,
@@ -610,7 +669,7 @@ class PlotlyChartGenerator:
                     hoverinfo="skip",
                 )
             )
-            
+
             fig_pz.update_layout(
                 title={
                     "text": "Pole-Zero Plot",
@@ -623,9 +682,9 @@ class PlotlyChartGenerator:
                 height=500,
                 xaxis=dict(scaleanchor="y", scaleratio=1),  # Equal aspect ratio
             )
-            
+
             charts["pole_zero_plot"] = fig_pz
-            
+
         return charts
 
     def create_comparison_chart(

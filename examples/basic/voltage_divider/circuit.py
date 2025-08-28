@@ -22,7 +22,11 @@ class VoltageDividerCircuit:
     """
 
     def __init__(
-        self, r1: float = 1000, r2: float = 1000, vin: float = 5.0, r_load: Optional[float] = None
+        self,
+        r1: float = 1000,
+        r2: float = 1000,
+        vin: float = 5.0,
+        r_load: Optional[float] = None,
     ):
         """Initialize voltage divider circuit.
 

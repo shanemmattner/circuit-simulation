@@ -97,7 +97,12 @@ def generate_bode_plot(
 
             # Add -3dB line
             fig.add_hline(
-                y=-3, line_dash="dash", line_color="gray", annotation_text="-3dB", row=1, col=1
+                y=-3,
+                line_dash="dash",
+                line_color="gray",
+                annotation_text="-3dB",
+                row=1,
+                col=1,
             )
         else:
             fig.add_trace(cutoff_trace)
@@ -135,7 +140,12 @@ def generate_bode_plot(
 
             # Add -45° line for reference
             fig.add_hline(
-                y=-45, line_dash="dash", line_color="gray", annotation_text="-45°", row=2, col=1
+                y=-45,
+                line_dash="dash",
+                line_color="gray",
+                annotation_text="-45°",
+                row=2,
+                col=1,
             )
 
     # Update layout
@@ -232,10 +242,14 @@ def generate_transient_plot(
 
     # Mark tau (63.2% for lowpass step response)
     if results.get("input_type") == "step":
-        fig.add_vline(x=tau_ms, line_dash="dash", line_color="gray", annotation_text="τ")
+        fig.add_vline(
+            x=tau_ms, line_dash="dash", line_color="gray", annotation_text="τ"
+        )
 
         # Mark 5τ (99.3% settling)
-        fig.add_vline(x=5 * tau_ms, line_dash="dot", line_color="gray", annotation_text="5τ")
+        fig.add_vline(
+            x=5 * tau_ms, line_dash="dot", line_color="gray", annotation_text="5τ"
+        )
 
     fig.update_layout(
         title=title,
@@ -292,7 +306,9 @@ def generate_comparison_plot(
     )
 
     # Generate frequency points
-    frequencies = np.logspace(np.log10(frequency_range[0]), np.log10(frequency_range[1]), points)
+    frequencies = np.logspace(
+        np.log10(frequency_range[0]), np.log10(frequency_range[1]), points
+    )
 
     colors = ["blue", "red", "green", "orange", "purple"]
 
@@ -311,7 +327,11 @@ def generate_comparison_plot(
         # Magnitude
         fig.add_trace(
             go.Scatter(
-                x=frequencies, y=mags, mode="lines", name=label, line=dict(color=color, width=2)
+                x=frequencies,
+                y=mags,
+                mode="lines",
+                name=label,
+                line=dict(color=color, width=2),
             ),
             row=1,
             col=1,

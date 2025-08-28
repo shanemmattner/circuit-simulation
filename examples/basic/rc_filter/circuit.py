@@ -28,7 +28,11 @@ class RCFilterCircuit:
     """
 
     def __init__(
-        self, r: float = 1000, c: float = 1e-6, filter_type: str = "lowpass", vin: float = 1.0
+        self,
+        r: float = 1000,
+        c: float = 1e-6,
+        filter_type: str = "lowpass",
+        vin: float = 1.0,
     ):
         """Initialize RC filter circuit.
 
@@ -57,7 +61,11 @@ class RCFilterCircuit:
         circuit = {"name": f"RC {self.filter_type.title()} Filter", "components": {}}
 
         # Voltage source
-        circuit["components"]["V1"] = {"type": "voltage", "value": self.vin, "nodes": ("in", "0")}
+        circuit["components"]["V1"] = {
+            "type": "voltage",
+            "value": self.vin,
+            "nodes": ("in", "0"),
+        }
 
         if self.filter_type == "lowpass":
             # Lowpass: R then C to ground
@@ -186,7 +194,9 @@ class RCFilterCircuit:
 
         return delays
 
-    def calculate_cascade_response(self, n_stages: int, frequency: float) -> Dict[str, float]:
+    def calculate_cascade_response(
+        self, n_stages: int, frequency: float
+    ) -> Dict[str, float]:
         """Calculate response of n cascaded identical RC stages.
 
         Args:

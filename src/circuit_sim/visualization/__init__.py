@@ -15,10 +15,10 @@ from .interactive_plots import InteractivePlotter
 
 __all__ = [
     "BasePlotter",
-    "PlotResult", 
+    "PlotResult",
     "PlotStyle",
     "NyquistPlotter",
-    "NicholsPlotter", 
+    "NicholsPlotter",
     "SmithChartPlotter",
     "InteractivePlotter",
 ]

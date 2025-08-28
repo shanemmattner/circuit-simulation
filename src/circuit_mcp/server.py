@@ -55,7 +55,10 @@ async def serve() -> None:
                     "type": "object",
                     "properties": {
                         "name": {"type": "string", "description": "Circuit name"},
-                        "description": {"type": "string", "description": "Circuit description"},
+                        "description": {
+                            "type": "string",
+                            "description": "Circuit description",
+                        },
                     },
                     "required": ["name"],
                 },
@@ -77,7 +80,10 @@ async def serve() -> None:
                                 "current_source",
                             ],
                         },
-                        "name": {"type": "string", "description": "Component name (e.g., R1, C1)"},
+                        "name": {
+                            "type": "string",
+                            "description": "Component name (e.g., R1, C1)",
+                        },
                         "value": {
                             "type": "string",
                             "description": "Component value (e.g., 1k, 10uF)",
@@ -85,7 +91,14 @@ async def serve() -> None:
                         "positive": {"type": "integer", "description": "Positive node"},
                         "negative": {"type": "integer", "description": "Negative node"},
                     },
-                    "required": ["circuit_id", "type", "name", "value", "positive", "negative"],
+                    "required": [
+                        "circuit_id",
+                        "type",
+                        "name",
+                        "value",
+                        "positive",
+                        "negative",
+                    ],
                 },
             ),
             Tool(
@@ -98,7 +111,9 @@ async def serve() -> None:
                 description="Get circuit details",
                 inputSchema={
                     "type": "object",
-                    "properties": {"circuit_id": {"type": "string", "description": "Circuit ID"}},
+                    "properties": {
+                        "circuit_id": {"type": "string", "description": "Circuit ID"}
+                    },
                     "required": ["circuit_id"],
                 },
             ),
@@ -107,7 +122,9 @@ async def serve() -> None:
                 description="Validate circuit connectivity and components",
                 inputSchema={
                     "type": "object",
-                    "properties": {"circuit_id": {"type": "string", "description": "Circuit ID"}},
+                    "properties": {
+                        "circuit_id": {"type": "string", "description": "Circuit ID"}
+                    },
                     "required": ["circuit_id"],
                 },
             ),
@@ -116,7 +133,9 @@ async def serve() -> None:
                 description="Run DC operating point analysis",
                 inputSchema={
                     "type": "object",
-                    "properties": {"circuit_id": {"type": "string", "description": "Circuit ID"}},
+                    "properties": {
+                        "circuit_id": {"type": "string", "description": "Circuit ID"}
+                    },
                     "required": ["circuit_id"],
                 },
             ),
@@ -131,7 +150,10 @@ async def serve() -> None:
                             "type": "number",
                             "description": "Simulation stop time in seconds",
                         },
-                        "step_time": {"type": "number", "description": "Time step in seconds"},
+                        "step_time": {
+                            "type": "number",
+                            "description": "Time step in seconds",
+                        },
                     },
                     "required": ["circuit_id", "stop_time"],
                 },
@@ -159,20 +181,30 @@ async def serve() -> None:
                     "type": "object",
                     "properties": {
                         "circuit_id": {"type": "string", "description": "Circuit ID"},
-                        "simulation_type": {"type": "string", "description": "Simulation type (default: dc)", "default": "dc"},
+                        "simulation_type": {
+                            "type": "string",
+                            "description": "Simulation type (default: dc)",
+                            "default": "dc",
+                        },
                         "component_ratings": {
                             "type": "object",
                             "description": "Component power ratings in watts (name: rating)",
-                            "additionalProperties": {"type": "number"}
+                            "additionalProperties": {"type": "number"},
                         },
                         "thresholds": {
-                            "type": "object", 
+                            "type": "object",
                             "description": "Power warning/error thresholds",
                             "properties": {
-                                "warning": {"type": "number", "description": "Warning threshold in watts"},
-                                "error": {"type": "number", "description": "Error threshold in watts"}
-                            }
-                        }
+                                "warning": {
+                                    "type": "number",
+                                    "description": "Warning threshold in watts",
+                                },
+                                "error": {
+                                    "type": "number",
+                                    "description": "Error threshold in watts",
+                                },
+                            },
+                        },
                     },
                     "required": ["circuit_id"],
                 },
@@ -187,8 +219,8 @@ async def serve() -> None:
                         "component_ratings": {
                             "type": "object",
                             "description": "Component power ratings in watts (name: rating)",
-                            "additionalProperties": {"type": "number"}
-                        }
+                            "additionalProperties": {"type": "number"},
+                        },
                     },
                     "required": ["circuit_id", "component_ratings"],
                 },
@@ -236,7 +268,9 @@ async def serve() -> None:
         await server.run(read_stream, write_stream, options)
 
 
-async def handle_circuit_tool(tool_name: str, arguments: Dict[str, Any]) -> Dict[str, Any]:
+async def handle_circuit_tool(
+    tool_name: str, arguments: Dict[str, Any]
+) -> Dict[str, Any]:
     """Handle circuit-related tools."""
     action = tool_name.replace("circuit.", "")
 
@@ -254,7 +288,9 @@ async def handle_circuit_tool(tool_name: str, arguments: Dict[str, Any]) -> Dict
         raise ValueError(f"Unknown circuit action: {action}")
 
 
-async def handle_simulation_tool(tool_name: str, arguments: Dict[str, Any]) -> Dict[str, Any]:
+async def handle_simulation_tool(
+    tool_name: str, arguments: Dict[str, Any]
+) -> Dict[str, Any]:
     """Handle simulation-related tools."""
     action = tool_name.replace("simulation.", "")
 
@@ -266,7 +302,9 @@ async def handle_simulation_tool(tool_name: str, arguments: Dict[str, Any]) -> D
         raise ValueError(f"Unknown simulation action: {action}")
 
 
-async def handle_analysis_tool(tool_name: str, arguments: Dict[str, Any]) -> Dict[str, Any]:
+async def handle_analysis_tool(
+    tool_name: str, arguments: Dict[str, Any]
+) -> Dict[str, Any]:
     """Handle analysis-related tools."""
     action = tool_name.replace("analysis.", "")
 
@@ -276,19 +314,21 @@ async def handle_analysis_tool(tool_name: str, arguments: Dict[str, Any]) -> Dic
         raise ValueError(f"Unknown analysis action: {action}")
 
 
-async def handle_power_tool(tool_name: str, arguments: Dict[str, Any]) -> Dict[str, Any]:
+async def handle_power_tool(
+    tool_name: str, arguments: Dict[str, Any]
+) -> Dict[str, Any]:
     """Handle power analysis tools."""
     from .tools.power_tools import PowerTools
-    
+
     # Create a mock server object with required methods
     class MockServer:
         def get_circuit(self, circuit_id: str):
             session = SESSIONS.get(circuit_id)
             return session.circuit if session else None
-            
+
         def get_session(self, circuit_id: str):
             return SESSIONS.get(circuit_id)
-    
+
     power_tools = PowerTools(MockServer())
     return await power_tools.handle(tool_name, arguments)
 
@@ -349,7 +389,10 @@ async def add_component(args: Dict[str, Any]) -> Dict[str, Any]:
         elif component_type == "current_source":
             circuit.add_current_source(name, positive, negative, value)
         else:
-            return {"status": "error", "message": f"Unknown component type: {component_type}"}
+            return {
+                "status": "error",
+                "message": f"Unknown component type: {component_type}",
+            }
 
         # Update session
         session.last_modified = datetime.now()
@@ -409,12 +452,21 @@ async def get_circuit(args: Dict[str, Any]) -> Dict[str, Any]:
 
         # Extract node connections
         if "positive" in comp and "negative" in comp:
-            comp_dict["nodes"] = {"positive": comp["positive"], "negative": comp["negative"]}
+            comp_dict["nodes"] = {
+                "positive": comp["positive"],
+                "negative": comp["negative"],
+            }
         elif "node1" in comp and "node2" in comp:
             comp_dict["nodes"] = {"node1": comp["node1"], "node2": comp["node2"]}
 
         # Add value
-        for attr in ["resistance", "capacitance", "inductance", "dc_value", "dc_current"]:
+        for attr in [
+            "resistance",
+            "capacitance",
+            "inductance",
+            "dc_value",
+            "dc_current",
+        ]:
             if attr in comp:
                 comp_dict["value"] = comp[attr]
                 break
@@ -452,7 +504,8 @@ async def validate_circuit(args: Dict[str, Any]) -> Dict[str, Any]:
 
     # Check if circuit has at least one source
     has_source = any(
-        comp.get("type") in ["voltage_source", "current_source"] for comp in circuit.components
+        comp.get("type") in ["voltage_source", "current_source"]
+        for comp in circuit.components
     )
     if not has_source:
         issues.append("Circuit has no voltage or current sources")
@@ -544,7 +597,9 @@ async def run_transient_simulation(args: Dict[str, Any]) -> Dict[str, Any]:
     circuit = session.circuit
 
     try:
-        results = ENGINE.simulate_transient(circuit, stop_time=stop_time, step_time=step_time)
+        results = ENGINE.simulate_transient(
+            circuit, stop_time=stop_time, step_time=step_time
+        )
 
         session.simulations["transient"] = results
         session.last_modified = datetime.now()
@@ -627,4 +682,7 @@ async def get_results(args: Dict[str, Any]) -> Dict[str, Any]:
             "results": {"node_voltages": node_voltages},
         }
 
-    return {"status": "error", "message": f"Analysis for {simulation_type} not yet implemented"}
+    return {
+        "status": "error",
+        "message": f"Analysis for {simulation_type} not yet implemented",
+    }

@@ -131,7 +131,9 @@ class TestCompleteCircuits:
 
         assert len(circuit.components) == 3
         # Find components by type
-        voltage_sources = [c for c in circuit.components if c["type"] == "voltage_source"]
+        voltage_sources = [
+            c for c in circuit.components if c["type"] == "voltage_source"
+        ]
         resistors = [c for c in circuit.components if c["type"] == "resistor"]
         capacitors = [c for c in circuit.components if c["type"] == "capacitor"]
 

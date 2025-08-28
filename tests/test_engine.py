@@ -5,7 +5,6 @@ Tests for the simulation engine.
 from unittest.mock import MagicMock, patch
 
 import numpy as np
-import pytest
 
 from circuit_sim import Circuit
 from circuit_sim.simulator import SimulationEngine, SimulationResults
@@ -44,7 +43,9 @@ class TestSimulationEngine:
         mock_simulator.operating_point.return_value = mock_op
         mock_pyspice_circuit.simulator.return_value = mock_simulator
 
-        with patch("circuit_sim.simulator.engine.PySpiceBuilder", return_value=mock_builder):
+        with patch(
+            "circuit_sim.simulator.engine.PySpiceBuilder", return_value=mock_builder
+        ):
             results = engine.simulate_dc(circuit)
 
         assert isinstance(results, SimulationResults)
@@ -80,8 +81,12 @@ class TestSimulationEngine:
         mock_simulator.transient.return_value = mock_analysis
         mock_pyspice_circuit.simulator.return_value = mock_simulator
 
-        with patch("circuit_sim.simulator.engine.PySpiceBuilder", return_value=mock_builder):
-            results = engine.simulate_transient(circuit, stop_time=0.001, step_time=0.00001)
+        with patch(
+            "circuit_sim.simulator.engine.PySpiceBuilder", return_value=mock_builder
+        ):
+            results = engine.simulate_transient(
+                circuit, stop_time=0.001, step_time=0.00001
+            )
 
         assert isinstance(results, SimulationResults)
         assert results.analysis_type == "transient"
@@ -100,7 +105,7 @@ class TestSimulationEngine:
         results = engine.simulate_ac(
             circuit, start_frequency=10, stop_frequency=1e6, points_per_decade=20
         )
-        
+
         # Verify we got AC results
         assert results.analysis_type == "ac"
         assert results.frequency is not None
@@ -117,7 +122,9 @@ class TestSimulationEngine:
         mock_builder = MagicMock()
         mock_builder.build_circuit.side_effect = ImportError("PySpice is not installed")
 
-        with patch("circuit_sim.simulator.engine.PySpiceBuilder", return_value=mock_builder):
+        with patch(
+            "circuit_sim.simulator.engine.PySpiceBuilder", return_value=mock_builder
+        ):
             # The engine catches ImportError and tries to handle it
             try:
                 engine.simulate_dc(circuit)
@@ -142,7 +149,9 @@ class TestSimulationEngine:
         mock_simulator.operating_point.side_effect = RuntimeError("Convergence failed")
         mock_pyspice_circuit.simulator.return_value = mock_simulator
 
-        with patch("circuit_sim.simulator.engine.PySpiceBuilder", return_value=mock_builder):
+        with patch(
+            "circuit_sim.simulator.engine.PySpiceBuilder", return_value=mock_builder
+        ):
             try:
                 engine.simulate_dc(circuit)
                 assert False, "Should have raised RuntimeError"
@@ -170,10 +179,16 @@ class TestSimulationEngine:
         mock_simulator.transient.return_value = mock_analysis
         mock_pyspice_circuit.simulator.return_value = mock_simulator
 
-        with patch("circuit_sim.simulator.engine.PySpiceBuilder", return_value=mock_builder):
+        with patch(
+            "circuit_sim.simulator.engine.PySpiceBuilder", return_value=mock_builder
+        ):
             # Test with custom parameters
-            results = engine.simulate_transient(
-                circuit, stop_time=0.1, step_time=0.001, start_time=0.01, max_time_step=0.002
+            engine.simulate_transient(
+                circuit,
+                stop_time=0.1,
+                step_time=0.001,
+                start_time=0.01,
+                max_time_step=0.002,
             )
 
             # Verify parameters were passed correctly
@@ -197,7 +212,7 @@ class TestSimulationEngine:
             points_per_decade=10,  # Fixed parameter name
             variation="dec",  # Common variation type
         )
-        
+
         # Verify results
         assert results.analysis_type == "ac"
         assert results.frequency is not None
@@ -226,6 +241,8 @@ class TestSimulationEngine:
         mock_simulator.operating_point.return_value = mock_op
         mock_pyspice_circuit.simulator.return_value = mock_simulator
 
-        with patch("circuit_sim.simulator.engine.PySpiceBuilder", return_value=mock_builder):
+        with patch(
+            "circuit_sim.simulator.engine.PySpiceBuilder", return_value=mock_builder
+        ):
             results = engine.simulate_dc(circuit)
             assert results.nodes == []  # No nodes in empty circuit

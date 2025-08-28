@@ -94,7 +94,7 @@ class BridgeRectifierCircuit:
         p_out = self.v_dc_loaded**2 / self.load_resistance
 
         # Input power (RMS)
-        p_in = self.v_ac_rms**2 / self.load_resistance
+        self.v_ac_rms**2 / self.load_resistance
 
         # Account for diode losses
         i_load = self.v_dc_loaded / self.load_resistance

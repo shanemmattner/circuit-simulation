@@ -4,8 +4,6 @@ Transfer function representation and analysis for control systems.
 
 from typing import Union, List, Optional, Tuple, TYPE_CHECKING
 import numpy as np
-from dataclasses import dataclass
-from scipy import signal
 from scipy.optimize import curve_fit
 
 if TYPE_CHECKING:
@@ -22,7 +20,9 @@ class TransferFunction:
     """
 
     def __init__(
-        self, numerator: Union[List[float], np.ndarray], denominator: Union[List[float], np.ndarray]
+        self,
+        numerator: Union[List[float], np.ndarray],
+        denominator: Union[List[float], np.ndarray],
     ):
         """
         Initialize transfer function from polynomial coefficients.
@@ -117,11 +117,13 @@ class TransferFunction:
         """
         frequencies = np.asarray(frequencies)
         response = np.asarray(response)
-        
+
         # Check for valid input data
         if np.any(np.isnan(response)) or np.any(np.isinf(response)):
-            raise ValueError("Invalid frequency response data: contains NaN or infinite values")
-        
+            raise ValueError(
+                "Invalid frequency response data: contains NaN or infinite values"
+            )
+
         if len(frequencies) != len(response):
             raise ValueError("Frequency and response arrays must have the same length")
 
@@ -129,7 +131,7 @@ class TransferFunction:
             # Auto-detect order based on phase change
             phase = np.unwrap(np.angle(response))
             phase_change = abs(phase[-1] - phase[0])
-            
+
             # Handle edge cases where phase_change might be invalid
             if np.isnan(phase_change) or np.isinf(phase_change):
                 order = 1  # Default to first order
@@ -140,7 +142,7 @@ class TransferFunction:
             num_order = max(0, order - 1)
 
         # Use scipy.optimize.curve_fit for rational function fitting
-        s = 1j * frequencies
+        1j * frequencies
 
         # For simple first-order, use analytical solution
         if order == 1 and num_order == 0:
@@ -163,57 +165,57 @@ class TransferFunction:
                 """Rational function H(jw) = P(jw)/Q(jw) for fitting."""
                 w = np.atleast_1d(w)
                 s = 1j * w
-                
+
                 # Split parameters into numerator and denominator coefficients
                 n_num = num_order + 1
                 num_coeffs = params[:n_num]
                 den_coeffs = params[n_num:]
-                
+
                 # Evaluate polynomials
                 numerator = np.polyval(num_coeffs, s)
                 denominator = np.polyval([1] + list(den_coeffs), s)  # Leading coeff = 1
-                
+
                 return numerator / denominator
-            
+
             # Prepare data for fitting
             magnitude = np.abs(response)
             phase = np.angle(response)
-            
+
             # Use magnitude fitting for stable results
             def magnitude_model(w, *params):
                 return np.abs(rational_function(w, *params))
-            
+
             # Initial parameter guess
             # Start with simple estimates based on response characteristics
             dc_gain = magnitude[0] if len(magnitude) > 0 else 1.0
-            
-            # Initial guess: DC gain in numerator, simple poles in denominator  
+
+            # Initial guess: DC gain in numerator, simple poles in denominator
             num_guess = [dc_gain] + [0] * num_order
             den_guess = [1] * order  # Will be combined with leading 1
             initial_guess = num_guess + den_guess
-            
+
             # Fit the magnitude response
             try:
                 popt, _ = curve_fit(
-                    magnitude_model, 
-                    frequencies, 
+                    magnitude_model,
+                    frequencies,
                     magnitude,
                     p0=initial_guess,
                     maxfev=5000,
-                    method='lm'
+                    method="lm",
                 )
-                
+
                 # Extract fitted coefficients
                 n_num = num_order + 1
                 fitted_num = popt[:n_num]
                 fitted_den = np.concatenate([[1], popt[n_num:]])
-                
+
                 return cls(fitted_num, fitted_den)
-                
+
             except (RuntimeError, ValueError):
                 # If fitting fails, fall back to simple approach
                 pass
-            
+
             # Fallback: Simple characteristic-based fitting
             if np.any(np.abs(response) > 1e-10):
                 # Find peak response for resonant systems
@@ -221,15 +223,15 @@ class TransferFunction:
                 peak_freq = frequencies[peak_idx]
                 peak_gain = magnitude[peak_idx]
                 dc_gain = magnitude[0]
-                
+
                 if peak_gain > dc_gain * 1.1:  # Resonant system
                     # Create second-order bandpass-like system
                     wn = peak_freq  # Approximate natural frequency
                     Q = peak_gain / dc_gain  # Rough Q estimate
-                    
+
                     if order >= 2:
                         # Second-order system: H(s) = K*s / (s² + (wn/Q)*s + wn²)
-                        return cls([peak_gain * wn], [1, wn/Q, wn**2])
+                        return cls([peak_gain * wn], [1, wn / Q, wn**2])
                     else:
                         # First-order approximation
                         return cls([dc_gain * wn], [1, wn])
@@ -238,13 +240,15 @@ class TransferFunction:
                     # Find -3dB point
                     target_mag = dc_gain / np.sqrt(2)
                     idx = np.argmin(np.abs(magnitude - target_mag))
-                    cutoff_freq = frequencies[idx] if idx < len(frequencies) else peak_freq
-                    
+                    cutoff_freq = (
+                        frequencies[idx] if idx < len(frequencies) else peak_freq
+                    )
+
                     return cls([dc_gain * cutoff_freq], [1, cutoff_freq])
             else:
                 # Zero response
                 return cls([0], [1])
-                
+
         except Exception:
             # Ultimate fallback
             return cls([1], [1])
@@ -336,7 +340,9 @@ class TransferFunction:
             return True
         return bool(np.all(np.real(poles) < 0))
 
-    def evaluate(self, s: Union[complex, float, np.ndarray]) -> Union[complex, np.ndarray]:
+    def evaluate(
+        self, s: Union[complex, float, np.ndarray]
+    ) -> Union[complex, np.ndarray]:
         """
         Evaluate transfer function at given s values.
 
@@ -406,7 +412,9 @@ class TransferFunction:
 
         return calculate_stability_margins(self)
 
-    def step_response(self, time: Optional[np.ndarray] = None) -> Tuple[np.ndarray, np.ndarray]:
+    def step_response(
+        self, time: Optional[np.ndarray] = None
+    ) -> Tuple[np.ndarray, np.ndarray]:
         """
         Calculate unit step response.
 
@@ -420,7 +428,9 @@ class TransferFunction:
 
         return step_response(self, time)
 
-    def impulse_response(self, time: Optional[np.ndarray] = None) -> Tuple[np.ndarray, np.ndarray]:
+    def impulse_response(
+        self, time: Optional[np.ndarray] = None
+    ) -> Tuple[np.ndarray, np.ndarray]:
         """
         Calculate impulse response.
 

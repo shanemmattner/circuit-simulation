@@ -23,10 +23,14 @@ class ComponentInput(BaseModel):
     """Input model for circuit components."""
 
     type: ComponentType = Field(..., description="Component type")
-    name: str = Field(..., min_length=1, description="Component identifier (e.g., 'R1')")
+    name: str = Field(
+        ..., min_length=1, description="Component identifier (e.g., 'R1')"
+    )
     positive_node: str = Field(..., description="Positive terminal node")
     negative_node: str = Field(..., description="Negative terminal node")
-    value: str = Field(..., min_length=1, description="Component value (e.g., '1k', '5V')")
+    value: str = Field(
+        ..., min_length=1, description="Component value (e.g., '1k', '5V')"
+    )
     model: Optional[str] = Field(None, description="Optional SPICE model")
 
     @field_validator("name")
@@ -34,7 +38,9 @@ class ComponentInput(BaseModel):
     def validate_name(cls, v):
         """Ensure component name is valid identifier."""
         if not v.replace("_", "").isalnum():
-            raise ValueError("Component name must be alphanumeric with optional underscores")
+            raise ValueError(
+                "Component name must be alphanumeric with optional underscores"
+            )
         return v
 
 
@@ -42,8 +48,12 @@ class CircuitCreate(BaseModel):
     """Request model for creating a new circuit."""
 
     name: str = Field(..., min_length=1, max_length=100, description="Circuit name")
-    description: Optional[str] = Field(None, max_length=500, description="Circuit description")
-    components: List[ComponentInput] = Field(..., min_length=1, description="Circuit components")
+    description: Optional[str] = Field(
+        None, max_length=500, description="Circuit description"
+    )
+    components: List[ComponentInput] = Field(
+        ..., min_length=1, description="Circuit components"
+    )
 
     @field_validator("components")
     @classmethod

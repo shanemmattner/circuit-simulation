@@ -86,7 +86,11 @@ class TransistorAmplifierCircuit:
         """
         if self.config == "common_emitter":
             # Zin = R1 || R2 || (β * re)
-            r_bias = (self.r1 * self.r2) / (self.r1 + self.r2) if self.r1 and self.r2 else 10000
+            r_bias = (
+                (self.r1 * self.r2) / (self.r1 + self.r2)
+                if self.r1 and self.r2
+                else 10000
+            )
 
             if self.re:
                 z_transistor = self.beta * self.re

@@ -215,10 +215,14 @@ class TestPlotlyChartGenerator:
 
         # Multiple node responses
         voltage1 = (
-            1 / np.sqrt(1 + (frequency / 1000) ** 2) * np.exp(1j * -np.arctan(frequency / 1000))
+            1
+            / np.sqrt(1 + (frequency / 1000) ** 2)
+            * np.exp(1j * -np.arctan(frequency / 1000))
         )
         voltage2 = (
-            0.5 / np.sqrt(1 + (frequency / 2000) ** 2) * np.exp(1j * -np.arctan(frequency / 2000))
+            0.5
+            / np.sqrt(1 + (frequency / 2000) ** 2)
+            * np.exp(1j * -np.arctan(frequency / 2000))
         )
 
         results = SimulationResults("ac")

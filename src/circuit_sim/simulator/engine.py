@@ -37,7 +37,9 @@ class SimulationEngine:
 
         # Create simulator
         try:
-            simulator = pyspice_circuit.simulator(temperature=25, nominal_temperature=25)
+            simulator = pyspice_circuit.simulator(
+                temperature=25, nominal_temperature=25
+            )
         except Exception as e:
             if "NgSpice" in str(e) or "ngspice" in str(e).lower():
                 raise ImportError(
@@ -122,7 +124,9 @@ class SimulationEngine:
 
         # Create simulator
         try:
-            simulator = pyspice_circuit.simulator(temperature=25, nominal_temperature=25)
+            simulator = pyspice_circuit.simulator(
+                temperature=25, nominal_temperature=25
+            )
         except Exception as e:
             if "NgSpice" in str(e) or "ngspice" in str(e).lower():
                 raise ImportError(
@@ -223,7 +227,9 @@ class SimulationEngine:
 
         # Create simulator
         try:
-            simulator = pyspice_circuit.simulator(temperature=25, nominal_temperature=25)
+            simulator = pyspice_circuit.simulator(
+                temperature=25, nominal_temperature=25
+            )
         except Exception as e:
             if "NgSpice" in str(e) or "ngspice" in str(e).lower():
                 raise ImportError(
@@ -257,27 +263,28 @@ class SimulationEngine:
             raise RuntimeError(f"AC simulation failed: {e}")
 
         # Try to get complex data directly from analysis if available
-        complex_data_available = self._check_complex_data_available(analysis)
+        self._check_complex_data_available(analysis)
 
         # Extract results
         results = SimulationResults("ac")
-        
+
         # Get actual frequency vector from analysis (more accurate than our generated one)
         try:
             # Extract numeric values from PySpice FrequencyValue objects
             frequency_values = []
             for freq in analysis.frequency:
-                if hasattr(freq, 'value'):
+                if hasattr(freq, "value"):
                     # PySpice FrequencyValue object - extract numeric value
                     frequency_values.append(float(freq.value))
                 else:
                     # Already numeric
                     frequency_values.append(float(freq))
-            
+
             actual_frequencies = np.array(frequency_values)
             results.set_frequency_vector(actual_frequencies)
         except Exception as e:
             import logging
+
             logging.warning(f"Failed to extract frequency vector from PySpice: {e}")
             # Fallback to our generated frequency vector
             results.set_frequency_vector(frequencies)
@@ -298,43 +305,50 @@ class SimulationEngine:
 
             # Get complex voltage waveform - handle PySpice voltage units properly
             voltage_data = analysis.nodes[node_name]
-            
+
             # Extract complex values from PySpice WaveForm using numpy
             try:
                 # Use numpy to directly interpret the WaveForm as complex array
                 # This preserves the complex data that individual UnitValue objects lose
                 complex_voltage = np.array(voltage_data, dtype=complex)
-                
+
                 # Verify we got the complex data
                 if not np.iscomplexobj(complex_voltage):
                     import logging
-                    logging.warning(f"Node {node_id} numpy conversion didn't preserve complex type")
+
+                    logging.warning(
+                        f"Node {node_id} numpy conversion didn't preserve complex type"
+                    )
                     # Force complex dtype
                     complex_voltage = complex_voltage.astype(complex)
-                
+
                 # Verify we have meaningful data
                 if len(complex_voltage) == 0:
                     import logging
+
                     logging.warning(f"Node {node_id} returned empty voltage data")
                     complex_voltage = np.array([complex(0, 0)], dtype=complex)
-                
+
             except Exception as e:
                 # Fallback: try simpler conversion
                 import logging
+
                 logging.error(f"Failed to extract voltage for node {node_id}: {e}")
-                
+
                 try:
                     # Try direct numpy conversion as last resort
                     complex_voltage = np.array(voltage_data, dtype=complex)
                 except:
                     # Ultimate fallback - zero voltage
                     complex_voltage = np.array([complex(0, 0)], dtype=complex)
-            
+
             results.add_voltage(node_id, complex_voltage)
 
         # Get complex branch currents (if available)
         for branch_name in analysis.branches.keys():
-            complex_current = np.array([complex(i) for i in analysis.branches[branch_name]])
+            complex_current = np.array(
+                [complex(i) for i in analysis.branches[branch_name]]
+            )
             results.add_current(branch_name, complex_current)
 
         # Add metadata
@@ -352,10 +366,10 @@ class SimulationEngine:
             for node_name in analysis.nodes.keys():
                 node_data = analysis.nodes[node_name]
                 for v in node_data:
-                    if hasattr(v, '_value'):
+                    if hasattr(v, "_value"):
                         # Check if _value is complex or if we can access the raw complex data
                         val = v._value
-                        if hasattr(val, 'imag') and val.imag != 0:
+                        if hasattr(val, "imag") and val.imag != 0:
                             return True
                     break  # Just check first value
                 break
@@ -366,42 +380,59 @@ class SimulationEngine:
     def _extract_complex_data_manual(self, analysis) -> dict:
         """Manually extract complex data by directly accessing ngspice data structures."""
         complex_data = {}
-        
+
         # Try to access the raw simulation data from PySpice/ngspice
         try:
             # Access the raw ngspice data if possible
-            if hasattr(analysis, '_simulation') and hasattr(analysis._simulation, 'plot'):
+            if hasattr(analysis, "_simulation") and hasattr(
+                analysis._simulation, "plot"
+            ):
                 plot = analysis._simulation.plot
-                if hasattr(plot, 'data'):
+                if hasattr(plot, "data"):
                     # Extract complex data from raw ngspice plot data
                     for node_name in analysis.nodes.keys():
                         if node_name in plot.data:
                             raw_data = plot.data[node_name]
-                            if hasattr(raw_data, 'real') and hasattr(raw_data, 'imag'):
+                            if hasattr(raw_data, "real") and hasattr(raw_data, "imag"):
                                 complex_voltages = raw_data.real + 1j * raw_data.imag
                                 complex_data[node_name] = complex_voltages
-                                
-            # Alternative: try to reconstruct from magnitude/phase if available            
+
+            # Alternative: try to reconstruct from magnitude/phase if available
             if not complex_data:
                 for node_name in analysis.nodes.keys():
-                    if hasattr(analysis, 'magnitude') and hasattr(analysis, 'phase'):
+                    if hasattr(analysis, "magnitude") and hasattr(analysis, "phase"):
                         mag_data = getattr(analysis.magnitude, node_name, None)
                         phase_data = getattr(analysis.phase, node_name, None)
                         if mag_data is not None and phase_data is not None:
                             # Reconstruct complex from magnitude/phase
-                            magnitude = np.array([float(m.value if hasattr(m, 'value') else m) for m in mag_data])
-                            phase_rad = np.array([float(p.value if hasattr(p, 'value') else p) for p in phase_data])
+                            magnitude = np.array(
+                                [
+                                    float(m.value if hasattr(m, "value") else m)
+                                    for m in mag_data
+                                ]
+                            )
+                            phase_rad = np.array(
+                                [
+                                    float(p.value if hasattr(p, "value") else p)
+                                    for p in phase_data
+                                ]
+                            )
                             complex_voltages = magnitude * np.exp(1j * phase_rad)
                             complex_data[node_name] = complex_voltages
-                            
+
         except Exception as e:
             import logging
+
             logging.debug(f"Failed to extract complex data manually: {e}")
-            
+
         return complex_data
 
     def _generate_frequency_vector(
-        self, start_freq: float, stop_freq: float, points_per_decade: int, variation: str
+        self,
+        start_freq: float,
+        stop_freq: float,
+        points_per_decade: int,
+        variation: str,
     ) -> np.ndarray:
         """Generate frequency vector for AC analysis."""
         if variation == "dec":

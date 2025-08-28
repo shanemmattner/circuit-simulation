@@ -17,7 +17,9 @@ async def test_circuit_simulation():
     """Test the circuit simulation MCP server."""
 
     # Connect to server via stdio
-    server_params = StdioServerParameters(command="python3", args=["run_mcp_server.py"], cwd=".")
+    server_params = StdioServerParameters(
+        command="python3", args=["run_mcp_server.py"], cwd="."
+    )
 
     async with stdio_client(server_params) as (read_stream, write_stream):
         async with ClientSession(read_stream, write_stream) as session:
@@ -56,13 +58,26 @@ async def test_circuit_simulation():
                     "positive": 1,
                     "negative": 0,
                 },
-                {"type": "resistor", "name": "R1", "value": "1k", "positive": 1, "negative": 2},
-                {"type": "resistor", "name": "R2", "value": "1k", "positive": 2, "negative": 0},
+                {
+                    "type": "resistor",
+                    "name": "R1",
+                    "value": "1k",
+                    "positive": 1,
+                    "negative": 2,
+                },
+                {
+                    "type": "resistor",
+                    "name": "R2",
+                    "value": "1k",
+                    "positive": 2,
+                    "negative": 0,
+                },
             ]
 
             for comp in components:
                 result = await session.call_tool(
-                    "circuit.add_component", arguments={"circuit_id": circuit_id, **comp}
+                    "circuit.add_component",
+                    arguments={"circuit_id": circuit_id, **comp},
                 )
                 result_data = json.loads(result.content[0].text)
                 print(f"Added {comp['type']} {comp['name']}: {result_data['status']}")
@@ -110,8 +125,20 @@ async def test_circuit_simulation():
                     "positive": 1,
                     "negative": 0,
                 },
-                {"type": "resistor", "name": "R1", "value": "10k", "positive": 1, "negative": 2},
-                {"type": "capacitor", "name": "C1", "value": "1uF", "positive": 2, "negative": 0},
+                {
+                    "type": "resistor",
+                    "name": "R1",
+                    "value": "10k",
+                    "positive": 1,
+                    "negative": 2,
+                },
+                {
+                    "type": "capacitor",
+                    "name": "C1",
+                    "value": "1uF",
+                    "positive": 2,
+                    "negative": 0,
+                },
             ]
 
             for comp in rc_components:
@@ -171,7 +198,9 @@ async def test_circuit_simulation():
             print(f"Total circuits: {list_data['count']}")
             for circuit in list_data["circuits"]:
                 print(f"  - {circuit['name']} (ID: {circuit['circuit_id']})")
-                print(f"    Components: {circuit['components']}, Nodes: {circuit['nodes']}")
+                print(
+                    f"    Components: {circuit['components']}, Nodes: {circuit['nodes']}"
+                )
 
             # 10. Test resources
             print("\n=== Available Resources ===")

@@ -76,16 +76,22 @@ class RLCResonanceCircuit:
 
         # Bandwidth
         self.bandwidth = (
-            self.resonant_frequency / self.q_factor if self.q_factor > 0 else float("inf")
+            self.resonant_frequency / self.q_factor
+            if self.q_factor > 0
+            else float("inf")
         )
 
         # Damping ratio and type
-        self.damping_ratio = 1 / (2 * self.q_factor) if self.q_factor > 0 else float("inf")
+        self.damping_ratio = (
+            1 / (2 * self.q_factor) if self.q_factor > 0 else float("inf")
+        )
 
         if self.damping_ratio < 1:
             self.damping_type = "underdamped"
             # Calculate damped natural frequency
-            self.damped_frequency = self.resonant_frequency * np.sqrt(1 - self.damping_ratio**2)
+            self.damped_frequency = self.resonant_frequency * np.sqrt(
+                1 - self.damping_ratio**2
+            )
         elif abs(self.damping_ratio - 1) < 0.01:
             self.damping_type = "critically_damped"
             self.damped_frequency = 0
@@ -95,10 +101,17 @@ class RLCResonanceCircuit:
 
     def _build_circuit(self) -> Dict[str, Any]:
         """Build circuit representation."""
-        circuit = {"name": f"RLC {self.topology.title()} Resonant Circuit", "components": {}}
+        circuit = {
+            "name": f"RLC {self.topology.title()} Resonant Circuit",
+            "components": {},
+        }
 
         # Voltage source
-        circuit["components"]["V1"] = {"type": "voltage", "value": self.vin, "nodes": ("in", "0")}
+        circuit["components"]["V1"] = {
+            "type": "voltage",
+            "value": self.vin,
+            "nodes": ("in", "0"),
+        }
 
         if self.topology == "series":
             # Series connection
@@ -213,7 +226,9 @@ class RLCResonanceCircuit:
 
         return (f_lower, f_upper)
 
-    def calculate_energy(self, time: float, current: float, voltage_c: float) -> Dict[str, float]:
+    def calculate_energy(
+        self, time: float, current: float, voltage_c: float
+    ) -> Dict[str, float]:
         """Calculate energy stored in L and C.
 
         Args:
@@ -268,7 +283,9 @@ class RLCResonanceCircuit:
 
         # Analysis commands
         netlist.append("")
-        netlist.append(f".ac dec 30 {self.resonant_frequency/100} {self.resonant_frequency*100}")
+        netlist.append(
+            f".ac dec 30 {self.resonant_frequency/100} {self.resonant_frequency*100}"
+        )
         netlist.append(".print ac v(in) i(V1) v(n2)")
         netlist.append("")
 

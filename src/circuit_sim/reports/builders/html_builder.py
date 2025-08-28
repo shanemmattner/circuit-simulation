@@ -98,10 +98,14 @@ class HTMLBuilder:
         for chart_name, chart_fig in charts.items():
             if hasattr(chart_fig, "to_html"):
                 # Generate HTML for Plotly figure
-                chart_html = chart_fig.to_html(include_plotlyjs="cdn", div_id=f"chart-{chart_name}")
+                chart_html = chart_fig.to_html(
+                    include_plotlyjs="cdn", div_id=f"chart-{chart_name}"
+                )
                 charts_html[chart_name] = chart_html
             else:
                 # Fallback for non-Plotly objects
-                charts_html[chart_name] = f'<div id="chart-{chart_name}">Chart not available</div>'
+                charts_html[chart_name] = (
+                    f'<div id="chart-{chart_name}">Chart not available</div>'
+                )
 
         return charts_html

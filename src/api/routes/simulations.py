@@ -20,9 +20,13 @@ simulation_service = SimulationService(circuit_service)
 
 
 @router.post(
-    "/api/circuits/{circuit_id}/simulate", response_model=SimulationStatus, status_code=202
+    "/api/circuits/{circuit_id}/simulate",
+    response_model=SimulationStatus,
+    status_code=202,
 )
-async def start_simulation(circuit_id: str, sim_request: SimulationRequest) -> SimulationStatus:
+async def start_simulation(
+    circuit_id: str, sim_request: SimulationRequest
+) -> SimulationStatus:
     """
     Start a simulation job for a circuit.
 
@@ -123,7 +127,8 @@ async def get_simulation_results(job_id: str) -> Dict[str, Any]:
             raise HTTPException(status_code=404, detail="Simulation job not found")
         elif status.status != "completed":
             raise HTTPException(
-                status_code=409, detail=f"Simulation not completed (status: {status.status})"
+                status_code=409,
+                detail=f"Simulation not completed (status: {status.status})",
             )
         else:
             raise HTTPException(status_code=404, detail="No results available")

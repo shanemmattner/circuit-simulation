@@ -35,7 +35,11 @@ def run_simulation(
         # Update task progress
         self.update_state(
             state="PROGRESS",
-            meta={"progress": 10, "message": "Initializing simulation...", "job_id": job_id},
+            meta={
+                "progress": 10,
+                "message": "Initializing simulation...",
+                "job_id": job_id,
+            },
         )
 
         # Get circuit (would normally be from database)
@@ -52,7 +56,11 @@ def run_simulation(
         # Update progress
         self.update_state(
             state="PROGRESS",
-            meta={"progress": 30, "message": f"Running {sim_type} analysis...", "job_id": job_id},
+            meta={
+                "progress": 30,
+                "message": f"Running {sim_type} analysis...",
+                "job_id": job_id,
+            },
         )
 
         # Run simulation based on type

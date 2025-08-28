@@ -42,7 +42,10 @@ def design_power_supply(
     c_filter = _round_to_standard_capacitor(c_filter * 2)  # Extra margin for ripple
 
     return BridgeRectifierCircuit(
-        v_ac_rms=v_ac_rms, frequency=frequency, load_resistance=r_load, filter_capacitor=c_filter
+        v_ac_rms=v_ac_rms,
+        frequency=frequency,
+        load_resistance=r_load,
+        filter_capacitor=c_filter,
     )
 
 

@@ -2,7 +2,7 @@
 Stability analysis tools for transfer functions.
 """
 
-from typing import Dict, Tuple, Optional
+from typing import Tuple, Optional
 import numpy as np
 from dataclasses import dataclass
 
@@ -47,7 +47,9 @@ def calculate_stability_margins(
         frequency_range = (0.001, 10000)
 
     # Generate frequency vector
-    frequencies = np.logspace(np.log10(frequency_range[0]), np.log10(frequency_range[1]), 1000)
+    frequencies = np.logspace(
+        np.log10(frequency_range[0]), np.log10(frequency_range[1]), 1000
+    )
 
     # Calculate frequency response
     response = transfer_function.frequency_response(frequencies)

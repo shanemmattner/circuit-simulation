@@ -140,7 +140,7 @@ class TestHTMLBuilder:
             output_path = tmp_file.name
 
         try:
-            result_path = self.builder.build(report_data, "detailed", output_path)
+            self.builder.build(report_data, "detailed", output_path)
 
             # Verify charts were processed
             assert mock_chart.to_html.call_count == 2
@@ -175,7 +175,10 @@ class TestHTMLBuilder:
         with tempfile.TemporaryDirectory() as tmp_dir:
             output_path = os.path.join(tmp_dir, "subdir", "report.html")
 
-            report_data = {"metadata": {"circuit_name": "Test"}, "summary": {"text": "Test"}}
+            report_data = {
+                "metadata": {"circuit_name": "Test"},
+                "summary": {"text": "Test"},
+            }
 
             result_path = self.builder.build(report_data, "quick", output_path)
 
@@ -239,7 +242,9 @@ class TestHTMLBuilder:
 
         from jinja2 import DictLoader, Environment, StrictUndefined
 
-        bad_env = Environment(loader=DictLoader(bad_templates), undefined=StrictUndefined)
+        bad_env = Environment(
+            loader=DictLoader(bad_templates), undefined=StrictUndefined
+        )
         builder = HTMLBuilder(bad_env)
 
         report_data = {"metadata": {"circuit_name": "Test"}}
@@ -256,7 +261,10 @@ class TestHTMLBuilder:
 
     def test_file_write_error_handling(self):
         """Test handling of file write errors."""
-        report_data = {"metadata": {"circuit_name": "Write Test"}, "summary": {"text": "Test"}}
+        report_data = {
+            "metadata": {"circuit_name": "Write Test"},
+            "summary": {"text": "Test"},
+        }
 
         # Try to write to read-only location (should fail gracefully)
         invalid_path = "/root/readonly/report.html"

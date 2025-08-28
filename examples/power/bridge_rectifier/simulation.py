@@ -8,7 +8,9 @@ from .circuit import BridgeRectifierCircuit
 
 
 def simulate_rectifier(
-    circuit: BridgeRectifierCircuit, duration: float = 100e-3, timestep: Optional[float] = None
+    circuit: BridgeRectifierCircuit,
+    duration: float = 100e-3,
+    timestep: Optional[float] = None,
 ) -> Dict[str, Any]:
     """Simulate bridge rectifier circuit.
 

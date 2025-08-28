@@ -35,7 +35,11 @@ class Circuit:
         self._simulation_results = None
 
     def add_voltage_source(
-        self, name: str, positive: Union[int, str], negative: Union[int, str], dc_value: str
+        self,
+        name: str,
+        positive: Union[int, str],
+        negative: Union[int, str],
+        dc_value: str,
     ) -> "Circuit":
         """
         Add a DC voltage source to the circuit.
@@ -107,7 +111,11 @@ class Circuit:
         return self
 
     def add_capacitor(
-        self, name: str, node1: Union[int, str], node2: Union[int, str], capacitance: str
+        self,
+        name: str,
+        node1: Union[int, str],
+        node2: Union[int, str],
+        capacitance: str,
     ) -> "Circuit":
         """
         Add a capacitor to the circuit.
@@ -179,7 +187,11 @@ class Circuit:
         return self
 
     def add_current_source(
-        self, name: str, positive: Union[int, str], negative: Union[int, str], dc_value: str
+        self,
+        name: str,
+        positive: Union[int, str],
+        negative: Union[int, str],
+        dc_value: str,
     ) -> "Circuit":
         """
         Add a DC current source to the circuit.
@@ -215,8 +227,12 @@ class Circuit:
         return self
 
     def add_bjt_transistor(
-        self, name: str, collector: Union[int, str], base: Union[int, str], 
-        emitter: Union[int, str], model: str = "2N3904"
+        self,
+        name: str,
+        collector: Union[int, str],
+        base: Union[int, str],
+        emitter: Union[int, str],
+        model: str = "2N3904",
     ) -> "Circuit":
         """
         Add a BJT transistor to the circuit.
@@ -224,7 +240,7 @@ class Circuit:
         Args:
             name: Component identifier (e.g., "Q1")
             collector: Collector terminal node
-            base: Base terminal node  
+            base: Base terminal node
             emitter: Emitter terminal node
             model: SPICE model name (e.g., "2N3904")
 
@@ -237,20 +253,25 @@ class Circuit:
                 node = 0
             self.nodes.add(node)
 
-        self.components.append({
-            "type": "bjt_transistor",
-            "name": name,
-            "collector": collector,
-            "base": base,
-            "emitter": emitter,
-            "model": model
-        })
+        self.components.append(
+            {
+                "type": "bjt_transistor",
+                "name": name,
+                "collector": collector,
+                "base": base,
+                "emitter": emitter,
+                "model": model,
+            }
+        )
 
         return self
 
     def add_diode(
-        self, name: str, anode: Union[int, str], cathode: Union[int, str], 
-        model: str = "1N4148"
+        self,
+        name: str,
+        anode: Union[int, str],
+        cathode: Union[int, str],
+        model: str = "1N4148",
     ) -> "Circuit":
         """
         Add a diode to the circuit.
@@ -273,20 +294,27 @@ class Circuit:
         self.nodes.add(anode)
         self.nodes.add(cathode)
 
-        self.components.append({
-            "type": "diode",
-            "name": name,
-            "anode": anode,
-            "cathode": cathode,
-            "model": model
-        })
+        self.components.append(
+            {
+                "type": "diode",
+                "name": name,
+                "anode": anode,
+                "cathode": cathode,
+                "model": model,
+            }
+        )
 
         return self
 
     def add_opamp(
-        self, name: str, vplus: Union[int, str], vminus: Union[int, str],
-        vout: Union[int, str], vcc: Union[int, str], vee: Union[int, str],
-        model: str = "LM358"
+        self,
+        name: str,
+        vplus: Union[int, str],
+        vminus: Union[int, str],
+        vout: Union[int, str],
+        vcc: Union[int, str],
+        vee: Union[int, str],
+        model: str = "LM358",
     ) -> "Circuit":
         """
         Add an operational amplifier to the circuit.
@@ -309,23 +337,29 @@ class Circuit:
                 node = 0
             self.nodes.add(node)
 
-        self.components.append({
-            "type": "opamp", 
-            "name": name,
-            "vplus": vplus,
-            "vminus": vminus,
-            "vout": vout,
-            "vcc": vcc,
-            "vee": vee,
-            "model": model
-        })
+        self.components.append(
+            {
+                "type": "opamp",
+                "name": name,
+                "vplus": vplus,
+                "vminus": vminus,
+                "vout": vout,
+                "vcc": vcc,
+                "vee": vee,
+                "model": model,
+            }
+        )
 
         return self
 
     def add_mosfet(
-        self, name: str, drain: Union[int, str], gate: Union[int, str],
-        source: Union[int, str], bulk: Union[int, str], 
-        model: str = "IRF540"
+        self,
+        name: str,
+        drain: Union[int, str],
+        gate: Union[int, str],
+        source: Union[int, str],
+        bulk: Union[int, str],
+        model: str = "IRF540",
     ) -> "Circuit":
         """
         Add a MOSFET transistor to the circuit.
@@ -334,7 +368,7 @@ class Circuit:
             name: Component identifier (e.g., "Q1")
             drain: Drain terminal node
             gate: Gate terminal node
-            source: Source terminal node 
+            source: Source terminal node
             bulk: Bulk/substrate terminal node
             model: SPICE model name (e.g., "IRF540")
 
@@ -347,15 +381,17 @@ class Circuit:
                 node = 0
             self.nodes.add(node)
 
-        self.components.append({
-            "type": "mosfet",
-            "name": name,
-            "drain": drain,
-            "gate": gate,
-            "source": source,
-            "bulk": bulk,
-            "model": model
-        })
+        self.components.append(
+            {
+                "type": "mosfet",
+                "name": name,
+                "drain": drain,
+                "gate": gate,
+                "source": source,
+                "bulk": bulk,
+                "model": model,
+            }
+        )
 
         return self
 
@@ -377,38 +413,42 @@ class Circuit:
             RuntimeError: If simulation fails
         """
         from .simulator import SimulationEngine
-        
+
         engine = SimulationEngine()
-        
+
         if analysis == "dc":
             return engine.simulate_dc(self)
         elif analysis == "transient":
             stop_time = kwargs.get("stop_time")
             if stop_time is None:
                 raise ValueError("transient analysis requires stop_time parameter")
-            
+
             step_time = kwargs.get("step_time")
             start_time = kwargs.get("start_time", 0)
             max_time_step = kwargs.get("max_time_step")
-            
+
             return engine.simulate_transient(
                 self, stop_time, step_time, start_time, max_time_step
             )
         elif analysis == "ac":
             start_freq = kwargs.get("start_freq") or kwargs.get("start_frequency")
             stop_freq = kwargs.get("stop_freq") or kwargs.get("stop_frequency")
-            
+
             if start_freq is None or stop_freq is None:
-                raise ValueError("AC analysis requires start_freq and stop_freq parameters")
-            
+                raise ValueError(
+                    "AC analysis requires start_freq and stop_freq parameters"
+                )
+
             points_per_decade = kwargs.get("points_per_decade", 10)
             variation = kwargs.get("variation", "dec")
-            
+
             return engine.simulate_ac(
                 self, start_freq, stop_freq, points_per_decade, variation
             )
         else:
-            raise ValueError(f"Unknown analysis type: {analysis}. Use 'dc', 'transient', or 'ac'")
+            raise ValueError(
+                f"Unknown analysis type: {analysis}. Use 'dc', 'transient', or 'ac'"
+            )
 
     def __repr__(self) -> str:
         """String representation of the circuit."""

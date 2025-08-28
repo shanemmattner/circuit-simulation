@@ -114,7 +114,7 @@ class SimulationResults:
     def get_voltage(self, node: Union[int, str]) -> Optional[np.ndarray]:
         """
         Get voltage at a specific node (alias for voltage() method).
-        
+
         This method provides compatibility with test frameworks that expect
         get_voltage() method name.
 
@@ -125,11 +125,11 @@ class SimulationResults:
             Voltage array or None if node not found
         """
         return self.voltage(node)
-    
+
     def get_frequency_vector(self) -> Optional[np.ndarray]:
         """
         Get frequency vector for AC analysis (alias for frequency property).
-        
+
         This method provides compatibility with test frameworks that expect
         get_frequency_vector() method name.
 
@@ -163,17 +163,19 @@ class SimulationResults:
         """Get simulation metadata."""
         return self._metadata
 
-    def analyze_power(self, circuit, component_ratings: Optional[Dict[str, float]] = None):
+    def analyze_power(
+        self, circuit, component_ratings: Optional[Dict[str, float]] = None
+    ):
         """
         Analyze power dissipation in the circuit.
-        
+
         Args:
             circuit: Circuit object used for simulation
             component_ratings: Optional component power ratings
-            
+
         Returns:
             PowerAnalysisResult with power information
-            
+
         Raises:
             ImportError: If validation module not available
             NotImplementedError: If not DC analysis
@@ -182,10 +184,10 @@ class SimulationResults:
             from ..validation import PowerAnalyzer
         except ImportError:
             raise ImportError("Power analysis requires validation module")
-            
+
         analyzer = PowerAnalyzer()
         return analyzer.analyze_power(circuit, self, component_ratings)
-        
+
     def plot(self, *signals: str, save_to: Optional[str] = None, show: bool = True):
         """
         Plot simulation results.
@@ -223,7 +225,11 @@ class SimulationResults:
                         ax.plot(self._time, voltage, label=signal)
                         ax.set_xlabel("Time (s)")
                     elif self.analysis_type == "ac" and self._frequency is not None:
-                        ax.semilogx(self._frequency, 20 * np.log10(np.abs(voltage)), label=signal)
+                        ax.semilogx(
+                            self._frequency,
+                            20 * np.log10(np.abs(voltage)),
+                            label=signal,
+                        )
                         ax.set_xlabel("Frequency (Hz)")
                     else:
                         # DC or single point
@@ -239,7 +245,11 @@ class SimulationResults:
                         ax.plot(self._time, current, label=signal)
                         ax.set_xlabel("Time (s)")
                     elif self.analysis_type == "ac" and self._frequency is not None:
-                        ax.semilogx(self._frequency, 20 * np.log10(np.abs(current)), label=signal)
+                        ax.semilogx(
+                            self._frequency,
+                            20 * np.log10(np.abs(current)),
+                            label=signal,
+                        )
                         ax.set_xlabel("Frequency (Hz)")
                     else:
                         # DC or single point
@@ -281,68 +291,72 @@ class SimulationResults:
             info.append(f"freq_points={len(self._frequency)}")
 
         return ", ".join(info) + ")"
-    
+
     def to_transfer_function(
         self,
         input_node: Union[int, str],
         output_node: Union[int, str],
-        reference: Union[int, str] = 0
+        reference: Union[int, str] = 0,
     ) -> "TransferFunction":
         """
         Extract transfer function from AC analysis results.
-        
+
         Args:
             input_node: Input node identifier
             output_node: Output node identifier
             reference: Reference node (default: ground/0)
-            
+
         Returns:
             TransferFunction object H(s) = Vout/Vin
-            
+
         Raises:
             ValueError: If not AC analysis or nodes not found
         """
         if self.analysis_type != "ac":
-            raise ValueError("Transfer function extraction requires AC analysis results")
-        
+            raise ValueError(
+                "Transfer function extraction requires AC analysis results"
+            )
+
         if self._frequency is None:
             raise ValueError("No frequency data available")
-        
+
         # Get voltages
         vin = self.voltage(input_node)
         vout = self.voltage(output_node)
-        
+
         if vin is None:
             raise ValueError(f"Input node '{input_node}' not found in results")
         if vout is None:
             raise ValueError(f"Output node '{output_node}' not found in results")
-        
+
         # Handle reference node if not ground
         if reference != 0:
             vref = self.voltage(reference)
             if vref is not None:
                 vin = vin - vref
                 vout = vout - vref
-        
+
         # Calculate transfer function H(jω) = Vout/Vin
-        with np.errstate(divide='ignore', invalid='ignore'):
+        with np.errstate(divide="ignore", invalid="ignore"):
             h_jw = vout / vin
-        
+
         # Check for valid transfer function data
         if np.all(h_jw == 0):
             # Handle zero transfer function gracefully
             from ..analysis import TransferFunction
+
             return TransferFunction([0], [1])  # H(s) = 0
-        
+
         if np.any(np.isnan(h_jw)) or np.any(np.isinf(h_jw)):
             raise ValueError(
                 "Invalid transfer function data: simulation may have failed or "
                 "circuit may have connectivity issues. Check AC analysis setup."
             )
-        
+
         # Convert frequency from Hz to rad/s
         omega = 2 * np.pi * self._frequency
-        
+
         # Create transfer function from frequency response
         from ..analysis import TransferFunction
+
         return TransferFunction.from_frequency_response(omega, h_jw)

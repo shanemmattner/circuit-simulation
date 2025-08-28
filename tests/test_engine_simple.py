@@ -6,7 +6,6 @@ Focus on basic functionality without complex mocking.
 from unittest.mock import MagicMock, patch
 
 import numpy as np
-import pytest
 
 from circuit_sim import Circuit
 from circuit_sim.simulator import SimulationEngine, SimulationResults
@@ -45,7 +44,9 @@ class TestSimulationEngineBasics:
         mock_simulator.operating_point.return_value = mock_op
         mock_pyspice_circuit.simulator.return_value = mock_simulator
 
-        with patch("circuit_sim.simulator.engine.PySpiceBuilder", return_value=mock_builder):
+        with patch(
+            "circuit_sim.simulator.engine.PySpiceBuilder", return_value=mock_builder
+        ):
             results = engine.simulate_dc(circuit)
 
         assert isinstance(results, SimulationResults)
@@ -81,8 +82,12 @@ class TestSimulationEngineBasics:
         mock_simulator.transient.return_value = mock_analysis
         mock_pyspice_circuit.simulator.return_value = mock_simulator
 
-        with patch("circuit_sim.simulator.engine.PySpiceBuilder", return_value=mock_builder):
-            results = engine.simulate_transient(circuit, stop_time=0.001, step_time=0.00001)
+        with patch(
+            "circuit_sim.simulator.engine.PySpiceBuilder", return_value=mock_builder
+        ):
+            results = engine.simulate_transient(
+                circuit, stop_time=0.001, step_time=0.00001
+            )
 
         assert isinstance(results, SimulationResults)
         assert results.analysis_type == "transient"
@@ -101,7 +106,7 @@ class TestSimulationEngineBasics:
         results = engine.simulate_ac(
             circuit, start_frequency=10, stop_frequency=1e6, points_per_decade=20
         )
-        
+
         # Verify basic AC results
         assert results.analysis_type == "ac"
         assert results.frequency is not None
@@ -128,7 +133,9 @@ class TestSimulationEngineBasics:
         mock_simulator.transient.return_value = mock_analysis
         mock_pyspice_circuit.simulator.return_value = mock_simulator
 
-        with patch("circuit_sim.simulator.engine.PySpiceBuilder", return_value=mock_builder):
+        with patch(
+            "circuit_sim.simulator.engine.PySpiceBuilder", return_value=mock_builder
+        ):
             # Test with minimal parameters (stop_time is required)
             results = engine.simulate_transient(circuit, stop_time=0.01)
             assert results is not None

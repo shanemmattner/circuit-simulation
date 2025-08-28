@@ -28,7 +28,16 @@ class TestSpiceTokenizer:
         lines = ["M1 drain gate source bulk NMOS_MODEL", "+ W=10u L=1u"]
         tokens = tokenizer.parse_continued_lines(lines)
 
-        expected = ["M1", "drain", "gate", "source", "bulk", "NMOS_MODEL", "W=10u", "L=1u"]
+        expected = [
+            "M1",
+            "drain",
+            "gate",
+            "source",
+            "bulk",
+            "NMOS_MODEL",
+            "W=10u",
+            "L=1u",
+        ]
         assert tokens == expected
 
     def test_skip_comments_and_empty_lines(self):
@@ -111,7 +120,7 @@ R2 inn 1 1meg
 .END
         """
 
-        circuit = parser.parse_content(spice_content)
+        parser.parse_content(spice_content)
 
         assert "OPAMP" in parser.subcircuits
         subckt = parser.subcircuits["OPAMP"]

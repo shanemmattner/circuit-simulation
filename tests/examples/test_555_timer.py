@@ -62,7 +62,12 @@ class TestTimer555Circuit:
     def test_pwm_mode(self):
         """Test PWM generation mode."""
         circuit = Timer555Circuit(
-            mode="pwm", r1=1000, r2=10000, c=100e-9, control_voltage=2.5, vcc=5.0  # 50% duty cycle
+            mode="pwm",
+            r1=1000,
+            r2=10000,
+            c=100e-9,
+            control_voltage=2.5,
+            vcc=5.0,  # 50% duty cycle
         )
 
         assert circuit.mode == "pwm"
@@ -192,7 +197,9 @@ class TestDesignFunctions:
     def test_design_monostable(self):
         """Test monostable design."""
         # Design for 10ms pulse
-        circuit = design_monostable_555(pulse_width=10e-3, capacitor=10e-6)  # Fix capacitor
+        circuit = design_monostable_555(
+            pulse_width=10e-3, capacitor=10e-6
+        )  # Fix capacitor
 
         assert abs(circuit.pulse_width - 10e-3) < 1e-3
 
@@ -206,5 +213,5 @@ class TestDesignFunctions:
             frequency=1000, duty_cycle=0.5, capacitor=100e-9, use_diode=True
         )
 
-        assert circuit.has_diode == True
+        assert circuit.has_diode
         assert abs(circuit.duty_cycle - 0.5) < 0.01

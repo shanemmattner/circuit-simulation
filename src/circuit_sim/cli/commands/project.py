@@ -19,7 +19,9 @@ console = Console()
 
 
 @click.command()
-@click.option("--name", default=None, help="Project name (defaults to current directory name)")
+@click.option(
+    "--name", default=None, help="Project name (defaults to current directory name)"
+)
 @click.option("--force", is_flag=True, help="Overwrite existing project files")
 def init(name: Optional[str], force: bool):
     """Initialize a new circuit simulation project."""
@@ -115,7 +117,8 @@ def info():
     # Basic info
     table.add_row("circuit-sim", __version__)
     table.add_row(
-        "Python", f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
+        "Python",
+        f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}",
     )
     table.add_row("Platform", sys.platform)
 
@@ -155,7 +158,9 @@ def info():
                     table.add_row("  Name", project_info.get("name", "Unknown"))
                     table.add_row("  Version", project_info.get("version", "Unknown"))
         except Exception:
-            table.add_row("  Status", "[yellow]Config file exists but cannot be read[/yellow]")
+            table.add_row(
+                "  Status", "[yellow]Config file exists but cannot be read[/yellow]"
+            )
     else:
         table.add_row("Project", "[yellow]No project detected[/yellow]")
 

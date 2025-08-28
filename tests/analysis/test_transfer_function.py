@@ -4,7 +4,6 @@ Tests for TransferFunction class - TDD approach.
 
 import numpy as np
 import pytest
-from typing import List
 
 from circuit_sim.analysis.transfer_function import TransferFunction
 
@@ -68,12 +67,16 @@ class TestFactoryMethods:
         response = tf_original.frequency_response(frequencies)
 
         # Fit transfer function
-        tf_fitted = TransferFunction.from_frequency_response(frequencies, response, order=1)
+        tf_fitted = TransferFunction.from_frequency_response(
+            frequencies, response, order=1
+        )
 
         # Check that fitted response matches original
         fitted_response = tf_fitted.frequency_response(frequencies)
         np.testing.assert_allclose(
-            np.abs(fitted_response), np.abs(response), rtol=0.1  # 10% tolerance for simple fitting
+            np.abs(fitted_response),
+            np.abs(response),
+            rtol=0.1,  # 10% tolerance for simple fitting
         )
 
 

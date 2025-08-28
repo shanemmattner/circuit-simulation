@@ -97,7 +97,9 @@ def parse_value(value_str: str) -> float:
 
     # Regular expression to parse the value
     # Matches: optional sign, number (int or float, optional scientific), optional multiplier, optional unit
-    pattern = r"^([+-]?)(\d+\.?\d*|\d*\.\d+)([eE][+-]?\d+)?([TGMKkmunpfuμ]?)([a-zA-ZΩ]*)$"
+    pattern = (
+        r"^([+-]?)(\d+\.?\d*|\d*\.\d+)([eE][+-]?\d+)?([TGMKkmunpfuμ]?)([a-zA-ZΩ]*)$"
+    )
 
     match = re.match(pattern, value_str, re.IGNORECASE)
 

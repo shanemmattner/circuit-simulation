@@ -60,7 +60,9 @@ def simulate_power_supply(
     }
 
 
-def calculate_efficiency(circuit: PowerSupplyCircuit, load_current: float) -> Dict[str, float]:
+def calculate_efficiency(
+    circuit: PowerSupplyCircuit, load_current: float
+) -> Dict[str, float]:
     """Calculate efficiency at given load.
 
     Args:

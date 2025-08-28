@@ -15,7 +15,9 @@ class TestRCFilterCircuit:
 
     def test_lowpass_filter_creation(self):
         """Test creating a low-pass RC filter."""
-        circuit = RCFilterCircuit(r=1000, c=1e-6, filter_type="lowpass", vin=1.0)  # 1kΩ  # 1µF
+        circuit = RCFilterCircuit(
+            r=1000, c=1e-6, filter_type="lowpass", vin=1.0
+        )  # 1kΩ  # 1µF
 
         assert circuit.r == 1000
         assert circuit.c == 1e-6
@@ -28,7 +30,9 @@ class TestRCFilterCircuit:
 
     def test_highpass_filter_creation(self):
         """Test creating a high-pass RC filter."""
-        circuit = RCFilterCircuit(r=10000, c=100e-9, filter_type="highpass")  # 10kΩ  # 100nF
+        circuit = RCFilterCircuit(
+            r=10000, c=100e-9, filter_type="highpass"
+        )  # 10kΩ  # 100nF
 
         assert circuit.filter_type == "highpass"
 
@@ -72,7 +76,10 @@ class TestRCFilterSimulation:
         circuit = RCFilterCircuit(r=1000, c=1e-6, filter_type="lowpass")
 
         results = simulate_rc_filter(
-            circuit, analysis_type="transient", duration=5e-3, timestep=1e-5  # 5 time constants
+            circuit,
+            analysis_type="transient",
+            duration=5e-3,
+            timestep=1e-5,  # 5 time constants
         )
 
         assert "time" in results
@@ -89,7 +96,11 @@ class TestRCFilterSimulation:
         circuit = RCFilterCircuit(r=1000, c=1e-6, filter_type="lowpass")
 
         results = simulate_rc_filter(
-            circuit, analysis_type="ac", start_freq=1, stop_freq=100000, points_per_decade=20
+            circuit,
+            analysis_type="ac",
+            start_freq=1,
+            stop_freq=100000,
+            points_per_decade=20,
         )
 
         assert "frequency" in results
@@ -199,7 +210,9 @@ class TestBodePlot:
         fig = generate_bode_plot(circuit, response, show_cutoff=True, show_phase=True)
 
         # Check for cutoff frequency annotation
-        assert any("cutoff" in str(annotation).lower() for annotation in fig.layout.annotations)
+        assert any(
+            "cutoff" in str(annotation).lower() for annotation in fig.layout.annotations
+        )
 
 
 class TestRCFilterComparison:

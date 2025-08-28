@@ -258,7 +258,9 @@ class TestSimulationResults:
                 results.plot(save_to=tmp_path, show=False)
 
                 # Verify savefig was called
-                mock_plt.savefig.assert_called_with(tmp_path, dpi=150, bbox_inches="tight")
+                mock_plt.savefig.assert_called_with(
+                    tmp_path, dpi=150, bbox_inches="tight"
+                )
             finally:
                 # Clean up temp file
                 if os.path.exists(tmp_path):
