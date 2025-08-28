@@ -323,6 +323,18 @@ class PlotlyChartGenerator:
         if results.frequency is None:
             return charts
 
+        # Try to extract transfer function for additional analysis
+        try:
+            input_node = self._find_input_node(circuit)
+            output_node = self._find_output_node(circuit, results)
+            
+            if input_node is not None and output_node is not None:
+                tf = results.to_transfer_function(input_node, output_node)
+                charts.update(self._create_transfer_function_charts(tf, results, input_node, output_node))
+        except Exception as e:
+            # If transfer function extraction fails, continue without it
+            pass
+
         # Bode Plot (Magnitude and Phase)
         if results.nodes:
             # Find nodes with interesting frequency response (not flat)
@@ -459,6 +471,161 @@ class PlotlyChartGenerator:
 
             charts["frequency_response"] = fig
 
+        return charts
+
+    def _find_input_node(self, circuit: Circuit) -> int:
+        """Find the input node (typically connected to voltage source)."""
+        for component in circuit.components:
+            if component.get("type") == "voltage_source":
+                return component.get("positive")
+        return None
+
+    def _find_output_node(self, circuit: Circuit, results: SimulationResults) -> int:
+        """Find the output node (node with most interesting frequency response)."""
+        best_node = None
+        max_variation = 0
+        
+        for node in results.nodes:
+            if node != 0:  # Skip ground
+                voltage = results.voltage(node)
+                if voltage is not None and np.iscomplexobj(voltage):
+                    # Check for meaningful frequency variation
+                    magnitude = np.abs(voltage)
+                    variation = magnitude.max() - magnitude.min()
+                    if variation > max_variation:
+                        max_variation = variation
+                        best_node = node
+        
+        return best_node
+
+    def _create_transfer_function_charts(self, tf, results: SimulationResults, input_node: int, output_node: int) -> Dict[str, go.Figure]:
+        """Create charts specific to transfer function analysis."""
+        charts = {}
+        
+        # Transfer Function Bode Plot
+        frequencies = 2 * np.pi * results.frequency  # Convert to rad/s
+        h_response = tf.frequency_response(frequencies)
+        
+        magnitude_db = 20 * np.log10(np.abs(h_response))
+        phase_deg = np.angle(h_response, deg=True)
+        
+        fig = make_subplots(
+            rows=2, cols=1,
+            subplot_titles=(
+                f"Transfer Function Magnitude: H(s) = V({output_node})/V({input_node})",
+                f"Transfer Function Phase: H(s) = V({output_node})/V({input_node})"
+            ),
+            shared_xaxes=True,
+            vertical_spacing=0.1,
+        )
+        
+        # Magnitude plot
+        fig.add_trace(
+            go.Scatter(
+                x=results.frequency,
+                y=magnitude_db,
+                mode="lines",
+                name="TF Magnitude",
+                line=dict(color="#2E86C1", width=3),
+                hovertemplate="Freq: %{x:.2e}Hz<br>Magnitude: %{y:.2f}dB<extra></extra>",
+            ),
+            row=1, col=1,
+        )
+        
+        # Phase plot
+        fig.add_trace(
+            go.Scatter(
+                x=results.frequency,
+                y=phase_deg,
+                mode="lines",
+                name="TF Phase",
+                line=dict(color="#E74C3C", width=3),
+                hovertemplate="Freq: %{x:.2e}Hz<br>Phase: %{y:.2f}°<extra></extra>",
+            ),
+            row=2, col=1,
+        )
+        
+        fig.update_xaxes(type="log", title_text="Frequency (Hz)", row=2, col=1)
+        fig.update_yaxes(title_text="Magnitude (dB)", row=1, col=1)
+        fig.update_yaxes(title_text="Phase (°)", row=2, col=1)
+        
+        fig.update_layout(
+            height=600,
+            template="plotly_white",
+            title={
+                "text": f"Transfer Function Analysis: H(s) = V({output_node})/V({input_node})",
+                "x": 0.5,
+                "xanchor": "center",
+            },
+            showlegend=False,
+        )
+        
+        charts["transfer_function"] = fig
+        
+        # Pole-Zero Plot
+        if hasattr(tf, 'poles') and hasattr(tf, 'zeros'):
+            poles = tf.poles
+            zeros = tf.zeros
+            
+            fig_pz = go.Figure()
+            
+            # Add poles
+            if len(poles) > 0:
+                fig_pz.add_trace(
+                    go.Scatter(
+                        x=np.real(poles),
+                        y=np.imag(poles),
+                        mode="markers",
+                        marker=dict(symbol="x", size=12, color="red", line=dict(width=2)),
+                        name="Poles",
+                        hovertemplate="Pole: %{x:.2e} + j%{y:.2e}<extra></extra>",
+                    )
+                )
+            
+            # Add zeros
+            if len(zeros) > 0:
+                fig_pz.add_trace(
+                    go.Scatter(
+                        x=np.real(zeros),
+                        y=np.imag(zeros),
+                        mode="markers",
+                        marker=dict(symbol="circle", size=10, color="blue", line=dict(width=2)),
+                        name="Zeros",
+                        hovertemplate="Zero: %{x:.2e} + j%{y:.2e}<extra></extra>",
+                    )
+                )
+            
+            # Add unit circle for reference
+            theta = np.linspace(0, 2*np.pi, 100)
+            unit_circle_x = np.cos(theta)
+            unit_circle_y = np.sin(theta)
+            
+            fig_pz.add_trace(
+                go.Scatter(
+                    x=unit_circle_x,
+                    y=unit_circle_y,
+                    mode="lines",
+                    line=dict(color="gray", dash="dash", width=1),
+                    name="Unit Circle",
+                    hoverinfo="skip",
+                )
+            )
+            
+            fig_pz.update_layout(
+                title={
+                    "text": "Pole-Zero Plot",
+                    "x": 0.5,
+                    "xanchor": "center",
+                },
+                xaxis_title="Real Part",
+                yaxis_title="Imaginary Part",
+                template="plotly_white",
+                height=500,
+                xaxis=dict(scaleanchor="y", scaleratio=1),  # Equal aspect ratio
+            )
+            
+            charts["pole_zero_plot"] = fig_pz
+            
         return charts
 
     def create_comparison_chart(

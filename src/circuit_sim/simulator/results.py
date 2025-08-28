@@ -330,7 +330,9 @@ class SimulationResults:
         
         # Check for valid transfer function data
         if np.all(h_jw == 0):
-            raise ValueError("Transfer function is identically zero - check circuit connectivity")
+            # Handle zero transfer function gracefully
+            from ..analysis import TransferFunction
+            return TransferFunction([0], [1])  # H(s) = 0
         
         if np.any(np.isnan(h_jw)) or np.any(np.isinf(h_jw)):
             raise ValueError(

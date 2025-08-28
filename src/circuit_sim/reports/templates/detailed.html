@@ -131,6 +131,120 @@
     </div>
     {% endif %}
     
+    <!-- Transfer Function Analysis (for AC analysis only) -->
+    {% if results.analysis_type == "ac" and metrics %}
+    {% set has_tf_metrics = [] %}
+    {% for key in metrics.keys() %}
+        {% if key.startswith("tf_") %}
+            {% set _ = has_tf_metrics.append(key) %}
+        {% endif %}
+    {% endfor %}
+    {% if has_tf_metrics %}
+    <h3>Transfer Function Analysis</h3>
+    <div class="transfer-function-section">
+        <!-- Mathematical Transfer Function -->
+        {% if metrics.tf_latex %}
+        <div class="transfer-function-math">
+            <h4>Mathematical Representation</h4>
+            <div class="math-display">
+                <div class="latex-equation" id="tf-equation">
+                    $${{ metrics.tf_latex }}$$
+                </div>
+                <div class="readable-equation">
+                    <code>{{ metrics.tf_readable }}</code>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
+        <div class="summary-grid">
+            {% if metrics.tf_order %}
+            <div class="metric">
+                <h4>System Order</h4>
+                <p>{{ metrics.tf_order }}</p>
+            </div>
+            {% endif %}
+            {% if metrics.tf_dc_gain %}
+            <div class="metric">
+                <h4>DC Gain</h4>
+                <p>{{ "%.3f"|format(metrics.tf_dc_gain) }} ({{ "%.1f"|format(metrics.tf_dc_gain_db) }} dB)</p>
+            </div>
+            {% endif %}
+            {% if metrics.tf_bandwidth %}
+            <div class="metric">
+                <h4>Bandwidth</h4>
+                <p>{{ metrics.tf_bandwidth | format_value('Hz') }}</p>
+            </div>
+            {% endif %}
+            {% if metrics.tf_is_stable is defined %}
+            <div class="metric">
+                <h4>Stability</h4>
+                <p>{% if metrics.tf_is_stable %}<span class="text-success">✓ Stable</span>{% else %}<span class="text-danger">⚠ Unstable</span>{% endif %}</p>
+            </div>
+            {% endif %}
+        </div>
+        
+        <div class="pole-zero-info">
+            <div class="row">
+                {% if metrics.tf_num_poles %}
+                <div class="col">
+                    <h4>Poles ({{ metrics.tf_num_poles }})</h4>
+                    {% if metrics.tf_dominant_pole %}
+                    <p><strong>Dominant:</strong> {{ "%.2e"|format(metrics.tf_dominant_pole.real) }}{% if metrics.tf_dominant_pole.imag != 0 %} ± j{{ "%.2e"|format(abs(metrics.tf_dominant_pole.imag)) }}{% endif %}</p>
+                    {% endif %}
+                </div>
+                {% endif %}
+                {% if metrics.tf_num_zeros %}
+                <div class="col">
+                    <h4>Zeros ({{ metrics.tf_num_zeros }})</h4>
+                    {% if metrics.tf_dominant_zero %}
+                    <p><strong>Dominant:</strong> {{ "%.2e"|format(metrics.tf_dominant_zero.real) }}{% if metrics.tf_dominant_zero.imag != 0 %} ± j{{ "%.2e"|format(abs(metrics.tf_dominant_zero.imag)) }}{% endif %}</p>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Filter Characteristics -->
+        {% if metrics.filter_type %}
+        <div class="filter-characteristics">
+            <h4>Filter Characteristics</h4>
+            <div class="summary-grid">
+                <div class="metric">
+                    <h5>Type</h5>
+                    <p>{{ metrics.filter_type | title }}</p>
+                </div>
+                {% if metrics.natural_frequency_hz %}
+                <div class="metric">
+                    <h5>Natural Frequency</h5>
+                    <p>{{ metrics.natural_frequency_hz | format_value('Hz') }}</p>
+                </div>
+                {% endif %}
+                {% if metrics.quality_factor %}
+                <div class="metric">
+                    <h5>Quality Factor (Q)</h5>
+                    <p>{{ "%.2f"|format(metrics.quality_factor) }}</p>
+                </div>
+                {% endif %}
+                {% if metrics.damping_ratio %}
+                <div class="metric">
+                    <h5>Damping Ratio (ζ)</h5>
+                    <p>{{ "%.3f"|format(metrics.damping_ratio) }}</p>
+                </div>
+                {% endif %}
+                {% if metrics.rolloff_rate_db_decade %}
+                <div class="metric">
+                    <h5>Rolloff Rate</h5>
+                    <p>{{ metrics.rolloff_rate_db_decade }} dB/decade</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+    {% endif %}
+    
     <!-- Interactive Charts -->
     <h3>Interactive Charts</h3>
     {% if charts_html %}
@@ -151,6 +265,7 @@
     <h2>Performance Metrics</h2>
     <div class="metrics-grid">
         {% for metric_name, metric_value in metrics.items() %}
+        {% if not metric_name.startswith('tf_') and not metric_name in ['filter_type', 'natural_frequency_hz', 'quality_factor', 'damping_ratio', 'rolloff_rate_db_decade'] %}
         <div class="metric-card">
             <h4>{{ metric_name | replace('_', ' ') | title }}</h4>
             {% if metric_name.endswith('_time') %}
@@ -171,6 +286,7 @@
                 <p>{{ metric_value | round(3) }}</p>
             {% endif %}
         </div>
+        {% endif %}
         {% endfor %}
     </div>
 </section>

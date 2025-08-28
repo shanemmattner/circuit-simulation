@@ -8,9 +8,65 @@
     <!-- Plotly.js for interactive charts -->
     <script src="https://cdn.plot.ly/plotly-2.26.0.min.js"></script>
     
+    <!-- MathJax for mathematical equations -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            }
+        };
+    </script>
+    
     <!-- Report styles -->
     <style>
         {% include 'styles/report.css' %}
+        
+        /* Transfer Function Math Styles */
+        .transfer-function-math {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border: 2px solid #007acc;
+            border-radius: 12px;
+            padding: 25px;
+            margin: 20px 0;
+            box-shadow: 0 4px 12px rgba(0, 122, 204, 0.1);
+        }
+        
+        .transfer-function-math h4 {
+            color: #007acc;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+            text-align: center;
+        }
+        
+        .math-display {
+            text-align: center;
+        }
+        
+        .latex-equation {
+            font-size: 1.4rem;
+            margin: 15px 0;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        
+        .readable-equation {
+            margin-top: 10px;
+            font-size: 1rem;
+            color: #666;
+        }
+        
+        .readable-equation code {
+            background: rgba(0, 122, 204, 0.1);
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 0.95rem;
+        }
     </style>
     
     {% block extra_head %}{% endblock %}

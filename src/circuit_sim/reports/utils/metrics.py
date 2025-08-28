@@ -163,7 +163,214 @@ class MetricsCalculator:
         if phase_margin is not None:
             metrics["phase_margin"] = phase_margin
 
+        # Transfer function analysis
+        try:
+            input_node = self._find_input_node(circuit)
+            output_node = self._find_output_node(circuit, results)
+            
+            if input_node is not None and output_node is not None:
+                tf = results.to_transfer_function(input_node, output_node)
+                
+                # Transfer function properties
+                metrics["tf_order"] = tf.order
+                metrics["tf_dc_gain"] = tf.dc_gain
+                metrics["tf_dc_gain_db"] = 20 * np.log10(abs(tf.dc_gain)) if tf.dc_gain != 0 else -float('inf')
+                metrics["tf_bandwidth"] = tf.bandwidth / (2 * np.pi)  # Convert to Hz
+                metrics["tf_is_stable"] = tf.is_stable
+                metrics["tf_num_poles"] = len(tf.poles)
+                metrics["tf_num_zeros"] = len(tf.zeros)
+                
+                # Mathematical representation
+                metrics["tf_numerator_coeffs"] = tf.numerator_coeffs.tolist()
+                metrics["tf_denominator_coeffs"] = tf.denominator_coeffs.tolist()
+                metrics["tf_latex"] = self._format_transfer_function_latex(tf)
+                metrics["tf_readable"] = self._format_transfer_function_readable(tf)
+                
+                # Pole/zero locations
+                if len(tf.poles) > 0:
+                    metrics["tf_dominant_pole"] = complex(tf.poles[np.argmax(np.real(tf.poles))])
+                if len(tf.zeros) > 0:
+                    metrics["tf_dominant_zero"] = complex(tf.zeros[np.argmax(np.real(tf.zeros))])
+                
+                # Filter characteristics
+                metrics.update(self._analyze_filter_characteristics(tf, results))
+                
+        except Exception:
+            # If transfer function extraction fails, continue without it
+            pass
+
         return metrics
+    
+    def _find_input_node(self, circuit: Circuit) -> int:
+        """Find the input node (typically connected to voltage source)."""
+        for component in circuit.components:
+            if component.get("type") == "voltage_source":
+                return component.get("positive")
+        return None
+
+    def _find_output_node(self, circuit: Circuit, results: SimulationResults) -> int:
+        """Find the output node (node with most interesting frequency response)."""
+        best_node = None
+        max_variation = 0
+        
+        for node in results.nodes:
+            if node != 0:  # Skip ground
+                voltage = results.voltage(node)
+                if voltage is not None and np.iscomplexobj(voltage):
+                    # Check for meaningful frequency variation
+                    magnitude = np.abs(voltage)
+                    variation = magnitude.max() - magnitude.min()
+                    if variation > max_variation:
+                        max_variation = variation
+                        best_node = node
+        
+        return best_node
+    
+    def _analyze_filter_characteristics(self, tf, results: SimulationResults) -> Dict[str, Any]:
+        """Analyze filter characteristics from transfer function."""
+        characteristics = {}
+        
+        # Determine filter type based on poles and zeros
+        poles = tf.poles
+        zeros = tf.zeros
+        
+        # Low-pass filter detection (more poles than zeros)
+        if len(poles) > len(zeros):
+            characteristics["filter_type"] = "low-pass"
+        # High-pass filter detection (more zeros than poles or zeros at origin)
+        elif len(zeros) > len(poles) or (len(zeros) > 0 and np.any(np.abs(zeros) < 1e-6)):
+            characteristics["filter_type"] = "high-pass"
+        # Band-pass filter detection (complex poles)
+        elif len(poles) >= 2 and np.any(np.imag(poles) != 0):
+            characteristics["filter_type"] = "band-pass"
+        else:
+            characteristics["filter_type"] = "unknown"
+        
+        # Calculate quality factor for second-order systems
+        if len(poles) >= 2:
+            # Find complex conjugate pole pair
+            for i, pole in enumerate(poles):
+                if np.imag(pole) != 0:
+                    wn = np.abs(pole)  # Natural frequency
+                    zeta = -np.real(pole) / wn  # Damping ratio
+                    characteristics["natural_frequency_hz"] = wn / (2 * np.pi)
+                    characteristics["damping_ratio"] = zeta
+                    characteristics["quality_factor"] = 1 / (2 * zeta) if zeta > 0 else float('inf')
+                    break
+        
+        # Calculate rolloff rate (dB/decade)
+        if len(poles) > 0:
+            characteristics["rolloff_rate_db_decade"] = -20 * len(poles)
+        
+        return characteristics
+    
+    def _format_transfer_function_latex(self, tf) -> str:
+        """Format transfer function as LaTeX for mathematical display."""
+        num_coeffs = tf.numerator_coeffs
+        den_coeffs = tf.denominator_coeffs
+        
+        def format_polynomial_latex(coeffs):
+            if len(coeffs) == 1:
+                return f"{coeffs[0]:.3g}"
+            
+            terms = []
+            degree = len(coeffs) - 1
+            
+            for i, coeff in enumerate(coeffs):
+                if abs(coeff) < 1e-10:  # Skip near-zero coefficients
+                    degree -= 1
+                    continue
+                    
+                power = degree - i
+                
+                if power == 0:
+                    terms.append(f"{coeff:.3g}")
+                elif power == 1:
+                    if coeff == 1:
+                        terms.append("s")
+                    elif coeff == -1:
+                        terms.append("-s")
+                    else:
+                        terms.append(f"{coeff:.3g}s")
+                else:
+                    if coeff == 1:
+                        terms.append(f"s^{power}")
+                    elif coeff == -1:
+                        terms.append(f"-s^{power}")
+                    else:
+                        terms.append(f"{coeff:.3g}s^{power}")
+            
+            if not terms:
+                return "0"
+            
+            # Join terms with proper signs
+            result = terms[0]
+            for term in terms[1:]:
+                if term.startswith('-'):
+                    result += f" - {term[1:]}"
+                else:
+                    result += f" + {term}"
+            
+            return result
+        
+        numerator = format_polynomial_latex(num_coeffs)
+        denominator = format_polynomial_latex(den_coeffs)
+        
+        return f"H(s) = \\frac{{{numerator}}}{{{denominator}}}"
+    
+    def _format_transfer_function_readable(self, tf) -> str:
+        """Format transfer function in readable text format."""
+        num_coeffs = tf.numerator_coeffs
+        den_coeffs = tf.denominator_coeffs
+        
+        def format_polynomial_readable(coeffs):
+            if len(coeffs) == 1:
+                return f"{coeffs[0]:.3g}"
+            
+            terms = []
+            degree = len(coeffs) - 1
+            
+            for i, coeff in enumerate(coeffs):
+                if abs(coeff) < 1e-10:  # Skip near-zero coefficients
+                    degree -= 1
+                    continue
+                    
+                power = degree - i
+                
+                if power == 0:
+                    terms.append(f"{coeff:.3g}")
+                elif power == 1:
+                    if coeff == 1:
+                        terms.append("s")
+                    elif coeff == -1:
+                        terms.append("-s")
+                    else:
+                        terms.append(f"{coeff:.3g}*s")
+                else:
+                    if coeff == 1:
+                        terms.append(f"s^{power}")
+                    elif coeff == -1:
+                        terms.append(f"-s^{power}")
+                    else:
+                        terms.append(f"{coeff:.3g}*s^{power}")
+            
+            if not terms:
+                return "0"
+            
+            # Join terms with proper signs
+            result = terms[0]
+            for term in terms[1:]:
+                if term.startswith('-'):
+                    result += f" - {term[1:]}"
+                else:
+                    result += f" + {term}"
+            
+            return result
+        
+        numerator = format_polynomial_readable(num_coeffs)
+        denominator = format_polynomial_readable(den_coeffs)
+        
+        return f"H(s) = ({numerator}) / ({denominator})"
 
     def _get_component_voltage(
         self, component_name: str, circuit: Circuit, results: SimulationResults
