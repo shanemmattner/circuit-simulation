@@ -22,6 +22,20 @@ def check_environment():
         
         # Try creating a simulator to check if ngspice works
         NgSpiceShared.new_instance()
+        
+        # Check ngspice version for compatibility warnings
+        try:
+            import subprocess
+            result = subprocess.run(['ngspice', '--version'], capture_output=True, text=True, timeout=5)
+            if result.returncode == 0:
+                version_line = result.stdout.strip().split('\n')[0]
+                if 'version 44' in version_line.lower():
+                    return "local_warning", f"Local environment (WARNING: {version_line} - unsupported, may cause AC analysis issues)"
+                else:
+                    return "local", f"Local environment with working PySpice/ngspice ({version_line})"
+        except (subprocess.TimeoutExpired, FileNotFoundError, Exception):
+            pass
+            
         return "local", "Local environment with working PySpice/ngspice"
         
     except ImportError:
@@ -155,8 +169,14 @@ def main():
     print("🚀 Robust Circuit Simulation Testing")
     print("=" * 45)
     
-    # Check environment
-    env_type, env_message = check_environment()
+    # Check for force Docker flag
+    force_docker = "--docker" in sys.argv or "-d" in sys.argv or os.environ.get("FORCE_DOCKER", "").lower() == "true"
+    
+    if force_docker:
+        env_type, env_message = "docker", "Forced Docker environment via flag/env"
+    else:
+        # Check environment
+        env_type, env_message = check_environment()
     print(f"🔍 Environment: {env_type}")
     print(f"   {env_message}")
     
@@ -164,6 +184,12 @@ def main():
     if env_type == "docker" or env_type == "error":
         print(f"\n🐳 Using Docker for reliable testing environment")
         test_results = run_tests_in_docker()
+    elif env_type == "local_warning":
+        print(f"\n⚠️  WARNING: Unsupported ngspice version detected!")
+        print("   AC analysis issues are expected with ngspice 44+")
+        print("   Consider using Docker for consistent results")
+        print(f"\n🏠 Running in local environment")
+        test_results = run_tests_locally()
     else:
         print(f"\n🏠 Running in local environment")
         test_results = run_tests_locally()
