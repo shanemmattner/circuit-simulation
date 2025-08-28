@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RLC Resonant (R=100Ω, L=1mH, C=1μF) - Circuit Analysis Report</title>
+    
+    <!-- Plotly.js for interactive charts -->
+    <script src="https://cdn.plot.ly/plotly-2.26.0.min.js"></script>
+    
+    <!-- Report styles -->
+    <style>
+        /* Circuit Analysis Report Styles */
+
+/* Reset and base styles */
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    line-height: 1.6;
+    color: #333;
+    margin: 0;
+    padding: 0;
+    background-color: #fafafa;
+}
+
+/* Report container */
+.report-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: white;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Header styles */
+.report-header {
+    border-bottom: 3px solid #007acc;
+    padding-bottom: 20px;
+    margin-bottom: 30px;
+    text-align: center;
+}
+
+.report-header h1 {
+    color: #007acc;
+    margin: 0 0 10px 0;
+    font-size: 2.5rem;
+    font-weight: 300;
+}
+
+.report-header .subtitle {
+    font-size: 1.2rem;
+    color: #666;
+    margin-bottom: 15px;
+}
+
+.metadata {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.9rem;
+    color: #888;
+    margin-top: 15px;
+}
+
+@media (max-width: 768px) {
+    .metadata {
+        flex-direction: column;
+        gap: 5px;
+    }
+}
+
+/* Section styles */
+section {
+    margin-bottom: 40px;
+}
+
+section h2 {
+    color: #007acc;
+    border-bottom: 2px solid #e0e0e0;
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+    font-size: 1.8rem;
+    font-weight: 400;
+}
+
+section h3 {
+    color: #555;
+    margin-bottom: 15px;
+    font-size: 1.3rem;
+}
+
+section h4 {
+    color: #666;
+    margin-bottom: 10px;
+    font-size: 1.1rem;
+}
+
+/* Executive summary */
+.executive-summary {
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    padding: 25px;
+    border-radius: 10px;
+    margin-bottom: 30px;
+}
+
+.summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.metric {
+    text-align: center;
+    background: white;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.metric h3 {
+    margin: 0 0 10px 0;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #666;
+}
+
+.metric .value {
+    font-size: 2rem;
+    font-weight: 600;
+    color: #007acc;
+    margin: 0;
+}
+
+/* Tables */
+.component-table, .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+    background: white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.component-table th, .data-table th {
+    background: #007acc;
+    color: white;
+    padding: 15px 12px;
+    text-align: left;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-size: 0.85rem;
+}
+
+.component-table td, .data-table td {
+    padding: 12px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.component-table tbody tr:hover, .data-table tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+.component-table tbody tr:last-child td, 
+.data-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* Chart containers */
+.chart-container {
+    margin: 25px 0;
+    padding: 20px;
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.chart-container h3 {
+    margin-top: 0;
+    color: #007acc;
+    border-bottom: 1px solid #e0e0e0;
+    padding-bottom: 10px;
+}
+
+/* Metrics grid */
+.metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    margin: 25px 0;
+}
+
+.metric-card {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+    border-left: 4px solid #007acc;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.metric-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+}
+
+.metric-card h4 {
+    margin: 0 0 10px 0;
+    color: #007acc;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.metric-card p {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #333;
+}
+
+/* Key findings and recommendations */
+.findings-list, .recommendations-list {
+    list-style: none;
+    padding: 0;
+}
+
+.findings-list li, .recommendations-list li {
+    background: white;
+    margin: 10px 0;
+    padding: 15px 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
+    border-left: 4px solid #28a745;
+    position: relative;
+}
+
+.findings-list li::before {
+    content: "🔍";
+    margin-right: 10px;
+}
+
+.recommendations-list li {
+    border-left-color: #ffc107;
+}
+
+.recommendations-list li::before {
+    content: "💡";
+    margin-right: 10px;
+}
+
+/* Conclusions section */
+.conclusions {
+    background: #f8f9fa;
+    padding: 25px;
+    border-radius: 10px;
+    border: 1px solid #e0e0e0;
+}
+
+.conclusions h2 {
+    color: #495057;
+    margin-top: 0;
+}
+
+/* Utility classes */
+.text-center { text-align: center; }
+.text-muted { color: #6c757d; }
+.text-primary { color: #007acc; }
+.text-success { color: #28a745; }
+.text-warning { color: #ffc107; }
+.text-danger { color: #dc3545; }
+
+.mb-0 { margin-bottom: 0; }
+.mb-1 { margin-bottom: 0.5rem; }
+.mb-2 { margin-bottom: 1rem; }
+.mb-3 { margin-bottom: 1.5rem; }
+
+.mt-0 { margin-top: 0; }
+.mt-1 { margin-top: 0.5rem; }
+.mt-2 { margin-top: 1rem; }
+.mt-3 { margin-top: 1.5rem; }
+
+/* Print styles */
+@media print {
+    body {
+        background-color: white;
+        font-size: 12pt;
+        line-height: 1.4;
+    }
+    
+    .report-container {
+        box-shadow: none;
+        max-width: none;
+    }
+    
+    .report-header {
+        border-bottom-color: #000;
+        page-break-after: avoid;
+    }
+    
+    section {
+        page-break-inside: avoid;
+        margin-bottom: 20pt;
+    }
+    
+    .chart-container {
+        page-break-inside: avoid;
+        border: 1pt solid #000;
+    }
+    
+    .metric-card {
+        page-break-inside: avoid;
+        border: 1pt solid #ccc;
+    }
+    
+    /* Hide interactive elements */
+    button, .no-print {
+        display: none;
+    }
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .report-container {
+        padding: 15px;
+    }
+    
+    .report-header h1 {
+        font-size: 2rem;
+    }
+    
+    .summary-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .metrics-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .component-table, .data-table {
+        font-size: 0.9rem;
+    }
+    
+    .component-table th, .data-table th,
+    .component-table td, .data-table td {
+        padding: 8px;
+    }
+}
+    </style>
+    
+    
+</head>
+<body>
+    <div class="report-container">
+        <!-- Header -->
+        <header class="report-header">
+            <h1>RLC Resonant (R=100Ω, L=1mH, C=1μF)</h1>
+            <p class="subtitle">Circuit analysis report for RLC Resonant (R=100Ω, L=1mH, C=1μF)</p>
+            <div class="metadata">
+                <span><strong>Generated:</strong> 2025-08-27 22:21:14</span>
+                <span><strong>Components:</strong> 4</span>
+                <span><strong>Nodes:</strong> 4</span>
+                <span><strong>Analysis:</strong> AC</span>
+            </div>
+        </header>
+
+        <!-- Main content -->
+        <main>
+            
+<!-- Executive Summary -->
+<section class="executive-summary">
+    <h2>Executive Summary</h2>
+    <div class="summary-grid">
+        <div class="metric">
+            <h3>Components</h3>
+            <p class="value">4</p>
+        </div>
+        <div class="metric">
+            <h3>Nodes</h3>
+            <p class="value">4</p>
+        </div>
+        <div class="metric">
+            <h3>Analysis Type</h3>
+            <p class="value">AC</p>
+        </div>
+        
+    </div>
+    
+    
+    <p><strong>Analysis Summary:</strong> This AC analysis was performed on a 4-component circuit with 4 nodes. The AC frequency analysis demonstrates the circuit&#39;s frequency response and filtering characteristics.</p>
+    
+</section>
+
+<!-- Circuit Analysis -->
+<section class="circuit-analysis">
+    <h2>Circuit Analysis</h2>
+    
+    
+    <h3>Component List</h3>
+    <table class="component-table">
+        <thead>
+            <tr>
+                <th>Component</th>
+                <th>Type</th>
+                <th>Value</th>
+                <th>Connections</th>
+            </tr>
+        </thead>
+        <tbody>
+            
+            <tr>
+                <td><strong>V1</strong></td>
+                <td>Voltage Source</td>
+                <td>
+                    
+                        <code>1V</code>
+                    
+                </td>
+                <td><span class="text-muted">1 - 0</span></td>
+            </tr>
+            
+            <tr>
+                <td><strong>R1</strong></td>
+                <td>Resistor</td>
+                <td>
+                    
+                        <code>100</code>
+                    
+                </td>
+                <td><span class="text-muted">1 - 2</span></td>
+            </tr>
+            
+            <tr>
+                <td><strong>L1</strong></td>
+                <td>Inductor</td>
+                <td>
+                    
+                        <code>0.001</code>
+                    
+                </td>
+                <td><span class="text-muted">2 - 3</span></td>
+            </tr>
+            
+            <tr>
+                <td><strong>C1</strong></td>
+                <td>Capacitor</td>
+                <td>
+                    
+                        <code>1e-06</code>
+                    
+                </td>
+                <td><span class="text-muted">3 - 0</span></td>
+            </tr>
+            
+        </tbody>
+    </table>
+    
+    
+    
+    <h3>Node Summary</h3>
+    <p>Circuit contains <strong>4</strong> nodes: Ground (0)
+    , 1, 2, 3</p>
+    
+</section>
+
+<!-- Simulation Results -->
+<section class="simulation-results">
+    <h2>Simulation Results</h2>
+    
+    
+    
+    
+    
+    
+    <h3>AC Analysis Summary</h3>
+    <div class="summary-grid">
+        <div class="metric">
+            <h4>Start Frequency</h4>
+            <p>1.000 Hz</p>
+        </div>
+        <div class="metric">
+            <h4>Stop Frequency</h4>
+            <p>100.000 kHz</p>
+        </div>
+        <div class="metric">
+            <h4>Data Points</h4>
+            <p>101</p>
+        </div>
+    </div>
+    
+    
+    <!-- Interactive Charts -->
+    <h3>Interactive Charts</h3>
+    
+        
+        <div class="chart-container">
+            <h4>Bode Node 3</h4>
+            <html>
+<head><meta charset="utf-8" /></head>
+<body>
+    <div>                        <script type="text/javascript">window.PlotlyConfig = {MathJaxConfig: 'local'};</script>
+        <script charset="utf-8" src="https://cdn.plot.ly/plotly-3.1.0.min.js" integrity="sha256-Ei4740bWZhaUTQuD6q9yQlgVCMPBz6CZWhevDYPv93A=" crossorigin="anonymous"></script>                <div id="chart-bode_node_3" class="plotly-graph-div" style="height:600px; width:100%;"></div>            <script type="text/javascript">                window.PLOTLYENV=window.PLOTLYENV || {};                                if (document.getElementById("chart-bode_node_3")) {                    Plotly.newPlot(                        "chart-bode_node_3",                        [{"hovertemplate":"Freq: %{x:.2e}Hz\u003cbr\u003eMagnitude: %{y:.2f}dB\u003cextra\u003e\u003c\u002fextra\u003e","line":{"color":"#1f77b4","width":2},"mode":"lines","name":"Magnitude","x":{"dtype":"f8","bdata":"AAAAAAAA8D82xGufyfPxPwMm\u002fPiOJPQ\u002fDm7o98CZ9j9QYNT2uFv5PwtHVBzVc\u002fw\u002fq7hbLZjs\u002fz+DHtig5ugBQFzM1OlXGARAYBWrWQyMBkBNW9o6WEwJQDdKqwWUYgxA121SHzzZD0Bv7V08Ct4RQOESAEMoDBRAHkYjC2B+FkCNiTTSAD0ZQGLWomVdURxANTXBzuvFH0BnRvxtNNMhQPf\u002f\u002f\u002f\u002f\u002f\u002fyNAObVGB7xwJkB4Lzu3si0pQIWJ4jUxQCxAVniJNKeyL0BfrLQxZcgxQGJTWRzf8zNAGSYOSSBjNkBn\u002f0nkbR45QKvaFXAPLzxAEvKQSW6fP0BaDouDnL1BQJ2Ek5PF50NAwGh1y4xVRkCNF8BTMg9JQJgX7A34HUxA4avBBkGMT0D1xYVf2rJRQDjBOGGz21NA91d7iQFIVkDq\u002f\u002f\u002f\u002f\u002f\u002f9YQHxiGAnrDFxASfsJZR95X0Dsla3BHqhhQC7r1YCoz2NAbtchfn46ZkAxqG\u002fj1vBoQJWvUVvo+2tANX9cXQlmb0CkqA2maZ1xQESX+u2kw3NA6dFtpAMtdkC8ZXj4tuF4QOfCUv7v6ntAZh2w6P5Sf0C5jrMIu5KBQGYLOaSot4NAajdn95AfhkB88YY5oNKIQOot2usB2otA2P\u002f\u002f\u002f\u002f8\u002fj0CGPa\u002flEoiRQAU9Jp+zq5NAXfsYciYSlkDuZQuhksOYQDxNqh0eyZtALpJLnAwtn0C0DRM5cX2hQHfPWdrFn6NAwhKRD8QEpkAIPXkpjrSoQFVGiY1EuKtAG3+WtiQar0DHufP+1XKxQFUSblHfk7NAXHLgymn3tUAzTkfNkqW4QDcFQTV1p7tAzK3oR0gHv0CqXGgzQWjBQN7\u002f\u002f\u002f\u002f\u002fh8NA3gwbnxfqxUA8zO+GoJbIQCk6nw6wlstAXT9OSXf0zkA\u002fcIrSsl3RQFU7r+EnfNNAGdFXh83c1UBLQ\u002fBQt4fYQGhXdRP1hdtAPozXs7Hh3kDuy3XYKlPhQGkPHvJWcONAMKiwfovP5UDglskl13joQOeOmD1EdetAsiGZgPfO7kA7o0hBqUjxQJds8SyNZPNAynNCgFHC9UDJ\u002f\u002f\u002f\u002f\u002f2n4QA=="},"y":{"dtype":"f8","bdata":"aqrqsBADt76QQI9Rafi8vs4+3alaPMK+L26G+xv1xr6CU6l31+bMvogk6l9LMdK+LIkBgi\u002fn1r7UIErpT9XcvqdaLoJCJuK+O7aLBkvZ5r4bbztF0sPsvkAjS8Q\u002fG\u002fK+PQi3EW7L9r76x77PXbL8vp+DpZJCEAK\u002fZYrjupe9Br+wA+sZ8aAMv6H+m8tJBRK\u002fSfBROMavFr+V6+RPiY8cv\u002fKHmjJT+iG\u002f0\u002fXX\u002f\u002fWhJr8lAD7XIH4sv3K691da7zG\u002fKVXyCiCUNr\u002fwD0SPrGw8v5LccGtW5EG\u002fqMlGYzaGRr\u002f7NShZFltMvxOjG+c12VG\u002fgCV3RR14Vr+\u002ftjI4Mklcv+hsiPLVzWG\u002fsML2fJ1pZr\u002fZPpi3qDZsv5qf8UjxwXG\u002fi323Ukladr8My0kWzCJ8v9GOsVr+tIG\u002feKggA0dJhr+VVb2zQwyMv9l83Y7spZG\u002fVKtHg+c0lr+rJchhZvCbv5MGSw+ikqG\u002flu+kTtoZpr9h8lIL+8mrv8m9i\u002fICd7G\u002fSEP8Xavxtb9mKf9H5Y67vxf7NnQpS8G\u002fCKNCGBCwxb8yGi7AGizLv4VpYGJsANG\u002fKPBhVp8+1b+iBqcQq3\u002fav5TWsMJlfeC\u002fQmTf\u002fOR35L+Di7HkYlPpv64oV52YN++\u002fr2592nEn87\u002f35V2WVWL3v3l1hY2ZYfy\u002fpoUYckEcAcDl6aUWkHsEwIqH4iOMVAjA8YHvZm6qDMA+rvXB274QwIIu5cgyZhPA5MKH2jpJFsBXKZD2TWUZwGSy276JtxzAISPzppoeIMDvJbGJDPohwGwLLKJg7SPA79EeiFP4JcButCSRHxsowMUBrot2VirAiEVtGW6rLMC8H6FWXxsvwNyj08zd0zDAWW4H7+woMsBftf1BYY0zwKLoxVOAATXADf\u002fAQkCFNsBpgddKQBg4wJCI7bjLuTnAVweQLuZoO8C3SExfXiQ9wJIE25vj6j7ARKlIWY1dQMBAHUzP10lBwMy0N1yxOULAiyUcmYgsQ8Djzce03CFEwOaaofs9GUXARvnjO00SRsB8B911ugxHwPak9S9DCEjAtRIErbAEScANpngt1gFKwA=="},"type":"scatter","xaxis":"x","yaxis":"y"},{"hovertemplate":"Freq: %{x:.2e}Hz\u003cbr\u003ePhase: %{y:.2f}\u00b0\u003cextra\u003e\u003c\u002fextra\u003e","line":{"color":"#ff7f0e","width":2},"mode":"lines","name":"Phase","x":{"dtype":"f8","bdata":"AAAAAAAA8D82xGufyfPxPwMm\u002fPiOJPQ\u002fDm7o98CZ9j9QYNT2uFv5PwtHVBzVc\u002fw\u002fq7hbLZjs\u002fz+DHtig5ugBQFzM1OlXGARAYBWrWQyMBkBNW9o6WEwJQDdKqwWUYgxA121SHzzZD0Bv7V08Ct4RQOESAEMoDBRAHkYjC2B+FkCNiTTSAD0ZQGLWomVdURxANTXBzuvFH0BnRvxtNNMhQPf\u002f\u002f\u002f\u002f\u002f\u002fyNAObVGB7xwJkB4Lzu3si0pQIWJ4jUxQCxAVniJNKeyL0BfrLQxZcgxQGJTWRzf8zNAGSYOSSBjNkBn\u002f0nkbR45QKvaFXAPLzxAEvKQSW6fP0BaDouDnL1BQJ2Ek5PF50NAwGh1y4xVRkCNF8BTMg9JQJgX7A34HUxA4avBBkGMT0D1xYVf2rJRQDjBOGGz21NA91d7iQFIVkDq\u002f\u002f\u002f\u002f\u002f\u002f9YQHxiGAnrDFxASfsJZR95X0Dsla3BHqhhQC7r1YCoz2NAbtchfn46ZkAxqG\u002fj1vBoQJWvUVvo+2tANX9cXQlmb0CkqA2maZ1xQESX+u2kw3NA6dFtpAMtdkC8ZXj4tuF4QOfCUv7v6ntAZh2w6P5Sf0C5jrMIu5KBQGYLOaSot4NAajdn95AfhkB88YY5oNKIQOot2usB2otA2P\u002f\u002f\u002f\u002f8\u002fj0CGPa\u002flEoiRQAU9Jp+zq5NAXfsYciYSlkDuZQuhksOYQDxNqh0eyZtALpJLnAwtn0C0DRM5cX2hQHfPWdrFn6NAwhKRD8QEpkAIPXkpjrSoQFVGiY1EuKtAG3+WtiQar0DHufP+1XKxQFUSblHfk7NAXHLgymn3tUAzTkfNkqW4QDcFQTV1p7tAzK3oR0gHv0CqXGgzQWjBQN7\u002f\u002f\u002f\u002f\u002fh8NA3gwbnxfqxUA8zO+GoJbIQCk6nw6wlstAXT9OSXf0zkA\u002fcIrSsl3RQFU7r+EnfNNAGdFXh83c1UBLQ\u002fBQt4fYQGhXdRP1hdtAPozXs7Hh3kDuy3XYKlPhQGkPHvJWcONAMKiwfovP5UDglskl13joQOeOmD1EdetAsiGZgPfO7kA7o0hBqUjxQJds8SyNZPNAynNCgFHC9UDJ\u002f\u002f\u002f\u002f\u002f2n4QA=="},"y":{"dtype":"f8","bdata":"OIDTcJduor\u002fFUZHAWK6kv3pGIcFaNKe\u002foRPu5y8Jqr\u002fU7IBtdjatv83Oo3x8Y7C\u002fLBzlpGljsr8qfuSqzaG0v\u002fhr87hHJre\u002fCWfEC2X5ub8tsVP+vSS9v54jbVCLWcC\u002f1lytpEFYwr9MeOTMSJXEv7Ajb0M7GMe\u002fhaXF\u002faDpyb\u002f8su5jDBPNvz\u002f51GedT9C\u002fSGCRgBxN0r9o+xgCxojUv8M9+ocvCte\u002fyAF2fdvZ2b9OeRT4VQHdv2BKkomqReC\u002fgO\u002fjm+5B4r+DFMjkNHzkv+cSpl4N\u002fOa\u002fp8s41\u002fPJ6b\u002fozsuLbO\u002fsvzLS4xiSO\u002fC\u002fPNSo54k28r+XcX9oVG\u002f0v\u002f\u002fRX+l47fa\u002f05JdTWi5+b\u002fBGwbmmNz8vwokBLfSMADAJkFntTcqAsCZseGbImEEwNAzCfsF3QbAGrA4xjamCcCjjT1kBcYMwNkObGJsIxDAjDK4pyUaEsDRCjaopE0UwAMHQiMYxRbAVm9eCHeIGcBUB1U7j6AcwHck8zKJCyDAYPDCnU\u002f7IcCgodl4YiUkwKHyV\u002fH+jybAvTxlrM5BKcDo0Wq01UEswBMpSVRUly\u002fA\u002fr7Tq8ykMcAKEdmF4K8zwKQIMPMu8DXA6I7RrYRoOMAb8PZN7xo7wBEpqAxzCD7Akd666V+YQMBQvXk1+EhCwNBmbOkwFETAFfdL2Vj3RcDdnWHX9+5HwB0cr8AC90nAZPPiDicLTMCAAl8bJCdOwDbc3B+SI1DAKOdtygM0UcA7JP+tykNSwBA7PVpHUlPA90IkhFFfVMDiC+1qJWtVwNjS9sNHdlbAjx7coWOBV8ACDbd0JY1YwOSx6fAVmlnADYVvpneoWsBkS3NfKrhbwPG8VLaXyFzA5XscRKzYXcCeZknX3+ZewLAo8RdN8V\u002fAWaJ9Eet6YMA5Cq5nKPlgwAlP18ZZcmHAj0LG8Z3lYcASkKCzRFJiwIMn8onVt2LA\u002fnTA3g8WY8BBPNw+5mxjwPPO5Wd2vGPAMCGt9P8EZMAZ7O0K20ZkwLPqlfBvgmTAnaef\u002fS+4ZMDObh4LkOhkwOo0vEoEFGXAJblCVv06ZcAkqxk95l1lwA=="},"type":"scatter","xaxis":"x2","yaxis":"y2"}],                        {"template":{"data":{"barpolar":[{"marker":{"line":{"color":"white","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"barpolar"}],"bar":[{"error_x":{"color":"#2a3f5f"},"error_y":{"color":"#2a3f5f"},"marker":{"line":{"color":"white","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"bar"}],"carpet":[{"aaxis":{"endlinecolor":"#2a3f5f","gridcolor":"#C8D4E3","linecolor":"#C8D4E3","minorgridcolor":"#C8D4E3","startlinecolor":"#2a3f5f"},"baxis":{"endlinecolor":"#2a3f5f","gridcolor":"#C8D4E3","linecolor":"#C8D4E3","minorgridcolor":"#C8D4E3","startlinecolor":"#2a3f5f"},"type":"carpet"}],"choropleth":[{"colorbar":{"outlinewidth":0,"ticks":""},"type":"choropleth"}],"contourcarpet":[{"colorbar":{"outlinewidth":0,"ticks":""},"type":"contourcarpet"}],"contour":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"contour"}],"heatmap":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"heatmap"}],"histogram2dcontour":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"histogram2dcontour"}],"histogram2d":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"histogram2d"}],"histogram":[{"marker":{"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"histogram"}],"mesh3d":[{"colorbar":{"outlinewidth":0,"ticks":""},"type":"mesh3d"}],"parcoords":[{"line":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"parcoords"}],"pie":[{"automargin":true,"type":"pie"}],"scatter3d":[{"line":{"colorbar":{"outlinewidth":0,"ticks":""}},"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scatter3d"}],"scattercarpet":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scattercarpet"}],"scattergeo":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scattergeo"}],"scattergl":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scattergl"}],"scattermapbox":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scattermapbox"}],"scattermap":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scattermap"}],"scatterpolargl":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scatterpolargl"}],"scatterpolar":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scatterpolar"}],"scatter":[{"fillpattern":{"fillmode":"overlay","size":10,"solidity":0.2},"type":"scatter"}],"scatterternary":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scatterternary"}],"surface":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"surface"}],"table":[{"cells":{"fill":{"color":"#EBF0F8"},"line":{"color":"white"}},"header":{"fill":{"color":"#C8D4E3"},"line":{"color":"white"}},"type":"table"}]},"layout":{"annotationdefaults":{"arrowcolor":"#2a3f5f","arrowhead":0,"arrowwidth":1},"autotypenumbers":"strict","coloraxis":{"colorbar":{"outlinewidth":0,"ticks":""}},"colorscale":{"diverging":[[0,"#8e0152"],[0.1,"#c51b7d"],[0.2,"#de77ae"],[0.3,"#f1b6da"],[0.4,"#fde0ef"],[0.5,"#f7f7f7"],[0.6,"#e6f5d0"],[0.7,"#b8e186"],[0.8,"#7fbc41"],[0.9,"#4d9221"],[1,"#276419"]],"sequential":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"sequentialminus":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]},"colorway":["#636efa","#EF553B","#00cc96","#ab63fa","#FFA15A","#19d3f3","#FF6692","#B6E880","#FF97FF","#FECB52"],"font":{"color":"#2a3f5f"},"geo":{"bgcolor":"white","lakecolor":"white","landcolor":"white","showlakes":true,"showland":true,"subunitcolor":"#C8D4E3"},"hoverlabel":{"align":"left"},"hovermode":"closest","mapbox":{"style":"light"},"paper_bgcolor":"white","plot_bgcolor":"white","polar":{"angularaxis":{"gridcolor":"#EBF0F8","linecolor":"#EBF0F8","ticks":""},"bgcolor":"white","radialaxis":{"gridcolor":"#EBF0F8","linecolor":"#EBF0F8","ticks":""}},"scene":{"xaxis":{"backgroundcolor":"white","gridcolor":"#DFE8F3","gridwidth":2,"linecolor":"#EBF0F8","showbackground":true,"ticks":"","zerolinecolor":"#EBF0F8"},"yaxis":{"backgroundcolor":"white","gridcolor":"#DFE8F3","gridwidth":2,"linecolor":"#EBF0F8","showbackground":true,"ticks":"","zerolinecolor":"#EBF0F8"},"zaxis":{"backgroundcolor":"white","gridcolor":"#DFE8F3","gridwidth":2,"linecolor":"#EBF0F8","showbackground":true,"ticks":"","zerolinecolor":"#EBF0F8"}},"shapedefaults":{"line":{"color":"#2a3f5f"}},"ternary":{"aaxis":{"gridcolor":"#DFE8F3","linecolor":"#A2B1C6","ticks":""},"baxis":{"gridcolor":"#DFE8F3","linecolor":"#A2B1C6","ticks":""},"bgcolor":"white","caxis":{"gridcolor":"#DFE8F3","linecolor":"#A2B1C6","ticks":""}},"title":{"x":0.05},"xaxis":{"automargin":true,"gridcolor":"#EBF0F8","linecolor":"#EBF0F8","ticks":"","title":{"standoff":15},"zerolinecolor":"#EBF0F8","zerolinewidth":2},"yaxis":{"automargin":true,"gridcolor":"#EBF0F8","linecolor":"#EBF0F8","ticks":"","title":{"standoff":15},"zerolinecolor":"#EBF0F8","zerolinewidth":2}}},"xaxis":{"anchor":"y","domain":[0.0,1.0],"matches":"x2","showticklabels":false},"yaxis":{"anchor":"x","domain":[0.55,1.0],"title":{"text":"Magnitude (dB)"}},"xaxis2":{"anchor":"y2","domain":[0.0,1.0],"title":{"text":"Frequency (Hz)"},"type":"log"},"yaxis2":{"anchor":"x2","domain":[0.0,0.45],"title":{"text":"Phase (\u00b0)"}},"annotations":[{"font":{"size":16},"showarrow":false,"text":"Magnitude - Filter Output - V(Node 3) [Before C1]","x":0.5,"xanchor":"center","xref":"paper","y":1.0,"yanchor":"bottom","yref":"paper"},{"font":{"size":16},"showarrow":false,"text":"Phase - Filter Output - V(Node 3) [Before C1]","x":0.5,"xanchor":"center","xref":"paper","y":0.45,"yanchor":"bottom","yref":"paper"}],"title":{"text":"Bode Plot - Filter Output - V(Node 3) [Before C1]","x":0.5,"xanchor":"center"},"height":600,"showlegend":false},                        {"responsive": true}                    )                };            </script>        </div>
+</body>
+</html>
+        </div>
+        
+        <div class="chart-container">
+            <h4>Bode Node 2</h4>
+            <html>
+<head><meta charset="utf-8" /></head>
+<body>
+    <div>                        <script type="text/javascript">window.PlotlyConfig = {MathJaxConfig: 'local'};</script>
+        <script charset="utf-8" src="https://cdn.plot.ly/plotly-3.1.0.min.js" integrity="sha256-Ei4740bWZhaUTQuD6q9yQlgVCMPBz6CZWhevDYPv93A=" crossorigin="anonymous"></script>                <div id="chart-bode_node_2" class="plotly-graph-div" style="height:600px; width:100%;"></div>            <script type="text/javascript">                window.PLOTLYENV=window.PLOTLYENV || {};                                if (document.getElementById("chart-bode_node_2")) {                    Plotly.newPlot(                        "chart-bode_node_2",                        [{"hovertemplate":"Freq: %{x:.2e}Hz\u003cbr\u003eMagnitude: %{y:.2f}dB\u003cextra\u003e\u003c\u002fextra\u003e","line":{"color":"#1f77b4","width":2},"mode":"lines","name":"Magnitude","x":{"dtype":"f8","bdata":"AAAAAAAA8D82xGufyfPxPwMm\u002fPiOJPQ\u002fDm7o98CZ9j9QYNT2uFv5PwtHVBzVc\u002fw\u002fq7hbLZjs\u002fz+DHtig5ugBQFzM1OlXGARAYBWrWQyMBkBNW9o6WEwJQDdKqwWUYgxA121SHzzZD0Bv7V08Ct4RQOESAEMoDBRAHkYjC2B+FkCNiTTSAD0ZQGLWomVdURxANTXBzuvFH0BnRvxtNNMhQPf\u002f\u002f\u002f\u002f\u002f\u002fyNAObVGB7xwJkB4Lzu3si0pQIWJ4jUxQCxAVniJNKeyL0BfrLQxZcgxQGJTWRzf8zNAGSYOSSBjNkBn\u002f0nkbR45QKvaFXAPLzxAEvKQSW6fP0BaDouDnL1BQJ2Ek5PF50NAwGh1y4xVRkCNF8BTMg9JQJgX7A34HUxA4avBBkGMT0D1xYVf2rJRQDjBOGGz21NA91d7iQFIVkDq\u002f\u002f\u002f\u002f\u002f\u002f9YQHxiGAnrDFxASfsJZR95X0Dsla3BHqhhQC7r1YCoz2NAbtchfn46ZkAxqG\u002fj1vBoQJWvUVvo+2tANX9cXQlmb0CkqA2maZ1xQESX+u2kw3NA6dFtpAMtdkC8ZXj4tuF4QOfCUv7v6ntAZh2w6P5Sf0C5jrMIu5KBQGYLOaSot4NAajdn95AfhkB88YY5oNKIQOot2usB2otA2P\u002f\u002f\u002f\u002f8\u002fj0CGPa\u002flEoiRQAU9Jp+zq5NAXfsYciYSlkDuZQuhksOYQDxNqh0eyZtALpJLnAwtn0C0DRM5cX2hQHfPWdrFn6NAwhKRD8QEpkAIPXkpjrSoQFVGiY1EuKtAG3+WtiQar0DHufP+1XKxQFUSblHfk7NAXHLgymn3tUAzTkfNkqW4QDcFQTV1p7tAzK3oR0gHv0CqXGgzQWjBQN7\u002f\u002f\u002f\u002f\u002fh8NA3gwbnxfqxUA8zO+GoJbIQCk6nw6wlstAXT9OSXf0zkA\u002fcIrSsl3RQFU7r+EnfNNAGdFXh83c1UBLQ\u002fBQt4fYQGhXdRP1hdtAPozXs7Hh3kDuy3XYKlPhQGkPHvJWcONAMKiwfovP5UDglskl13joQOeOmD1EdetAsiGZgPfO7kA7o0hBqUjxQJds8SyNZPNAynNCgFHC9UDJ\u002f\u002f\u002f\u002f\u002f2n4QA=="},"y":{"dtype":"f8","bdata":"pQrM7dTDvL566CfgQRvCvhAYL2lxy8a+qlGEG2OyzL4AohjFRhDSvtx6kmGevda+VtqDpPug3L5qySQmUgXivuw9rnXTr+a+BiOyS56P7L5ejnbTY\u002frxvvOJeVoQova+4uXfm0p+\u002fL4KIDxxe+8Bv+plAoBUlAa\u002fareRsv9sDL8rXgVNmOQRv2i7zMyehha\u002fybJf07tbHL+iM6wHudkhv\u002fJjnxXteCa\u002fc7noj3tKLL\u002f2yTXq2s4xv1xCUw47aza\u002fyMRDGjg5PL+q2VWR+MNBv41NTy6AXUa\u002fnJ8B7uMnTL87HiFIB7lRvyKCVX+rT1a\u002ft8vKK2QWXL8bqiTF8a1hv0h98kebQWa\u002fI+pCZoMEbL9EOuq2jaJxv8zLtn8MM3a\u002fP6\u002fXcdfxe78bVFEMh5aBv47NjQt6I4a\u002fKws0m43di79l24AON4mRvyA7JzPcEZa\u002fxuGi6gTGm79oz\u002f1OVHmhvwiEG9Iq\u002fKW\u002f801N6wioq7\u002fHv02EWGSxv5FP0Uxt3rW\u002f4anuml19u7\u002f6vYnvYUXBv0VIfHYEscW\u002fqa3XhCg6y78EFGuFRBPRv99FV+TUZdW\u002f8ksBQeLI2r83loEEvL3gv5GH2eSX5OS\u002fONhhP+IF6r8c5r8wHyvwv9oSw79UCfS\u002f5rO3+XXA+L\u002fbZB9r\u002f3f+vypofcoqrgLA5L33SrzPBsAEMQyfTL0LwHUFMApXzBDAdF+c2QVGFMBwBNPY0mcYwJ6IcowuWh3As\u002fjQwPytIcB\u002f6occ5GslwGfeeiq\u002fSyrALa1aklyYMMDUggT7BHM2wCCCD4E6xEnAQNVSTdUUN8CUoy4GAOkwwHTbiT2htirA6BkIJEK7JcB1ujA+gOwhwCqdiDEFwB3Ajfj9\u002fGK8GMCVW39b9owUwDcz3V4ZCBHAPKXwG\u002fwhDMA6xgiCUyQHwCYAbAfs9ALAzaslx7rt\u002fr+\u002fHgB82iH5v5y8vg1yWfS\u002fr8Jh3qxs8L80m3\u002fLpXDqv5Kx7aQqO+W\u002fX9OH4a0D4b+uY0LWjTnbvxTiq+FXwNW\u002f+4G1f9Jb0b92O5zhRa7Lv4S\u002fGA7MDca\u002fePsQEm6Pwb8NdKLCcvO7vw=="},"type":"scatter","xaxis":"x","yaxis":"y"},{"hovertemplate":"Freq: %{x:.2e}Hz\u003cbr\u003ePhase: %{y:.2f}\u00b0\u003cextra\u003e\u003c\u002fextra\u003e","line":{"color":"#ff7f0e","width":2},"mode":"lines","name":"Phase","x":{"dtype":"f8","bdata":"AAAAAAAA8D82xGufyfPxPwMm\u002fPiOJPQ\u002fDm7o98CZ9j9QYNT2uFv5PwtHVBzVc\u002fw\u002fq7hbLZjs\u002fz+DHtig5ugBQFzM1OlXGARAYBWrWQyMBkBNW9o6WEwJQDdKqwWUYgxA121SHzzZD0Bv7V08Ct4RQOESAEMoDBRAHkYjC2B+FkCNiTTSAD0ZQGLWomVdURxANTXBzuvFH0BnRvxtNNMhQPf\u002f\u002f\u002f\u002f\u002f\u002fyNAObVGB7xwJkB4Lzu3si0pQIWJ4jUxQCxAVniJNKeyL0BfrLQxZcgxQGJTWRzf8zNAGSYOSSBjNkBn\u002f0nkbR45QKvaFXAPLzxAEvKQSW6fP0BaDouDnL1BQJ2Ek5PF50NAwGh1y4xVRkCNF8BTMg9JQJgX7A34HUxA4avBBkGMT0D1xYVf2rJRQDjBOGGz21NA91d7iQFIVkDq\u002f\u002f\u002f\u002f\u002f\u002f9YQHxiGAnrDFxASfsJZR95X0Dsla3BHqhhQC7r1YCoz2NAbtchfn46ZkAxqG\u002fj1vBoQJWvUVvo+2tANX9cXQlmb0CkqA2maZ1xQESX+u2kw3NA6dFtpAMtdkC8ZXj4tuF4QOfCUv7v6ntAZh2w6P5Sf0C5jrMIu5KBQGYLOaSot4NAajdn95AfhkB88YY5oNKIQOot2usB2otA2P\u002f\u002f\u002f\u002f8\u002fj0CGPa\u002flEoiRQAU9Jp+zq5NAXfsYciYSlkDuZQuhksOYQDxNqh0eyZtALpJLnAwtn0C0DRM5cX2hQHfPWdrFn6NAwhKRD8QEpkAIPXkpjrSoQFVGiY1EuKtAG3+WtiQar0DHufP+1XKxQFUSblHfk7NAXHLgymn3tUAzTkfNkqW4QDcFQTV1p7tAzK3oR0gHv0CqXGgzQWjBQN7\u002f\u002f\u002f\u002f\u002fh8NA3gwbnxfqxUA8zO+GoJbIQCk6nw6wlstAXT9OSXf0zkA\u002fcIrSsl3RQFU7r+EnfNNAGdFXh83c1UBLQ\u002fBQt4fYQGhXdRP1hdtAPozXs7Hh3kDuy3XYKlPhQGkPHvJWcONAMKiwfovP5UDglskl13joQOeOmD1EdetAsiGZgPfO7kA7o0hBqUjxQJds8SyNZPNAynNCgFHC9UDJ\u002f\u002f\u002f\u002f\u002f2n4QA=="},"y":{"dtype":"f8","bdata":"N4DTcJduor\u002fGUZHAWK6kv3tGIcFaNKe\u002foRPu5y8Jqr\u002fU7IBtdjatv83Oo3x8Y7C\u002fLBzlpGljsr8pfuSqzaG0v\u002fhr87hHJre\u002fCWfEC2X5ub8vsVP+vSS9v5wjbVCLWcC\u002f2FytpEFYwr9LeOTMSJXEv7Ijb0M7GMe\u002fhKXF\u002faDpyb\u002f8su5jDBPNvz\u002f51GedT9C\u002fSWCRgBxN0r9n+xgCxojUv8Q9+ocvCte\u002fyAF2fdvZ2b9OeRT4VQHdv2BKkomqReC\u002fgO\u002fjm+5B4r+DFMjkNHzkv+YSpl4N\u002fOa\u002fp8s41\u002fPJ6b\u002fozsuLbO\u002fsvzLS4xiSO\u002fC\u002fO9So54k28r+WcX9oVG\u002f0vwDSX+l47fa\u002f0pJdTWi5+b+\u002fGwbmmNz8vwkkBLfSMADAJkFntTcqAsCZseGbImEEwM8zCfsF3QbAGbA4xjamCcCkjT1kBcYMwNgObGJsIxDAjDK4pyUaEsDQCjaopE0UwAQHQiMYxRbAVW9eCHeIGcBVB1U7j6AcwHck8zKJCyDAYPDCnU\u002f7IcChodl4YiUkwKDyV\u002fH+jybAvTxlrM5BKcDn0Wq01UEswBMpSVRUly\u002fA\u002fr7Tq8ykMcAKEdmF4K8zwKQIMPMu8DXA6Y7RrYRoOMAb8PZN7xo7wBEpqAxzCD7AkN666V+YQMBRvXk1+EhCwM9mbOkwFETAFfdL2Vj3RcDdnWHX9+5HwBscr8AC90nAYvPiDicLTMCAAl8bJCdOwDbc3B+SI1DAKOdtygM0UcA9JP+tykNSwBA7PVpHUlPA\u002fEIkhFFfVMDiC+1qJWtVwPHR9sNHdlbAceEjXpx+VUD+8kiL2nJUQBxOFg\u002fqZVNA83qQWYhXUkCdtIyg1UdRQA9Dq0loN1BANQjHd6dOTkDEMm1RQDJMQKOuHdBlHUpAoHYJulMUSEAd10dhXhtGQNrDouSYNkRAxPXmOIhpQkC5v30x7bZAQOzDbrBTQT5AGFj8CYFPO0DzHR4Jzpg4QGqI0cBMHDZAiPaWWgDYM0A5n5CoJ8kxQM9UofYA2S9APYYFJgB9LEAjExlO\u002f3YpQGOxPFS7vyZAsm3UmypQJEDGTWUunCEiQA=="},"type":"scatter","xaxis":"x2","yaxis":"y2"}],                        {"template":{"data":{"barpolar":[{"marker":{"line":{"color":"white","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"barpolar"}],"bar":[{"error_x":{"color":"#2a3f5f"},"error_y":{"color":"#2a3f5f"},"marker":{"line":{"color":"white","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"bar"}],"carpet":[{"aaxis":{"endlinecolor":"#2a3f5f","gridcolor":"#C8D4E3","linecolor":"#C8D4E3","minorgridcolor":"#C8D4E3","startlinecolor":"#2a3f5f"},"baxis":{"endlinecolor":"#2a3f5f","gridcolor":"#C8D4E3","linecolor":"#C8D4E3","minorgridcolor":"#C8D4E3","startlinecolor":"#2a3f5f"},"type":"carpet"}],"choropleth":[{"colorbar":{"outlinewidth":0,"ticks":""},"type":"choropleth"}],"contourcarpet":[{"colorbar":{"outlinewidth":0,"ticks":""},"type":"contourcarpet"}],"contour":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"contour"}],"heatmap":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"heatmap"}],"histogram2dcontour":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"histogram2dcontour"}],"histogram2d":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"histogram2d"}],"histogram":[{"marker":{"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"histogram"}],"mesh3d":[{"colorbar":{"outlinewidth":0,"ticks":""},"type":"mesh3d"}],"parcoords":[{"line":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"parcoords"}],"pie":[{"automargin":true,"type":"pie"}],"scatter3d":[{"line":{"colorbar":{"outlinewidth":0,"ticks":""}},"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scatter3d"}],"scattercarpet":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scattercarpet"}],"scattergeo":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scattergeo"}],"scattergl":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scattergl"}],"scattermapbox":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scattermapbox"}],"scattermap":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scattermap"}],"scatterpolargl":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scatterpolargl"}],"scatterpolar":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scatterpolar"}],"scatter":[{"fillpattern":{"fillmode":"overlay","size":10,"solidity":0.2},"type":"scatter"}],"scatterternary":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scatterternary"}],"surface":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"surface"}],"table":[{"cells":{"fill":{"color":"#EBF0F8"},"line":{"color":"white"}},"header":{"fill":{"color":"#C8D4E3"},"line":{"color":"white"}},"type":"table"}]},"layout":{"annotationdefaults":{"arrowcolor":"#2a3f5f","arrowhead":0,"arrowwidth":1},"autotypenumbers":"strict","coloraxis":{"colorbar":{"outlinewidth":0,"ticks":""}},"colorscale":{"diverging":[[0,"#8e0152"],[0.1,"#c51b7d"],[0.2,"#de77ae"],[0.3,"#f1b6da"],[0.4,"#fde0ef"],[0.5,"#f7f7f7"],[0.6,"#e6f5d0"],[0.7,"#b8e186"],[0.8,"#7fbc41"],[0.9,"#4d9221"],[1,"#276419"]],"sequential":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"sequentialminus":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]},"colorway":["#636efa","#EF553B","#00cc96","#ab63fa","#FFA15A","#19d3f3","#FF6692","#B6E880","#FF97FF","#FECB52"],"font":{"color":"#2a3f5f"},"geo":{"bgcolor":"white","lakecolor":"white","landcolor":"white","showlakes":true,"showland":true,"subunitcolor":"#C8D4E3"},"hoverlabel":{"align":"left"},"hovermode":"closest","mapbox":{"style":"light"},"paper_bgcolor":"white","plot_bgcolor":"white","polar":{"angularaxis":{"gridcolor":"#EBF0F8","linecolor":"#EBF0F8","ticks":""},"bgcolor":"white","radialaxis":{"gridcolor":"#EBF0F8","linecolor":"#EBF0F8","ticks":""}},"scene":{"xaxis":{"backgroundcolor":"white","gridcolor":"#DFE8F3","gridwidth":2,"linecolor":"#EBF0F8","showbackground":true,"ticks":"","zerolinecolor":"#EBF0F8"},"yaxis":{"backgroundcolor":"white","gridcolor":"#DFE8F3","gridwidth":2,"linecolor":"#EBF0F8","showbackground":true,"ticks":"","zerolinecolor":"#EBF0F8"},"zaxis":{"backgroundcolor":"white","gridcolor":"#DFE8F3","gridwidth":2,"linecolor":"#EBF0F8","showbackground":true,"ticks":"","zerolinecolor":"#EBF0F8"}},"shapedefaults":{"line":{"color":"#2a3f5f"}},"ternary":{"aaxis":{"gridcolor":"#DFE8F3","linecolor":"#A2B1C6","ticks":""},"baxis":{"gridcolor":"#DFE8F3","linecolor":"#A2B1C6","ticks":""},"bgcolor":"white","caxis":{"gridcolor":"#DFE8F3","linecolor":"#A2B1C6","ticks":""}},"title":{"x":0.05},"xaxis":{"automargin":true,"gridcolor":"#EBF0F8","linecolor":"#EBF0F8","ticks":"","title":{"standoff":15},"zerolinecolor":"#EBF0F8","zerolinewidth":2},"yaxis":{"automargin":true,"gridcolor":"#EBF0F8","linecolor":"#EBF0F8","ticks":"","title":{"standoff":15},"zerolinecolor":"#EBF0F8","zerolinewidth":2}}},"xaxis":{"anchor":"y","domain":[0.0,1.0],"matches":"x2","showticklabels":false},"yaxis":{"anchor":"x","domain":[0.55,1.0],"title":{"text":"Magnitude (dB)"}},"xaxis2":{"anchor":"y2","domain":[0.0,1.0],"title":{"text":"Frequency (Hz)"},"type":"log"},"yaxis2":{"anchor":"x2","domain":[0.0,0.45],"title":{"text":"Phase (\u00b0)"}},"annotations":[{"font":{"size":16},"showarrow":false,"text":"Magnitude - Circuit Node 2","x":0.5,"xanchor":"center","xref":"paper","y":1.0,"yanchor":"bottom","yref":"paper"},{"font":{"size":16},"showarrow":false,"text":"Phase - Circuit Node 2","x":0.5,"xanchor":"center","xref":"paper","y":0.45,"yanchor":"bottom","yref":"paper"}],"title":{"text":"Bode Plot - Circuit Node 2","x":0.5,"xanchor":"center"},"height":600,"showlegend":false},                        {"responsive": true}                    )                };            </script>        </div>
+</body>
+</html>
+        </div>
+        
+        <div class="chart-container">
+            <h4>Frequency Response</h4>
+            <html>
+<head><meta charset="utf-8" /></head>
+<body>
+    <div>                        <script type="text/javascript">window.PlotlyConfig = {MathJaxConfig: 'local'};</script>
+        <script charset="utf-8" src="https://cdn.plot.ly/plotly-3.1.0.min.js" integrity="sha256-Ei4740bWZhaUTQuD6q9yQlgVCMPBz6CZWhevDYPv93A=" crossorigin="anonymous"></script>                <div id="chart-frequency_response" class="plotly-graph-div" style="height:500px; width:100%;"></div>            <script type="text/javascript">                window.PLOTLYENV=window.PLOTLYENV || {};                                if (document.getElementById("chart-frequency_response")) {                    Plotly.newPlot(                        "chart-frequency_response",                        [{"hovertemplate":"Freq: %{x:.2e}Hz\u003cbr\u003eMagnitude: %{y:.2f}dB\u003cbr\u003eNode: Filter Output [Before C1]\u003cextra\u003e\u003c\u002fextra\u003e","line":{"color":"#1f77b4","width":2},"mode":"lines","name":"Filter Output [Before C1]","x":{"dtype":"f8","bdata":"AAAAAAAA8D82xGufyfPxPwMm\u002fPiOJPQ\u002fDm7o98CZ9j9QYNT2uFv5PwtHVBzVc\u002fw\u002fq7hbLZjs\u002fz+DHtig5ugBQFzM1OlXGARAYBWrWQyMBkBNW9o6WEwJQDdKqwWUYgxA121SHzzZD0Bv7V08Ct4RQOESAEMoDBRAHkYjC2B+FkCNiTTSAD0ZQGLWomVdURxANTXBzuvFH0BnRvxtNNMhQPf\u002f\u002f\u002f\u002f\u002f\u002fyNAObVGB7xwJkB4Lzu3si0pQIWJ4jUxQCxAVniJNKeyL0BfrLQxZcgxQGJTWRzf8zNAGSYOSSBjNkBn\u002f0nkbR45QKvaFXAPLzxAEvKQSW6fP0BaDouDnL1BQJ2Ek5PF50NAwGh1y4xVRkCNF8BTMg9JQJgX7A34HUxA4avBBkGMT0D1xYVf2rJRQDjBOGGz21NA91d7iQFIVkDq\u002f\u002f\u002f\u002f\u002f\u002f9YQHxiGAnrDFxASfsJZR95X0Dsla3BHqhhQC7r1YCoz2NAbtchfn46ZkAxqG\u002fj1vBoQJWvUVvo+2tANX9cXQlmb0CkqA2maZ1xQESX+u2kw3NA6dFtpAMtdkC8ZXj4tuF4QOfCUv7v6ntAZh2w6P5Sf0C5jrMIu5KBQGYLOaSot4NAajdn95AfhkB88YY5oNKIQOot2usB2otA2P\u002f\u002f\u002f\u002f8\u002fj0CGPa\u002flEoiRQAU9Jp+zq5NAXfsYciYSlkDuZQuhksOYQDxNqh0eyZtALpJLnAwtn0C0DRM5cX2hQHfPWdrFn6NAwhKRD8QEpkAIPXkpjrSoQFVGiY1EuKtAG3+WtiQar0DHufP+1XKxQFUSblHfk7NAXHLgymn3tUAzTkfNkqW4QDcFQTV1p7tAzK3oR0gHv0CqXGgzQWjBQN7\u002f\u002f\u002f\u002f\u002fh8NA3gwbnxfqxUA8zO+GoJbIQCk6nw6wlstAXT9OSXf0zkA\u002fcIrSsl3RQFU7r+EnfNNAGdFXh83c1UBLQ\u002fBQt4fYQGhXdRP1hdtAPozXs7Hh3kDuy3XYKlPhQGkPHvJWcONAMKiwfovP5UDglskl13joQOeOmD1EdetAsiGZgPfO7kA7o0hBqUjxQJds8SyNZPNAynNCgFHC9UDJ\u002f\u002f\u002f\u002f\u002f2n4QA=="},"y":{"dtype":"f8","bdata":"aqrqsBADt76QQI9Rafi8vs4+3alaPMK+L26G+xv1xr6CU6l31+bMvogk6l9LMdK+LIkBgi\u002fn1r7UIErpT9XcvqdaLoJCJuK+O7aLBkvZ5r4bbztF0sPsvkAjS8Q\u002fG\u002fK+PQi3EW7L9r76x77PXbL8vp+DpZJCEAK\u002fZYrjupe9Br+wA+sZ8aAMv6H+m8tJBRK\u002fSfBROMavFr+V6+RPiY8cv\u002fKHmjJT+iG\u002f0\u002fXX\u002f\u002fWhJr8lAD7XIH4sv3K691da7zG\u002fKVXyCiCUNr\u002fwD0SPrGw8v5LccGtW5EG\u002fqMlGYzaGRr\u002f7NShZFltMvxOjG+c12VG\u002fgCV3RR14Vr+\u002ftjI4Mklcv+hsiPLVzWG\u002fsML2fJ1pZr\u002fZPpi3qDZsv5qf8UjxwXG\u002fi323Ukladr8My0kWzCJ8v9GOsVr+tIG\u002feKggA0dJhr+VVb2zQwyMv9l83Y7spZG\u002fVKtHg+c0lr+rJchhZvCbv5MGSw+ikqG\u002flu+kTtoZpr9h8lIL+8mrv8m9i\u002fICd7G\u002fSEP8Xavxtb9mKf9H5Y67vxf7NnQpS8G\u002fCKNCGBCwxb8yGi7AGizLv4VpYGJsANG\u002fKPBhVp8+1b+iBqcQq3\u002fav5TWsMJlfeC\u002fQmTf\u002fOR35L+Di7HkYlPpv64oV52YN++\u002fr2592nEn87\u002f35V2WVWL3v3l1hY2ZYfy\u002fpoUYckEcAcDl6aUWkHsEwIqH4iOMVAjA8YHvZm6qDMA+rvXB274QwIIu5cgyZhPA5MKH2jpJFsBXKZD2TWUZwGSy276JtxzAISPzppoeIMDvJbGJDPohwGwLLKJg7SPA79EeiFP4JcButCSRHxsowMUBrot2VirAiEVtGW6rLMC8H6FWXxsvwNyj08zd0zDAWW4H7+woMsBftf1BYY0zwKLoxVOAATXADf\u002fAQkCFNsBpgddKQBg4wJCI7bjLuTnAVweQLuZoO8C3SExfXiQ9wJIE25vj6j7ARKlIWY1dQMBAHUzP10lBwMy0N1yxOULAiyUcmYgsQ8Djzce03CFEwOaaofs9GUXARvnjO00SRsB8B911ugxHwPak9S9DCEjAtRIErbAEScANpngt1gFKwA=="},"type":"scatter"},{"hovertemplate":"Freq: %{x:.2e}Hz\u003cbr\u003eMagnitude: %{y:.2f}dB\u003cbr\u003eNode: Circuit Node 2\u003cextra\u003e\u003c\u002fextra\u003e","line":{"color":"#ff7f0e","width":2},"mode":"lines","name":"Circuit Node 2","x":{"dtype":"f8","bdata":"AAAAAAAA8D82xGufyfPxPwMm\u002fPiOJPQ\u002fDm7o98CZ9j9QYNT2uFv5PwtHVBzVc\u002fw\u002fq7hbLZjs\u002fz+DHtig5ugBQFzM1OlXGARAYBWrWQyMBkBNW9o6WEwJQDdKqwWUYgxA121SHzzZD0Bv7V08Ct4RQOESAEMoDBRAHkYjC2B+FkCNiTTSAD0ZQGLWomVdURxANTXBzuvFH0BnRvxtNNMhQPf\u002f\u002f\u002f\u002f\u002f\u002fyNAObVGB7xwJkB4Lzu3si0pQIWJ4jUxQCxAVniJNKeyL0BfrLQxZcgxQGJTWRzf8zNAGSYOSSBjNkBn\u002f0nkbR45QKvaFXAPLzxAEvKQSW6fP0BaDouDnL1BQJ2Ek5PF50NAwGh1y4xVRkCNF8BTMg9JQJgX7A34HUxA4avBBkGMT0D1xYVf2rJRQDjBOGGz21NA91d7iQFIVkDq\u002f\u002f\u002f\u002f\u002f\u002f9YQHxiGAnrDFxASfsJZR95X0Dsla3BHqhhQC7r1YCoz2NAbtchfn46ZkAxqG\u002fj1vBoQJWvUVvo+2tANX9cXQlmb0CkqA2maZ1xQESX+u2kw3NA6dFtpAMtdkC8ZXj4tuF4QOfCUv7v6ntAZh2w6P5Sf0C5jrMIu5KBQGYLOaSot4NAajdn95AfhkB88YY5oNKIQOot2usB2otA2P\u002f\u002f\u002f\u002f8\u002fj0CGPa\u002flEoiRQAU9Jp+zq5NAXfsYciYSlkDuZQuhksOYQDxNqh0eyZtALpJLnAwtn0C0DRM5cX2hQHfPWdrFn6NAwhKRD8QEpkAIPXkpjrSoQFVGiY1EuKtAG3+WtiQar0DHufP+1XKxQFUSblHfk7NAXHLgymn3tUAzTkfNkqW4QDcFQTV1p7tAzK3oR0gHv0CqXGgzQWjBQN7\u002f\u002f\u002f\u002f\u002fh8NA3gwbnxfqxUA8zO+GoJbIQCk6nw6wlstAXT9OSXf0zkA\u002fcIrSsl3RQFU7r+EnfNNAGdFXh83c1UBLQ\u002fBQt4fYQGhXdRP1hdtAPozXs7Hh3kDuy3XYKlPhQGkPHvJWcONAMKiwfovP5UDglskl13joQOeOmD1EdetAsiGZgPfO7kA7o0hBqUjxQJds8SyNZPNAynNCgFHC9UDJ\u002f\u002f\u002f\u002f\u002f2n4QA=="},"y":{"dtype":"f8","bdata":"pQrM7dTDvL566CfgQRvCvhAYL2lxy8a+qlGEG2OyzL4AohjFRhDSvtx6kmGevda+VtqDpPug3L5qySQmUgXivuw9rnXTr+a+BiOyS56P7L5ejnbTY\u002frxvvOJeVoQova+4uXfm0p+\u002fL4KIDxxe+8Bv+plAoBUlAa\u002fareRsv9sDL8rXgVNmOQRv2i7zMyehha\u002fybJf07tbHL+iM6wHudkhv\u002fJjnxXteCa\u002fc7noj3tKLL\u002f2yTXq2s4xv1xCUw47aza\u002fyMRDGjg5PL+q2VWR+MNBv41NTy6AXUa\u002fnJ8B7uMnTL87HiFIB7lRvyKCVX+rT1a\u002ft8vKK2QWXL8bqiTF8a1hv0h98kebQWa\u002fI+pCZoMEbL9EOuq2jaJxv8zLtn8MM3a\u002fP6\u002fXcdfxe78bVFEMh5aBv47NjQt6I4a\u002fKws0m43di79l24AON4mRvyA7JzPcEZa\u002fxuGi6gTGm79oz\u002f1OVHmhvwiEG9Iq\u002fKW\u002f801N6wioq7\u002fHv02EWGSxv5FP0Uxt3rW\u002f4anuml19u7\u002f6vYnvYUXBv0VIfHYEscW\u002fqa3XhCg6y78EFGuFRBPRv99FV+TUZdW\u002f8ksBQeLI2r83loEEvL3gv5GH2eSX5OS\u002fONhhP+IF6r8c5r8wHyvwv9oSw79UCfS\u002f5rO3+XXA+L\u002fbZB9r\u002f3f+vypofcoqrgLA5L33SrzPBsAEMQyfTL0LwHUFMApXzBDAdF+c2QVGFMBwBNPY0mcYwJ6IcowuWh3As\u002fjQwPytIcB\u002f6occ5GslwGfeeiq\u002fSyrALa1aklyYMMDUggT7BHM2wCCCD4E6xEnAQNVSTdUUN8CUoy4GAOkwwHTbiT2htirA6BkIJEK7JcB1ujA+gOwhwCqdiDEFwB3Ajfj9\u002fGK8GMCVW39b9owUwDcz3V4ZCBHAPKXwG\u002fwhDMA6xgiCUyQHwCYAbAfs9ALAzaslx7rt\u002fr+\u002fHgB82iH5v5y8vg1yWfS\u002fr8Jh3qxs8L80m3\u002fLpXDqv5Kx7aQqO+W\u002fX9OH4a0D4b+uY0LWjTnbvxTiq+FXwNW\u002f+4G1f9Jb0b92O5zhRa7Lv4S\u002fGA7MDca\u002fePsQEm6Pwb8NdKLCcvO7vw=="},"type":"scatter"},{"hovertemplate":"Freq: %{x:.2e}Hz\u003cbr\u003eMagnitude: %{y:.2f}dB\u003cbr\u003eNode: Circuit Input [V1+]\u003cextra\u003e\u003c\u002fextra\u003e","line":{"color":"#2ca02c","width":2},"mode":"lines","name":"Circuit Input [V1+]","x":{"dtype":"f8","bdata":"AAAAAAAA8D82xGufyfPxPwMm\u002fPiOJPQ\u002fDm7o98CZ9j9QYNT2uFv5PwtHVBzVc\u002fw\u002fq7hbLZjs\u002fz+DHtig5ugBQFzM1OlXGARAYBWrWQyMBkBNW9o6WEwJQDdKqwWUYgxA121SHzzZD0Bv7V08Ct4RQOESAEMoDBRAHkYjC2B+FkCNiTTSAD0ZQGLWomVdURxANTXBzuvFH0BnRvxtNNMhQPf\u002f\u002f\u002f\u002f\u002f\u002fyNAObVGB7xwJkB4Lzu3si0pQIWJ4jUxQCxAVniJNKeyL0BfrLQxZcgxQGJTWRzf8zNAGSYOSSBjNkBn\u002f0nkbR45QKvaFXAPLzxAEvKQSW6fP0BaDouDnL1BQJ2Ek5PF50NAwGh1y4xVRkCNF8BTMg9JQJgX7A34HUxA4avBBkGMT0D1xYVf2rJRQDjBOGGz21NA91d7iQFIVkDq\u002f\u002f\u002f\u002f\u002f\u002f9YQHxiGAnrDFxASfsJZR95X0Dsla3BHqhhQC7r1YCoz2NAbtchfn46ZkAxqG\u002fj1vBoQJWvUVvo+2tANX9cXQlmb0CkqA2maZ1xQESX+u2kw3NA6dFtpAMtdkC8ZXj4tuF4QOfCUv7v6ntAZh2w6P5Sf0C5jrMIu5KBQGYLOaSot4NAajdn95AfhkB88YY5oNKIQOot2usB2otA2P\u002f\u002f\u002f\u002f8\u002fj0CGPa\u002flEoiRQAU9Jp+zq5NAXfsYciYSlkDuZQuhksOYQDxNqh0eyZtALpJLnAwtn0C0DRM5cX2hQHfPWdrFn6NAwhKRD8QEpkAIPXkpjrSoQFVGiY1EuKtAG3+WtiQar0DHufP+1XKxQFUSblHfk7NAXHLgymn3tUAzTkfNkqW4QDcFQTV1p7tAzK3oR0gHv0CqXGgzQWjBQN7\u002f\u002f\u002f\u002f\u002fh8NA3gwbnxfqxUA8zO+GoJbIQCk6nw6wlstAXT9OSXf0zkA\u002fcIrSsl3RQFU7r+EnfNNAGdFXh83c1UBLQ\u002fBQt4fYQGhXdRP1hdtAPozXs7Hh3kDuy3XYKlPhQGkPHvJWcONAMKiwfovP5UDglskl13joQOeOmD1EdetAsiGZgPfO7kA7o0hBqUjxQJds8SyNZPNAynNCgFHC9UDJ\u002f\u002f\u002f\u002f\u002f2n4QA=="},"y":{"dtype":"f8","bdata":"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=="},"type":"scatter"}],                        {"template":{"data":{"barpolar":[{"marker":{"line":{"color":"white","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"barpolar"}],"bar":[{"error_x":{"color":"#2a3f5f"},"error_y":{"color":"#2a3f5f"},"marker":{"line":{"color":"white","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"bar"}],"carpet":[{"aaxis":{"endlinecolor":"#2a3f5f","gridcolor":"#C8D4E3","linecolor":"#C8D4E3","minorgridcolor":"#C8D4E3","startlinecolor":"#2a3f5f"},"baxis":{"endlinecolor":"#2a3f5f","gridcolor":"#C8D4E3","linecolor":"#C8D4E3","minorgridcolor":"#C8D4E3","startlinecolor":"#2a3f5f"},"type":"carpet"}],"choropleth":[{"colorbar":{"outlinewidth":0,"ticks":""},"type":"choropleth"}],"contourcarpet":[{"colorbar":{"outlinewidth":0,"ticks":""},"type":"contourcarpet"}],"contour":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"contour"}],"heatmap":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"heatmap"}],"histogram2dcontour":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"histogram2dcontour"}],"histogram2d":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"histogram2d"}],"histogram":[{"marker":{"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"histogram"}],"mesh3d":[{"colorbar":{"outlinewidth":0,"ticks":""},"type":"mesh3d"}],"parcoords":[{"line":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"parcoords"}],"pie":[{"automargin":true,"type":"pie"}],"scatter3d":[{"line":{"colorbar":{"outlinewidth":0,"ticks":""}},"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scatter3d"}],"scattercarpet":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scattercarpet"}],"scattergeo":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scattergeo"}],"scattergl":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scattergl"}],"scattermapbox":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scattermapbox"}],"scattermap":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scattermap"}],"scatterpolargl":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scatterpolargl"}],"scatterpolar":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scatterpolar"}],"scatter":[{"fillpattern":{"fillmode":"overlay","size":10,"solidity":0.2},"type":"scatter"}],"scatterternary":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scatterternary"}],"surface":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"surface"}],"table":[{"cells":{"fill":{"color":"#EBF0F8"},"line":{"color":"white"}},"header":{"fill":{"color":"#C8D4E3"},"line":{"color":"white"}},"type":"table"}]},"layout":{"annotationdefaults":{"arrowcolor":"#2a3f5f","arrowhead":0,"arrowwidth":1},"autotypenumbers":"strict","coloraxis":{"colorbar":{"outlinewidth":0,"ticks":""}},"colorscale":{"diverging":[[0,"#8e0152"],[0.1,"#c51b7d"],[0.2,"#de77ae"],[0.3,"#f1b6da"],[0.4,"#fde0ef"],[0.5,"#f7f7f7"],[0.6,"#e6f5d0"],[0.7,"#b8e186"],[0.8,"#7fbc41"],[0.9,"#4d9221"],[1,"#276419"]],"sequential":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"sequentialminus":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]},"colorway":["#636efa","#EF553B","#00cc96","#ab63fa","#FFA15A","#19d3f3","#FF6692","#B6E880","#FF97FF","#FECB52"],"font":{"color":"#2a3f5f"},"geo":{"bgcolor":"white","lakecolor":"white","landcolor":"white","showlakes":true,"showland":true,"subunitcolor":"#C8D4E3"},"hoverlabel":{"align":"left"},"hovermode":"closest","mapbox":{"style":"light"},"paper_bgcolor":"white","plot_bgcolor":"white","polar":{"angularaxis":{"gridcolor":"#EBF0F8","linecolor":"#EBF0F8","ticks":""},"bgcolor":"white","radialaxis":{"gridcolor":"#EBF0F8","linecolor":"#EBF0F8","ticks":""}},"scene":{"xaxis":{"backgroundcolor":"white","gridcolor":"#DFE8F3","gridwidth":2,"linecolor":"#EBF0F8","showbackground":true,"ticks":"","zerolinecolor":"#EBF0F8"},"yaxis":{"backgroundcolor":"white","gridcolor":"#DFE8F3","gridwidth":2,"linecolor":"#EBF0F8","showbackground":true,"ticks":"","zerolinecolor":"#EBF0F8"},"zaxis":{"backgroundcolor":"white","gridcolor":"#DFE8F3","gridwidth":2,"linecolor":"#EBF0F8","showbackground":true,"ticks":"","zerolinecolor":"#EBF0F8"}},"shapedefaults":{"line":{"color":"#2a3f5f"}},"ternary":{"aaxis":{"gridcolor":"#DFE8F3","linecolor":"#A2B1C6","ticks":""},"baxis":{"gridcolor":"#DFE8F3","linecolor":"#A2B1C6","ticks":""},"bgcolor":"white","caxis":{"gridcolor":"#DFE8F3","linecolor":"#A2B1C6","ticks":""}},"title":{"x":0.05},"xaxis":{"automargin":true,"gridcolor":"#EBF0F8","linecolor":"#EBF0F8","ticks":"","title":{"standoff":15},"zerolinecolor":"#EBF0F8","zerolinewidth":2},"yaxis":{"automargin":true,"gridcolor":"#EBF0F8","linecolor":"#EBF0F8","ticks":"","title":{"standoff":15},"zerolinecolor":"#EBF0F8","zerolinewidth":2}}},"title":{"text":"Frequency Response - All Nodes","x":0.5,"xanchor":"center"},"xaxis":{"title":{"text":"Frequency (Hz)"},"type":"log"},"legend":{"orientation":"v","yanchor":"top","y":1,"xanchor":"left","x":1.02},"yaxis":{"title":{"text":"Magnitude (dB)"}},"height":500},                        {"responsive": true}                    )                };            </script>        </div>
+</body>
+</html>
+        </div>
+        
+    
+</section>
+
+<!-- Performance Metrics -->
+
+<section class="performance-metrics">
+    <h2>Performance Metrics</h2>
+    <div class="metrics-grid">
+        
+        <div class="metric-card">
+            <h4>Gain</h4>
+            
+                <p>-0.0 dB</p>
+            
+        </div>
+        
+        <div class="metric-card">
+            <h4>Bandwidth</h4>
+            
+                <p>1.762 kHz</p>
+            
+        </div>
+        
+        <div class="metric-card">
+            <h4>Phase Margin</h4>
+            
+                <p>180.0°</p>
+            
+        </div>
+        
+    </div>
+</section>
+
+
+<!-- Key Findings and Recommendations -->
+
+<section class="analysis-summary">
+    <h2>Analysis Summary</h2>
+    
+    
+    <h3>Key Findings</h3>
+    <ul class="findings-list">
+        
+        <li>Bandwidth: 1.762 kHz</li>
+        
+        <li>Maximum gain: -0.00 dB</li>
+        
+    </ul>
+    
+    
+    
+    <h3>Recommendations</h3>
+    <ul class="recommendations-list">
+        
+        <li>Validate frequency response against specifications.</li>
+        
+        <li>Check phase margin for stability requirements.</li>
+        
+    </ul>
+    
+</section>
+
+
+<!-- Conclusions -->
+<section class="conclusions">
+    <h2>Conclusions</h2>
+    
+    <p>The AC analysis has been completed successfully. 
+    The circuit shows nominal performance characteristics within expected parameters. 
+    
+    Key performance metrics have been calculated and are presented above.
+    
+    All simulation results are available in the interactive charts for detailed examination.</p>
+    
+    
+    <p class="text-muted mt-3">
+    <strong>Note:</strong> This report contains interactive Plotly charts. 
+    Hover over data points for precise values, use the toolbar to zoom, pan, or download chart images.
+    </p>
+</section>
+
+        </main>
+
+        <!-- Footer -->
+        <footer class="report-footer" style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #e0e0e0; text-align: center; color: #666; font-size: 0.9rem;">
+            <p>Generated by Circuit Simulation Library v1.0.0 on 2025-08-27 22:21:14</p>
+            <p>This report contains interactive charts - hover over data points for detailed information.</p>
+        </footer>
+    </div>
+
+    
+</body>
+</html>

@@ -111,6 +111,33 @@ class SimulationResults:
         """
         return self._branch_currents.get(component)
 
+    def get_voltage(self, node: Union[int, str]) -> Optional[np.ndarray]:
+        """
+        Get voltage at a specific node (alias for voltage() method).
+        
+        This method provides compatibility with test frameworks that expect
+        get_voltage() method name.
+
+        Args:
+            node: Node identifier
+
+        Returns:
+            Voltage array or None if node not found
+        """
+        return self.voltage(node)
+    
+    def get_frequency_vector(self) -> Optional[np.ndarray]:
+        """
+        Get frequency vector for AC analysis (alias for frequency property).
+        
+        This method provides compatibility with test frameworks that expect
+        get_frequency_vector() method name.
+
+        Returns:
+            Frequency array or None if not available
+        """
+        return self.frequency
+
     @property
     def nodes(self) -> List[Union[int, str]]:
         """Get list of nodes with voltage data."""

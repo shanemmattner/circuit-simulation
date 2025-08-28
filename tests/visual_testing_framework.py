@@ -233,9 +233,10 @@ class CircuitBehaviorValidator:
                 frequencies, R_ohms, C_farads
             )
             
-            # Calculate actual response
-            actual_mag_db = 20 * np.log10(np.abs(output_voltage))
-            actual_phase_deg = np.angle(output_voltage, deg=True)
+            # Calculate actual response - ensure arrays for vectorized operations
+            output_magnitude = np.abs(np.array(output_voltage))
+            actual_mag_db = 20 * np.log10(output_magnitude)
+            actual_phase_deg = np.angle(np.array(output_voltage), deg=True)
             
             # Validate behavior characteristics
             cutoff_freq = 1 / (2 * np.pi * R_ohms * C_farads)
@@ -391,8 +392,8 @@ class VisualTestFramework:
         if frequencies is None or voltage_data is None:
             raise ValueError(f"Missing frequency or voltage data for node {node_id}")
         
-        magnitude_db = 20 * np.log10(np.abs(voltage_data))
-        phase_deg = np.angle(voltage_data, deg=True)
+        magnitude_db = 20 * np.log10(np.abs(np.array(voltage_data)))
+        phase_deg = np.angle(np.array(voltage_data), deg=True)
         
         fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 8))
         
