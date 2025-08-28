@@ -110,28 +110,83 @@ uv run python test_mcp_server.py
 
 ## Development Workflow
 
-### CRITICAL REQUIREMENT: PRD First! 🚨
-**BEFORE implementing ANY new feature or major change:**
-1. **Create a Product Requirements Document (PRD)** in `memory-bank/prds/`
-2. **Get explicit user approval** before proceeding with implementation
-3. **Reference the approved PRD** in all commits related to that feature
+### 🚨 CRITICAL REQUIREMENT: PRD-Driven Development with Memory-Bank System
 
-⚠️ **NO CODE WITHOUT PRD APPROVAL** ⚠️
+**MANDATORY WORKFLOW for ALL features and bug fixes:**
 
-### Adding a New Feature
-1. **Understand**: Read related code and tests first
-2. **Design**: Sketch the API in a comment or markdown
-3. **Test**: Write tests that define the behavior
-4. **Implement**: Write the minimum code to pass tests
-5. **Refactor**: Clean up while tests still pass
-6. **Document**: Add docstrings and update README
-7. **Verify**: Run full quality checks
+#### Phase 0: Memory Bank Context (Always First)
+- **ALWAYS start with memory-bank-agent** to get focused project context
+- Ensures development aligns with established patterns and standards
+- Provides <2000 tokens of relevant context instead of 10,000+ from raw files
 
-### Fixing a Bug
-1. **Reproduce**: Write a failing test that demonstrates the bug
-2. **Fix**: Make the minimal change to pass the test
-3. **Verify**: Ensure no other tests break
-4. **Document**: Add comment explaining the fix if non-obvious
+#### Phase 1: PRD Development (Required)
+1. **Use `/develop-feature [description]` for new features**
+2. **Use `/debug-issue [description]` for bug fixes**
+3. **prd-creator agent collaborates with user** to create technical PRDs
+4. **Get explicit user approval** before proceeding with implementation
+5. **NO CODE WITHOUT PRD APPROVAL** ⚠️
+
+#### Phase 2: Professional TDD Implementation
+1. **work-planner breaks PRD into 15-minute testable segments**
+2. **prompt-optimizer crafts focused prompts for maximum effectiveness**
+3. **library-developer implements using professional TDD:**
+   - Tests first, minimal implementation, refactor
+   - Simple, maintainable patterns over clever techniques
+   - Continuous memory-bank updates with patterns established
+
+#### Phase 3: User Validation (Required)
+1. **User manually tests** the implementation in realistic scenarios
+2. **Run quality checks:** tests, linting, type checking
+3. **Git commit only when satisfied** with results
+
+### New PRD-Driven Commands
+
+#### `/develop-feature [feature_description]`
+Complete workflow for new features:
+```bash
+# Example usage:
+/develop-feature "Add circuit validation endpoint to FastAPI service"
+/develop-feature "Implement AC frequency analysis for circuits"
+/develop-feature "Add progress bars to CLI simulation commands"
+```
+
+**Workflow:**
+1. memory-bank-agent → provides context
+2. prd-creator → creates technical PRD with user collaboration
+3. work-planner → breaks into 15-minute TDD segments
+4. prompt-optimizer → crafts optimal implementation prompts
+5. library-developer → professional TDD implementation
+6. User validation and commit
+
+#### `/debug-issue [issue_description]`
+Complete workflow for bug fixes:
+```bash
+# Example usage:
+/debug-issue "FastAPI validation endpoint returns 500 for valid netlists"
+/debug-issue "Circuit simulation hangs on large netlists with >1000 components"
+/debug-issue "Docker container fails to start on Apple Silicon Macs"
+```
+
+**Workflow:**
+1. memory-bank-agent → provides debugging context and issue history
+2. prd-creator → creates debugging PRD with reproduction steps
+3. work-planner → creates systematic investigation and fix segments
+4. prompt-optimizer → crafts debugging-focused prompts
+5. library-developer → systematic debugging with comprehensive fixes
+6. User validation and commit
+
+### Legacy Workflow (Deprecated)
+The old manual workflow is deprecated in favor of PRD-driven commands:
+- ~~Manual PRD creation~~ → Use `/develop-feature` or `/debug-issue`
+- ~~Manual work planning~~ → Automated by work-planner agent
+- ~~Ad-hoc implementation~~ → Professional TDD with library-developer agent
+
+### Quality Standards (Maintained by Agents)
+- **>85% test coverage** enforced by library-developer
+- **Professional TDD** with tests before implementation
+- **Type hints and docstrings** on all public functions
+- **Error handling** with specific exceptions and helpful messages
+- **Memory-bank updates** with patterns and decisions established
 
 ### Common Commands
 
@@ -494,45 +549,77 @@ uv run pytest tests/test_api*.py tests/test_*_routes.py -v
 
 ## Memory Bank Integration 🧠
 
-### 🚨 CRITICAL: Automatic Memory Bank Usage
-**ALWAYS invoke memory-bank-agent FIRST at the start of EVERY session before any other work.** This is mandatory for context efficiency and avoiding token waste. The memory-bank-agent provides essential project context in <2000 tokens instead of 10,000+ from raw files.
+### 🚨 CRITICAL: Automatic Memory Bank Usage with PRD-Driven Development
+**MANDATORY: memory-bank-agent is ALWAYS invoked FIRST in EVERY development workflow.** This is integrated into all PRD-driven commands (`/develop-feature`, `/debug-issue`) for optimal context efficiency and token savings.
 
-### When Memory Bank Agent Triggers
-- **Before implementing new features**: Get architectural patterns and standards
-- **Before making architectural decisions**: Get historical context and established patterns  
-- **After completing significant work**: Record new patterns and update progress
-- **Before debugging complex issues**: Get relevant historical context and known patterns
-
-### Memory Bank Workflow Pattern
-```python
-# IMPORTANT: Use memory-bank-agent to save context tokens
-1. Main agent receives development task
-2. Instead of reading memory-bank files directly, use memory-bank-agent
-3. Memory-bank-agent condenses relevant context (<2000 tokens)
-4. Main agent proceeds with focused context, not raw files
-5. After completion, use memory-bank-agent to record decisions
+### PRD-Driven Memory Bank Workflow
+```
+Phase 0: memory-bank-agent → Provides focused context (<2000 tokens)
+Phase 1: prd-creator → Creates technical PRD with user collaboration  
+Phase 2: work-planner → Breaks PRD into testable segments
+Phase 3: prompt-optimizer → Crafts optimal prompts for implementation
+Phase 4: library-developer → Professional TDD with memory-bank updates
+Phase 5: User validation → Manual testing before commit
 ```
 
-### Context Efficiency Rules
+### Memory Bank Agent Responsibilities
+
+#### Context Provision (Phase 0):
+- **Feature Development**: Architectural patterns, quality standards, current priorities
+- **Bug Fixing**: Issue history, debugging patterns, similar past solutions
+- **Library Focus**: Python API patterns, FastAPI standards, testing requirements
+- **Token Efficiency**: <2000 tokens vs 10,000+ from raw files
+
+#### Progress Recording (During Implementation):
+- **Pattern Establishment**: New architectural decisions and their rationale
+- **Implementation Lessons**: What worked, what didn't, and why
+- **Quality Maintenance**: Standards upheld and improvements made
+- **Integration Notes**: How features connect to existing codebase
+
+### Context Efficiency Rules (Enforced by Commands)
 - **NEVER** read memory-bank files directly (activeContext.md, systemPatterns.md, etc.)
-- **ALWAYS** use memory-bank-agent to get condensed, relevant context
-- **TOKEN SAVINGS**: memory-bank-agent returns <2000 tokens vs 10,000+ for raw files
+- **ALWAYS** use memory-bank-agent through PRD-driven commands
+- **AUTOMATIC**: Commands invoke memory-bank-agent without manual intervention
+- **TOKEN SAVINGS**: Structured context handoffs between agent phases
 
-### Integration with Existing Commands
-All existing commands automatically use memory-bank context:
+### Integration with PRD-Driven Commands
+All development uses memory-bank context automatically:
+
+#### `/develop-feature [description]`:
+- memory-bank-agent provides feature development context
+- Records patterns established during implementation
+- Updates project progress and architectural decisions
+
+#### `/debug-issue [description]`:
+- memory-bank-agent provides debugging context and issue history
+- Records root causes and solution patterns
+- Updates debugging knowledge base
+
+#### Legacy Commands (Still Available):
 - `/test` - Gets testing patterns and coverage requirements
-- `/api-design` - Gets API standards and established patterns
-- `/performance-audit` - Gets performance targets and optimization patterns
-- `/library-architect` - Gets architectural principles and design patterns
+- `/check` - Gets quality standards and validation patterns  
+- `/ship` - Gets deployment and release patterns
+- `/commit` - Gets commit message standards and quality checks
 
-### Memory Bank Content Strategy
-The memory-bank-agent maintains focused, actionable context:
-- **Current patterns** that apply to active development
-- **Quality standards** that must be maintained
-- **Architectural decisions** that constrain new development
-- **Lessons learned** from recent work
+### Memory Bank Content Strategy (PRD-Focused)
+The memory-bank maintains:
+- **Approved PRDs**: Permanent record of feature requirements and decisions
+- **Implementation Patterns**: Established during library-developer execution
+- **Quality Standards**: Enforced across all development workflows
+- **Integration Knowledge**: How components connect and communicate
+- **Debugging Knowledge**: Root causes, solutions, and prevention patterns
 
-Historical context is preserved but not surfaced unless specifically relevant.
+### Cross-Session Communication
+- **Development Log**: Automatic session tracking with git branch and directory
+- **PRD Archive**: Permanent record of approved requirements and decisions
+- **Pattern Evolution**: How architectural decisions evolve over time
+- **Context Condensation**: Periodic compression to prevent accuracy drift
+
+### Token Optimization Strategy
+- **Phase-Based Context**: Each agent gets exactly the context it needs
+- **Structured Handoffs**: Formatted data exchange between agent phases
+- **Historical Filtering**: Old decisions surface only when specifically relevant
+- **Focus Maintenance**: Library development patterns prioritized over usage patterns
 
 ## AI Assistant Guidelines
 
@@ -563,46 +650,120 @@ Historical context is preserved but not surfaced unless specifically relevant.
 
 ## Claude Code Configuration 🤖
 
-### Current Configuration Status
-The project includes a comprehensive Claude Code setup in `.claude/` directory:
+### Enhanced PRD-Driven Configuration
+The project now includes optimized Claude Code setup focused on professional library development workflow:
 
-**Agents (7)**: 
-- **Core Development**: test-engineer, circuit-analyzer, report-builder, memory-bank-agent
-- **Code Navigation**: codebase-locator, codebase-analyzer  
-- **Research**: web-search-researcher
+**Core PRD-Driven Agents (5)**:
+- **memory-bank-agent**: MANDATORY - session communication and context management
+- **prompt-optimizer**: Crafts optimal prompts for maximum AI effectiveness  
+- **prd-creator**: Technical PRD development with user collaboration
+- **work-planner**: Smart segmentation into testable, provable chunks
+- **library-developer**: Professional TDD implementation with simple, maintainable patterns
 
-**Commands (6)**: test, check, ship, circuit, commit, regression_test  
-**Settings**: claude-sonnet-4-20250514 as default model
+**Supporting Agents (3)**:
+- **codebase-locator**: Find WHERE code lives (files/directories)
+- **codebase-analyzer**: Understand HOW code works (implementation details)
+- **web-search-researcher**: Modern technical information and best practices
 
-### Simple Planned Improvements (PRD: claude-code-simple-improvements.md)
-- **Basic Hooks**: Simple quality checks and notifications
-- **2 New Agents**: docs-writer, bug-fixer  
-- **3 New Commands**: /docs, /debug, /quick-fix
-- **MCP Config**: Basic .mcp.json for circuit-sim server
+**Legacy Agents (Deprecated)**:
+- ~~circuit-analyzer~~ → Replaced by library-developer (library focus vs. circuit analysis)
+- ~~test-engineer~~ → Integrated into library-developer TDD workflow
+- ~~report-builder~~ → Integrated into library-developer implementation
 
-### Usage Guidelines
-- Use `/test` for running test suites with coverage
-- Use `/check` for comprehensive quality validation
-- Use `/ship` for pre-PR workflow preparation  
-- Use `/circuit` for circuit analysis and simulation
-- Use `/commit` for automated commit with quality checks
-- Use `/regression_test` for comprehensive feature validation
+**PRD-Driven Commands (2)**:
+- **`/develop-feature [description]`**: Complete feature development workflow
+- **`/debug-issue [description]`**: Systematic debugging and fix workflow
 
-### Agent Invocation
-Agents are automatically invoked by Claude based on task context:
+**Legacy Commands (Still Available)**:
+- `/test`, `/check`, `/ship`, `/commit`, `/regression_test`
 
-**Core Development Agents:**
-- **memory-bank-agent**: MANDATORY - invoked first in every session for context
-- **test-engineer**: Automatically used after feature implementation  
-- **circuit-analyzer**: Used for circuit validation and optimization
-- **report-builder**: Used for generating visualization reports
+**Settings**: claude-sonnet-4-20250514 as default model with session hooks
 
-**Code Navigation Agents:**
-- **codebase-locator**: Use when you need to find WHERE code lives (files/directories)
-- **codebase-analyzer**: Use when you need to understand HOW code works (implementation details)
+### PRD-Driven Workflow Usage
 
-**Research Agents:**
-- **web-search-researcher**: Use for modern technical information, documentation, and best practices
+#### Primary Development Commands:
+```bash
+# Feature Development (Replaces manual workflow)
+/develop-feature "Add circuit validation endpoint to FastAPI service"
+/develop-feature "Implement AC frequency analysis for circuits"
+
+# Bug Fixing (Replaces ad-hoc debugging)
+/debug-issue "FastAPI returns 500 for valid netlists"
+/debug-issue "Simulation hangs on large circuits"
+```
+
+#### Quality Assurance Commands:
+```bash
+# Testing and validation
+/test                    # Run test suites with coverage
+/check                   # Comprehensive quality validation
+/ship                    # Pre-commit workflow preparation
+/commit                  # Automated commit with quality checks
+/regression_test         # Comprehensive feature validation
+```
+
+### Agent Orchestration (PRD-Driven)
+
+**Every Development Task Follows This Pattern:**
+```
+Phase 0: memory-bank-agent → Project context (<2000 tokens)
+Phase 1: prd-creator → Technical PRD with user collaboration
+Phase 2: work-planner → 15-minute testable segments
+Phase 3: prompt-optimizer → Focused implementation prompts
+Phase 4: library-developer → Professional TDD + memory-bank updates
+Phase 5: User validation → Manual testing before commit
+```
+
+**Agent Specialization:**
+
+**Memory-Bank Communication System:**
+- **memory-bank-agent**: ALWAYS FIRST - context provision and progress recording
+- Automatic invocation in all PRD-driven commands
+- <2000 token context summaries vs 10,000+ from raw files
+
+**PRD Development System:**
+- **prd-creator**: User collaboration, question asking, technical PRD creation
+- **work-planner**: Breaking PRDs into focused, testable implementation segments
+- **prompt-optimizer**: Crafting optimal prompts for each development phase
+
+**Professional Implementation System:**
+- **library-developer**: TDD implementation with simple, maintainable patterns
+- Focus on library development (Python API, FastAPI, testing, Docker)
+- NOT circuit analysis (that's library usage, not development)
+
+**Supporting Research System:**
+- **codebase-locator**: WHERE to find existing code and patterns
+- **codebase-analyzer**: HOW existing code works and integrates
+- **web-search-researcher**: Current best practices and modern techniques
+
+### Context Optimization Benefits
+
+**Token Efficiency:**
+- 50% reduction in irrelevant context through memory-bank-agent
+- Structured handoffs between specialized agents
+- Focused prompts eliminate scope creep and confusion
+
+**Development Speed:**
+- PRD-driven workflow prevents requirements drift
+- 15-minute TDD segments maintain focus and progress
+- Professional patterns reduce debugging and refactoring time
+
+**Quality Maintenance:**
+- Automatic quality gates enforced by agents
+- Memory-bank preserves architectural decisions and patterns
+- Continuous testing prevents regressions
+
+### Integration with Development Environment
+
+**Automatic Session Hooks:**
+- Development log tracking with git branch and directory
+- Memory-bank updates during implementation
+- Quality check integration points
+
+**MCP Integration Ready:**
+- Circuit simulation tools available via MCP server
+- AI assistant integration for development workflows
+- Automated testing and validation capabilities
 
 ---
 *Last Updated: August 28, 2025*

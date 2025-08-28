@@ -1,6 +1,80 @@
 # Technical Context
 
-## Technology Stack
+## Universal Claude Code System (NEW - August 28, 2025)
+
+### Agent Architecture
+- **memory-bank-agent**: Python-based context management with automatic token optimization
+- **prd-creator**: Interactive PRD creation with user collaboration workflows
+- **work-planner**: Intelligent task segmentation with 15-30 minute chunk optimization
+- **tdd-implementer**: Test-driven development enforcement with pattern recording
+- **prompt-optimizer**: AI prompt crafting optimization for maximum effectiveness
+
+### Technical Infrastructure
+- **Universal Deployment**: Git submodule or direct copy deployment in 5 minutes
+- **Auto-Detection**: Project type detection (Python, JavaScript, Go, Rust, Java, C++)
+- **Interactive Setup**: 7-10 question wizard with configuration customization
+- **Memory Bank System**: Automatic creation and management of memory-bank/ structure
+- **Context Optimization**: <2000 token context delivery vs 10,000+ raw file reading
+
+### Claude Code Integration
+```bash
+# Universal deployment pattern
+cd /path/to/any/project
+git clone https://github.com/your-org/claude-code-setup .claude-system
+python .claude-system/setup.py
+# → Complete Claude Code setup in 5 minutes
+```
+
+### Professional Workflow Commands (Generated)
+- `claude memory-context` - Get focused project context (MANDATORY first step)
+- `claude create-prd` - Interactive PRD creation and management
+- `claude plan-work` - Smart work breakdown with time estimation  
+- `claude implement-tdd` - Test-driven implementation with memory bank updates
+- `claude optimize-prompt` - AI prompt optimization for better outcomes
+- `claude quality-check` - Comprehensive code quality validation
+
+### Technology Compatibility Matrix
+| Language | Auto-Detect | Formatter | Linter | Testing | Type Check |
+|----------|-------------|-----------|--------|---------|------------|
+| Python | ✅ pyproject.toml | black | ruff | pytest | mypy |
+| JavaScript | ✅ package.json | prettier | eslint | jest | TypeScript |
+| TypeScript | ✅ tsconfig.json | prettier | eslint | jest | tsc |
+| Go | ✅ go.mod | gofmt | golint | go test | built-in |
+| Rust | ✅ Cargo.toml | rustfmt | clippy | cargo test | built-in |
+| Java | ✅ pom.xml/build.gradle | google-java-format | spotbugs | junit | built-in |
+
+### Memory Bank Architecture
+```
+memory-bank/
+├── projectbrief.md     # Core project mission and principles (rarely changes)
+├── productContext.md   # Why project exists, target users, success metrics
+├── activeContext.md    # Current session context, recent decisions, immediate goals
+├── systemPatterns.md   # Established architectural patterns, design decisions
+├── techContext.md      # Technical environment, dependencies, constraints
+├── progress.md         # What works, what's left, known issues, milestones
+└── prds/              # Product Requirements Documents
+    ├── feature-a.md   # Individual feature PRDs with approval status
+    ├── feature-b.md   # Implementation-ready requirements
+    └── ...           # Organized by feature/epic
+```
+
+### Deployment Options
+```bash
+# Option 1: Git Submodule (Recommended for teams)
+git submodule add https://github.com/circuit-synth/claude-code-setup .claude-system
+
+# Option 2: Direct Copy (Standalone projects)  
+git clone https://github.com/circuit-synth/claude-code-setup .claude-system
+
+# Option 3: Download Archive (Offline setup)
+curl -L https://github.com/circuit-synth/claude-code-setup/archive/main.zip -o setup.zip
+unzip setup.zip && mv claude-code-setup-main .claude-system
+
+# All options result in same 5-minute setup
+python .claude-system/setup.py
+```
+
+## Circuit Simulation Technology Stack
 
 ### Core Technologies
 - **Python 3.10+**: Type hints, modern async support

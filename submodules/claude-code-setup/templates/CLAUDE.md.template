@@ -1,0 +1,182 @@
+# {project_name} - Claude Code Configuration
+
+## 🚨 SESSION START REQUIREMENT
+**MANDATORY: Before any work, ALWAYS invoke the memory-bank-agent first to get project context and avoid token waste.**
+
+## Project Overview
+**Name**: {project_name}
+**Type**: {project_type}
+**Language**: {primary_language}
+**Target Users**: {target_users}
+**Setup Date**: {setup_date}
+
+## PRD-Driven Development Workflow
+**CRITICAL REQUIREMENT: PRD First! 🚨**
+**BEFORE implementing ANY feature or major change:**
+1. **Create a Product Requirements Document (PRD)** in `memory-bank/prds/`
+2. **Get explicit user approval** before proceeding with implementation
+3. **Reference the approved PRD** in all commits related to that feature
+
+⚠️ **NO CODE WITHOUT PRD APPROVAL** ⚠️
+
+## Development Standards
+
+### Quality Assurance
+```bash
+# Code formatting
+{formatter} .
+
+# Linting
+{linter} check .
+
+# Type checking  
+{type_checker} --strict
+
+# Run all tests
+{test_framework}
+
+# Check coverage (target: {coverage_target})
+{test_framework} --cov=src --cov-report=term-missing
+```
+
+### Work Style
+- **Segmentation**: {work_style}
+- **Documentation**: {documentation_level}
+- **Default Model**: {default_model}
+
+## Memory Bank System (Communication Between Sessions)
+**Structure:**
+```
+memory-bank/
+├── projectbrief.md       # Core requirements and goals
+├── productContext.md     # Why project exists, problems solved
+├── activeContext.md      # Current focus, recent changes
+├── systemPatterns.md     # Architecture, design patterns
+├── techContext.md        # Technologies, setup, constraints  
+├── progress.md          # What works, what's left, known issues
+└── prds/                # Product Requirements Documents
+    └── *.md            # Feature-specific PRDs
+```
+
+**Workflow:**
+- **Start of Session**: ALWAYS use memory-bank-agent first
+- **During Work**: Update activeContext.md with decisions
+- **After Features**: Update systemPatterns.md and progress.md
+- **PRD Storage**: All PRDs in memory-bank/prds/ directory
+
+## Development Workflow
+1. User describes issue → memory-bank-agent reads context
+2. Ask questions → Create PRD → User reviews → Iterate until complete
+3. Smart work segmentation (small, testable, provable chunks)
+4. prompt-optimizer crafts prompts for implementation agents
+5. TDD implementation with continuous memory-bank updates
+6. User manually tests before committing
+
+## Universal Commands Available
+
+### Core Workflow
+```bash
+# Get project context (ALWAYS START HERE)
+claude memory-context [--focus=area]
+
+# Create/manage PRDs
+claude create-prd [feature-description]
+claude create-prd --list
+claude create-prd --validate [prd-name]
+
+# Plan work intelligently  
+claude plan-work [goal] [--prd=name] [--complexity=level]
+claude plan-work --breakdown [task]
+claude plan-work --progress [plan-name]
+
+# Implement with TDD
+claude implement-tdd [feature] [--prd=name] [--task=id]
+claude implement-tdd --cycle [test-description]
+claude implement-tdd --validate [files...]
+
+# Optimize prompts for better results
+claude optimize-prompt [task] [--agent=target] [--type=optimization]
+
+# Quality assurance
+claude quality-check [--fix] [--coverage] [--security]
+```
+
+### Command Details
+
+**memory-context**: Essential first command for every session
+- Provides condensed project context (<2000 tokens vs 10,000+)
+- Use `--focus=api|testing|features` for targeted context
+- Updates activeContext.md with session information
+
+**create-prd**: PRD-driven development enforcement  
+- Interactive PRD creation with user collaboration
+- Validates completeness before implementation
+- Stores in memory-bank/prds/ for reference
+
+**plan-work**: Intelligent task breakdown
+- Breaks complex goals into 15-30 minute chunks
+- Analyzes dependencies and creates timelines
+- Tracks progress and identifies bottlenecks
+
+**implement-tdd**: Test-driven development
+- Enforces RED → GREEN → REFACTOR cycle
+- Validates test coverage and quality
+- Updates memory-bank with patterns learned
+
+**optimize-prompt**: Better prompt engineering
+- Crafts context-rich prompts for specific agents
+- Includes project patterns and constraints
+- Improves success rates for complex tasks
+
+**quality-check**: Comprehensive validation
+- Language-agnostic quality checks
+- Auto-detection of project tools and standards
+- Pre-commit and pre-deploy validation
+
+## Agent Guidelines
+
+### DO
+- Follow Test-Driven Development (TDD)
+- Ask for clarification when needed
+- Check existing patterns before implementing
+- Run quality checks before committing
+- Keep functions small and focused
+- Document design decisions
+- Handle errors explicitly
+
+### DON'T
+- Skip tests
+- Ignore linting errors
+- Use print() for debugging (use logging)
+- Make assumptions about requirements
+- Create large, monolithic functions
+- Leave TODO comments without tickets
+- Commit broken code
+
+## Memory Bank Management
+- **Periodic Condensation**: Compress old memory-bank files to prevent drift
+- **PRD Preservation**: Keep PRDs for key features permanently
+- **Context Optimization**: <200 token agent handoffs using structured markdown
+- **Token Efficiency**: <2000 tokens from memory-bank-agent vs 10,000+ from raw files
+
+## Project-Specific Configuration
+
+### Testing Requirements
+- **Framework**: {test_framework}
+- **Coverage Target**: {coverage_target}
+- **Test Strategy**: Write tests before implementation (TDD)
+
+### Code Quality Standards
+- **Formatter**: {formatter}
+- **Linter**: {linter}
+- **Type Checker**: {type_checker}
+- **Documentation Level**: {documentation_level}
+
+### Workflow Preferences  
+- **Work Style**: {work_style}
+- **Default AI Model**: {default_model}
+- **Target Users**: {target_users}
+
+---
+*Generated by Claude Code Setup Wizard on {setup_date}*
+*Configuration optimized for {project_type} development*
