@@ -16,3 +16,6 @@
 [submodule "research/humanlayer"]
 	path = research/humanlayer
 	url = https://github.com/humanlayer/humanlayer
+[submodule "submodules/claude-code-setup"]
+	path = submodules/claude-code-setup
+	url = git@github.com:shanemmattner/claude-code-setup.git
