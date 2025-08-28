@@ -516,6 +516,35 @@ uv run pytest tests/test_api*.py tests/test_*_routes.py -v
 - Performance requirements are real constraints
 - Documentation is part of the feature
 
+## Claude Code Configuration 🤖
+
+### Current Configuration Status
+The project includes a comprehensive Claude Code setup in `.claude/` directory:
+
+**Agents (3)**: test-engineer, circuit-analyzer, report-builder  
+**Commands (6)**: test, check, ship, circuit, commit, regression_test  
+**Settings**: claude-sonnet-4-20250514 as default model
+
+### Simple Planned Improvements (PRD: claude-code-simple-improvements.md)
+- **Basic Hooks**: Simple quality checks and notifications
+- **2 New Agents**: docs-writer, bug-fixer  
+- **3 New Commands**: /docs, /debug, /quick-fix
+- **MCP Config**: Basic .mcp.json for circuit-sim server
+
+### Usage Guidelines
+- Use `/test` for running test suites with coverage
+- Use `/check` for comprehensive quality validation
+- Use `/ship` for pre-PR workflow preparation  
+- Use `/circuit` for circuit analysis and simulation
+- Use `/commit` for automated commit with quality checks
+- Use `/regression_test` for comprehensive feature validation
+
+### Agent Invocation
+Agents are automatically invoked by Claude based on task context:
+- **test-engineer**: Automatically used after feature implementation
+- **circuit-analyzer**: Used for circuit validation and optimization
+- **report-builder**: Used for generating visualization reports
+
 ---
-*Last Updated: August 26, 2025*
+*Last Updated: August 28, 2025*
 *This file guides AI assistants in building a robust, production-ready circuit simulation library.*

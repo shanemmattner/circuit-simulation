@@ -1,46 +1,16 @@
 {
-  "permissions": {
-    "allow": [
-      "Bash(black *)",
-      "Bash(ruff check *)",
-      "Bash(pytest *)",
-      "Bash(mypy *)",
-      "Bash(python examples/*)",
-      "Bash(pip install *)",
-      "Read(**/*.py)",
-      "Write(src/**/*.py)",
-      "Write(tests/**/*.py)",
-      "Edit(src/**/*.py)",
-      "Edit(tests/**/*.py)"
-    ],
-    "deny": [
-      "Read(.env)",
-      "Read(secrets/*)",
-      "Read(**/*.key)",
-      "Read(**/*.pem)",
-      "Bash(rm -rf /)",
-      "Bash(git push --force)"
-    ],
-    "ask": [
-      "Bash(git push *)",
-      "Bash(pip uninstall *)",
-      "Bash(docker *)",
-      "WebFetch"
-    ]
-  },
-  "env": {
-    "PYTHONDONTWRITEBYTECODE": "1",
-    "PYTEST_ADDOPTS": "-v --tb=short",
-    "BLACK_LINE_LENGTH": "88"
-  },
+  "model": "claude-sonnet-4-20250514",
   "hooks": {
-    "pre_commit": {
-      "matchers": ["Edit|Write"],
-      "command": "black {file} && ruff check {file}"
-    },
-    "post_test": {
-      "matchers": ["Bash(pytest *)"],
-      "command": "echo 'Tests completed. Coverage report available.'"
-    }
+    "SessionStart": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo \"## Session: $(date) - Branch: $(git branch --show-current 2>/dev/null || echo 'unknown') - Dir: $(basename $(pwd))\" >> memory-bank/development-log.md"
+          }
+        ]
+      }
+    ]
   }
 }

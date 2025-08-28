@@ -1,3 +1,10 @@
+---
+name: regression_test
+description: Run comprehensive regression tests for all circuit simulation features
+tools: [Bash, Read, Write, Grep]
+model: claude-sonnet-4-20250514
+---
+
 # Regression Test Command
 
 ## Description
