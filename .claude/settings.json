@@ -11,6 +11,17 @@
           }
         ]
       }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Task",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [[ ! -f 'memory-bank/activeContext.md' ]]; then echo '⚠️  Memory-bank not found. Consider using memory-bank-agent first for optimal context.'; fi"
+          }
+        ]
+      }
     ]
   }
 }
