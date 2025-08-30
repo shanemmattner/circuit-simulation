@@ -74,11 +74,13 @@ The command orchestrates the agent workflow:
 async def develop_feature(feature_description: str):
     print(f"🚀 Starting PRD-driven development: {feature_description}")
     
-    # Phase 0: Memory Bank Context (MANDATORY)
+    # Phase 0: Memory Bank Context (MANDATORY - FAST APPROACH)
     print("\n📚 Phase 0: Loading project context...")
     context = await invoke_agent("memory-bank-agent", {
         "task": f"provide context for feature development: {feature_description}",
-        "type": "context_request"
+        "type": "context_request",
+        "use_fast_consolidation": True,
+        "focus_area": "feature_development"
     })
     
     # Phase 1: PRD Development

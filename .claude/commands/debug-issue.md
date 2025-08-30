@@ -77,11 +77,13 @@ The command orchestrates the debugging workflow:
 async def debug_issue(issue_description: str):
     print(f"🐛 Starting PRD-driven debugging: {issue_description}")
     
-    # Phase 0: Memory Bank Context (MANDATORY)
+    # Phase 0: Memory Bank Context (MANDATORY - FAST APPROACH)
     print("\n📚 Phase 0: Loading debugging context...")
     context = await invoke_agent("memory-bank-agent", {
         "task": f"provide debugging context for issue: {issue_description}",
-        "type": "debugging_context_request"
+        "type": "debugging_context_request",
+        "use_fast_consolidation": True,
+        "focus_area": "debugging"
     })
     
     # Phase 1: Debugging PRD Development

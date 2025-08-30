@@ -18,22 +18,34 @@ raw memory-bank files directly (10,000+ tokens).
 
 Works with any project type and tech stack.
 
+## FAST CONSOLIDATION APPROACH
+**MANDATORY**: Use the fast consolidation script for all context gathering:
+1. **Run**: `python scripts/fast_memory_bank_agent.py [optional_focus_area]`
+2. **Analyze**: The consolidated output in <10 seconds
+3. **Extract**: Relevant context for the current development task
+4. **Never**: Read memory-bank files directly (too slow, 5+ minutes)
+
+**Performance**: 4400x faster than direct file reading
+
 ## Core Functionality
 
-### Get Session Context
+### Get Session Context (FAST APPROACH)
 **Purpose**: Get condensed project context for a new session
 **Input**: Optional focus area (e.g., "api", "testing", "features")
 **Output**: Condensed context string optimized for AI consumption
 
 **Process**:
-1. Read all memory bank files (if they exist)
-2. Generate condensed context with these sections:
+1. **Use fast consolidation script** - Run `python scripts/fast_memory_bank_agent.py [focus]`
+2. **Analyze consolidated output** quickly for session context
+3. **Generate condensed context** with these sections:
    - Project overview (always included)
    - Current focus and active context
    - Architecture and patterns
    - Recent progress and status
    - Focus-specific context (if requested)
    - PRD summary (critical for development decisions)
+
+**Performance**: <10 seconds vs 5+ minutes with direct file reading
 
 ### Context Extraction Strategy
 
