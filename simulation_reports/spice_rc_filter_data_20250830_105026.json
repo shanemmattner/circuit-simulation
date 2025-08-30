@@ -1,0 +1,96 @@
+{
+  "format": "circuit-synth-simulation-report",
+  "version": "1.0",
+  "analysis_results": {
+    "dc": {
+      "analysis_type": "dc",
+      "success": false,
+      "error": "Circuit-synth simulation failed: DC simulation failed: Command 'run' failed",
+      "voltages": {},
+      "currents": {}
+    }
+  },
+  "metadata": {
+    "generated_by": "circuit-synth",
+    "plugin_name": "json",
+    "plugin_version": "1.0.0",
+    "generator": "JSONFormatPlugin",
+    "generated_at": "2025-08-30T10:50:26.092315"
+  },
+  "circuit": {
+    "name": "spice_rc_filter",
+    "description": "RC low-pass filter with SPICE-compatible components.",
+    "components": {
+      "R1": {
+        "ref": "R1",
+        "symbol": "Device:R",
+        "value": "1000",
+        "footprint": null
+      },
+      "C1": {
+        "ref": "C1",
+        "symbol": "Device:C",
+        "value": "100e-9",
+        "footprint": null
+      }
+    },
+    "nets": {
+      "INPUT": [
+        {
+          "component": "R1",
+          "pin": {
+            "number": "1",
+            "name": "~",
+            "type": "passive"
+          }
+        }
+      ],
+      "OUTPUT": [
+        {
+          "component": "R1",
+          "pin": {
+            "number": "2",
+            "name": "~",
+            "type": "passive"
+          }
+        },
+        {
+          "component": "C1",
+          "pin": {
+            "number": "1",
+            "name": "~",
+            "type": "passive"
+          }
+        }
+      ],
+      "GND": [
+        {
+          "component": "C1",
+          "pin": {
+            "number": "2",
+            "name": "~",
+            "type": "passive"
+          }
+        }
+      ]
+    }
+  },
+  "summary": {
+    "circuit_name": "spice_rc_filter",
+    "analysis_types": [
+      "dc"
+    ],
+    "num_analysis_types": 1,
+    "dc_summary": {
+      "analysis_type": "dc",
+      "status": "completed",
+      "voltage_nodes": 0,
+      "current_measurements": 0,
+      "operating_point": true,
+      "data_size": {
+        "bytes": 161,
+        "characters": 161
+      }
+    }
+  }
+}

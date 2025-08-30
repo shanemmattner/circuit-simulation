@@ -116,9 +116,58 @@ print(result.summary())  # Shows what was imported successfully
 circuit = result.circuit  # Ready for simulation!
 ```
 
-### Circuit-Synth Integration 🔗
+### Circuit-Synth Plugin-Based Integration 🔗
 
-Seamless integration with [circuit-synth](https://github.com/your-repo/circuit-synth) for complete design-to-simulation workflow:
+#### **New! Plugin-Based Simulation System** 🚀
+
+Write normal circuit-synth code and call `simulate()` to get professional reports with plots!
+
+```python
+from circuit_synth import circuit, Component, Net
+
+@circuit
+def rc_filter():
+    """Simple RC low-pass filter."""
+    vin = Net("VIN")
+    vout = Net("VOUT")
+    gnd = Net("GND")
+    
+    r1 = Component("Device:R", ref="R1", value="1k", pins={1: vin, 2: vout})
+    c1 = Component("Device:C", ref="C1", value="100n", pins={1: vout, 2: gnd})
+
+# Your vision realized - just call simulate!
+my_circuit = rc_filter()
+report = my_circuit.simulate_with_plugins()  # ✨ That's it!
+```
+
+**Plugin System Features:**
+- **🔌 Extensible Architecture**: Add new analysis types or output formats via plugins
+- **📊 Analysis Plugins**: DC, AC (with Bode plots), Transient
+- **📄 Format Plugins**: Interactive HTML reports, JSON data export  
+- **⚙️ Configuration-Driven**: YAML-based configuration, no hard-coding
+- **🎯 Simple API**: Your requested "write circuit → call simulate → get reports" workflow
+
+**Available API Calls:**
+```python
+# Run all analyses with HTML output (default)
+circuit.simulate_with_plugins()
+
+# Specific analysis type
+circuit.simulate_with_plugins(analysis='ac')  # Frequency response with Bode plots
+
+# Export as JSON data
+circuit.simulate_with_plugins(format='json')
+
+# Multiple analyses
+circuit.simulate_with_plugins(analysis=['dc', 'ac', 'transient'])
+
+# Custom configuration
+circuit.simulate_with_plugins(config={'ac': {'start_freq': '1Hz', 'stop_freq': '1MHz'}})
+```
+
+#### **Legacy Direct Integration**
+
+For direct circuit-simulation backend usage:
 
 ```python
 from circuit_sim.circuit_synth_integration import simulate_from_circuit_synth

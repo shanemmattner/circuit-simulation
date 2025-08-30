@@ -25,7 +25,9 @@ class CircuitSynthError(Exception):
         self.details = details or {}
 
 
-def simulate_from_circuit_synth(json_data: Dict[str, Any]) -> SimulationResults:
+def simulate_from_circuit_synth(
+    json_data: Dict[str, Any], analysis_type: str = "dc"
+) -> SimulationResults:
     """
     Simulate a circuit from circuit-synth JSON data.
 
@@ -34,6 +36,7 @@ def simulate_from_circuit_synth(json_data: Dict[str, Any]) -> SimulationResults:
 
     Args:
         json_data: Circuit data in circuit-synth JSON format
+        analysis_type: Type of analysis ("dc", "ac", "transient")
 
     Returns:
         SimulationResults: Results from the simulation
@@ -76,9 +79,29 @@ def simulate_from_circuit_synth(json_data: Dict[str, Any]) -> SimulationResults:
         # Convert circuit-synth JSON to circuit-simulation format
         circuit = _convert_to_circuit(json_data)
 
-        # Run simulation
+        # Run simulation based on analysis type
         engine = SimulationEngine()
-        results = engine.simulate_dc(circuit)
+        
+        if analysis_type == "dc":
+            results = engine.simulate_dc(circuit)
+        elif analysis_type == "ac":
+            # AC analysis with sensible defaults for filter circuits
+            results = engine.simulate_ac(
+                circuit, 
+                start_frequency=1.0,      # 1 Hz
+                stop_frequency=1e6,       # 1 MHz  
+                points_per_decade=20,     # High resolution
+                variation="dec"
+            )
+        elif analysis_type == "transient":
+            # Transient analysis with sensible defaults
+            results = engine.simulate_transient(
+                circuit,
+                stop_time=1e-3,          # 1 ms
+                step_time=1e-6           # 1 μs
+            )
+        else:
+            raise ValueError(f"Unsupported analysis type: {analysis_type}")
 
         return results
 

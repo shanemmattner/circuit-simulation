@@ -1,0 +1,118 @@
+{
+  "format": "circuit-synth-simulation-report",
+  "version": "1.0",
+  "analysis_results": {
+    "dc": {
+      "analysis_type": "dc",
+      "success": false,
+      "error": "Circuit-synth simulation failed: DC simulation failed: Command 'run' failed",
+      "voltages": {},
+      "currents": {}
+    }
+  },
+  "metadata": {
+    "generated_by": "circuit-synth",
+    "plugin_name": "json",
+    "plugin_version": "1.0.0",
+    "generator": "JSONFormatPlugin",
+    "generated_at": "2025-08-30T10:49:51.476561"
+  },
+  "circuit": {
+    "name": "simple_rc",
+    "description": "Simple RC circuit for testing.",
+    "components": {
+      "V1": {
+        "ref": "V1",
+        "symbol": "Device:Battery",
+        "value": "5V",
+        "footprint": null
+      },
+      "R1": {
+        "ref": "R1",
+        "symbol": "Device:R",
+        "value": "1k",
+        "footprint": null
+      },
+      "C1": {
+        "ref": "C1",
+        "symbol": "Device:C",
+        "value": "100n",
+        "footprint": null
+      }
+    },
+    "nets": {
+      "VIN": [
+        {
+          "component": "V1",
+          "pin": {
+            "number": "1",
+            "name": "~",
+            "type": "passive"
+          }
+        },
+        {
+          "component": "R1",
+          "pin": {
+            "number": "1",
+            "name": "~",
+            "type": "passive"
+          }
+        }
+      ],
+      "VOUT": [
+        {
+          "component": "R1",
+          "pin": {
+            "number": "2",
+            "name": "~",
+            "type": "passive"
+          }
+        },
+        {
+          "component": "C1",
+          "pin": {
+            "number": "1",
+            "name": "~",
+            "type": "passive"
+          }
+        }
+      ],
+      "GND": [
+        {
+          "component": "V1",
+          "pin": {
+            "number": "2",
+            "name": "~",
+            "type": "passive"
+          }
+        },
+        {
+          "component": "C1",
+          "pin": {
+            "number": "2",
+            "name": "~",
+            "type": "passive"
+          }
+        }
+      ]
+    }
+  },
+  "summary": {
+    "circuit_name": "simple_rc",
+    "analysis_types": [
+      "dc"
+    ],
+    "num_analysis_types": 1,
+    "dc_summary": {
+      "analysis_type": "dc",
+      "status": "completed",
+      "voltage_nodes": 0,
+      "current_measurements": 0,
+      "operating_point": true,
+      "data_size": {
+        "bytes": 161,
+        "characters": 161
+      }
+    }
+  }
+}
