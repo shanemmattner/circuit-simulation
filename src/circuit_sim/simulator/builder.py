@@ -4,10 +4,14 @@ PySpice circuit builder.
 Converts our simplified Circuit representation to PySpice format.
 """
 
-from typing import Any, Dict
+from typing import Any, Dict, Set
+import logging
 
 from ..circuit import Circuit
 from ..parser import parse_value
+from ..smart_spice_mapper import SmartSpiceMapper
+
+logger = logging.getLogger(__name__)
 
 
 class PySpiceBuilder:
@@ -16,6 +20,8 @@ class PySpiceBuilder:
     def __init__(self):
         """Initialize the builder."""
         self._pyspice_available = self._check_pyspice()
+        self._mapper = SmartSpiceMapper()
+        self._loaded_models: Set[str] = set()
 
     def _check_pyspice(self) -> bool:
         """Check if PySpice is available."""
@@ -52,6 +58,9 @@ class PySpiceBuilder:
         # Create PySpice circuit
         pyspice_circuit = PySpiceCircuit(circuit.name)
 
+        # Load SPICE model definitions first
+        self._load_required_models(pyspice_circuit, circuit)
+
         # Track component counts for unique naming
         component_counts: Dict[str, int] = {}
 
@@ -69,6 +78,14 @@ class PySpiceBuilder:
                 self._add_capacitor(pyspice_circuit, comp, component_counts)
             elif comp_type == "inductor":
                 self._add_inductor(pyspice_circuit, comp, component_counts)
+            elif comp_type == "bjt_transistor":
+                self._add_bjt_transistor(pyspice_circuit, comp, component_counts)
+            elif comp_type == "diode":
+                self._add_diode(pyspice_circuit, comp, component_counts)
+            elif comp_type == "opamp":
+                self._add_opamp(pyspice_circuit, comp, component_counts)
+            elif comp_type == "mosfet":
+                self._add_mosfet(pyspice_circuit, comp, component_counts)
             else:
                 raise ValueError(f"Unknown component type: {comp_type}")
 
@@ -210,3 +227,161 @@ class PySpiceBuilder:
 
         # Use PySpice units correctly
         pyspice_circuit.L(name, node1, node2, inductance @ u_H)
+
+    def _add_bjt_transistor(
+        self, pyspice_circuit: Any, comp: Dict, counts: Dict[str, int]
+    ):
+        """Add BJT transistor to PySpice circuit."""
+        name = self._get_component_id(comp, counts)
+        collector = self._node_to_pyspice(comp["collector"], pyspice_circuit)
+        base = self._node_to_pyspice(comp["base"], pyspice_circuit)
+        emitter = self._node_to_pyspice(comp["emitter"], pyspice_circuit)
+
+        # Get model name
+        model = comp.get("model", "2N3904")
+
+        # Add to circuit
+        if name.upper().startswith("Q"):
+            name = name[1:]  # Remove Q prefix
+
+        # Add BJT transistor
+        pyspice_circuit.BJT(name, collector, base, emitter, model=model)
+
+    def _add_diode(self, pyspice_circuit: Any, comp: Dict, counts: Dict[str, int]):
+        """Add diode to PySpice circuit."""
+        name = self._get_component_id(comp, counts)
+        anode = self._node_to_pyspice(comp["anode"], pyspice_circuit)
+        cathode = self._node_to_pyspice(comp["cathode"], pyspice_circuit)
+
+        # Get model name
+        model = comp.get("model", "1N4148")
+
+        # Add to circuit
+        if name.upper().startswith("D"):
+            name = name[1:]  # Remove D prefix
+
+        # Add diode
+        pyspice_circuit.Diode(name, anode, cathode, model=model)
+
+    def _add_opamp(self, pyspice_circuit: Any, comp: Dict, counts: Dict[str, int]):
+        """Add op-amp to PySpice circuit."""
+        name = self._get_component_id(comp, counts)
+        output = self._node_to_pyspice(comp["output"], pyspice_circuit)
+        input_neg = self._node_to_pyspice(comp["input_negative"], pyspice_circuit)
+        input_pos = self._node_to_pyspice(comp["input_positive"], pyspice_circuit)
+        vdd = self._node_to_pyspice(comp["vdd"], pyspice_circuit)
+        vss = self._node_to_pyspice(comp["vss"], pyspice_circuit)
+
+        # Get model name
+        model = comp.get("model", "LM358")
+
+        # Add to circuit
+        if name.upper().startswith("U"):
+            name = name[1:]  # Remove U prefix
+
+        # Add op-amp (using subcircuit model)
+        pyspice_circuit.X(name, model, output, input_neg, input_pos, vdd, vss)
+
+    def _add_mosfet(self, pyspice_circuit: Any, comp: Dict, counts: Dict[str, int]):
+        """Add MOSFET to PySpice circuit."""
+        name = self._get_component_id(comp, counts)
+        drain = self._node_to_pyspice(comp["drain"], pyspice_circuit)
+        gate = self._node_to_pyspice(comp["gate"], pyspice_circuit)
+        source = self._node_to_pyspice(comp["source"], pyspice_circuit)
+
+        # Get model name
+        model = comp.get("model", "2N7000")
+
+        # Add to circuit
+        if name.upper().startswith("M"):
+            name = name[1:]  # Remove M prefix
+
+        # Add MOSFET
+        pyspice_circuit.MOSFET(name, drain, gate, source, model=model)
+
+    def _load_required_models(self, pyspice_circuit: Any, circuit: Circuit):
+        """Load SPICE model definitions for all components that need them."""
+        required_models = set()
+
+        # Collect all model names needed
+        for comp in circuit.components:
+            comp_type = comp["type"]
+
+            if comp_type in ["bjt_transistor", "diode", "mosfet"]:
+                model_name = comp.get("model")
+                if model_name:
+                    required_models.add(model_name)
+
+        # Load each required model
+        for model_name in required_models:
+            if model_name not in self._loaded_models:
+                self._load_spice_model(pyspice_circuit, model_name)
+                self._loaded_models.add(model_name)
+
+    def _load_spice_model(self, pyspice_circuit: Any, model_name: str):
+        """Load a specific SPICE model definition into the circuit."""
+        try:
+            # For now, always use generic models since KiCad models have compatibility issues
+            # TODO: Improve KiCad model parsing to handle manufacturer-specific syntax
+            self._add_generic_model(pyspice_circuit, model_name)
+            logger.info(f"📚 Using built-in model for {model_name}")
+
+        except Exception as e:
+            logger.error(f"❌ Failed to load model {model_name}: {e}")
+            self._add_generic_model(pyspice_circuit, model_name)
+
+    def _add_generic_model(self, pyspice_circuit: Any, model_name: str):
+        """Add generic SPICE model when specific model not found."""
+        # Basic generic models for common components
+        generic_models = {
+            "2N3904": ".model 2N3904 NPN(BF=300 BR=4 IS=6.734e-15 VAF=74.03 IKF=0.2847 ISE=6.734e-15)",
+            "2N3906": ".model 2N3906 PNP(BF=200 BR=4 IS=1.41e-15 VAF=18.7 IKF=0.2847 ISE=1.41e-15)",
+            "1N4148": ".model 1N4148 D(IS=2.52e-9 N=1.752 CJO=4e-12 M=0.4 TT=20e-9)",
+            "1N4007": ".model 1N4007 D(IS=76.9e-9 N=2 CJO=26.5e-12 M=0.44 TT=8.67e-6)",
+            "2N7000": ".model 2N7000 NMOS(VTO=2.0 KP=300e-6 LAMBDA=0.02 CGSO=7e-11 CGDO=1e-11)",
+            "BS250": ".model BS250 PMOS(VTO=-2.5 KP=190e-6 LAMBDA=0.02 CGSO=7e-11 CGDO=1e-11)",
+        }
+
+        if model_name in generic_models:
+            pyspice_circuit.raw_spice += f"\n{generic_models[model_name]}"
+        else:
+            # Ultra-generic fallback
+            if model_name.upper().startswith(
+                ("2N39", "BC5", "2N22")
+            ):  # Common NPN patterns
+                pyspice_circuit.raw_spice += (
+                    f"\n.model {model_name} NPN(BF=200 IS=1e-14 VAF=100)"
+                )
+            elif model_name.upper().startswith(("2N39", "BC5")):  # Common PNP patterns
+                pyspice_circuit.raw_spice += (
+                    f"\n.model {model_name} PNP(BF=200 IS=1e-14 VAF=100)"
+                )
+            elif "N" in model_name.upper():  # Diode pattern
+                pyspice_circuit.raw_spice += f"\n.model {model_name} D(IS=1e-14 N=1)"
+            else:
+                logger.warning(f"No generic model available for {model_name}")
+
+        logger.debug(f"Added generic model for {model_name}")
+
+    def _is_valid_spice_model(self, model_definition: str) -> bool:
+        """Check if SPICE model definition has valid syntax for ngspice."""
+        # Check for problematic patterns in KiCad models
+        invalid_patterns = [
+            "[philips]",
+            "[onsemi]",
+            "[fairchild]",
+            "[ti]",
+            "[vishay]",  # Manufacturer tags
+            "temp_adj",
+            "temp_drift",  # Non-standard parameters
+            "{",
+            "}",  # Curly braces not supported
+        ]
+
+        model_lower = model_definition.lower()
+        for pattern in invalid_patterns:
+            if pattern.lower() in model_lower:
+                logger.debug(f"Invalid pattern found in model: {pattern}")
+                return False
+
+        return True
