@@ -138,31 +138,29 @@ uv run python test_mcp_server.py
 2. **Run quality checks:** tests, linting, type checking
 3. **Git commit only when satisfied** with results
 
-### Key Commands (Fast & Essential)
+### Streamlined Development Approach
 
-#### `/develop-feature [feature_description]`
-Streamlined workflow for new features:
-```bash
-# Example usage:
-/develop-feature "Add circuit validation endpoint to FastAPI service"
-/develop-feature "Implement AC frequency analysis for circuits"
-/develop-feature "Add progress bars to CLI simulation commands"
-```
+#### For New Features:
+Just ask directly: **"I want to add [feature description]. Can you help me create a PRD and break this down into small TDD parts?"**
+
+Examples:
+- "I want to add circuit validation endpoint to FastAPI service"  
+- "I want to implement AC frequency analysis for circuits"
+- "I want to add progress bars to CLI simulation commands"
 
 **Workflow:**
 1. Create PRD → Document feature clearly with user questions
-2. Break into parts → Small, testable chunks (~15 minutes each)
+2. Break into parts → Small, testable chunks (~15 minutes each)  
 3. TDD implementation → Tests first, then minimal code
 4. User validation → Manual testing and quality checks
 
-#### `/debug-issue [issue_description]`
-Streamlined workflow for bug fixes:
-```bash
-# Example usage:
-/debug-issue "FastAPI validation endpoint returns 500 for valid netlists"
-/debug-issue "Circuit simulation hangs on large netlists with >1000 components"
-/debug-issue "Docker container fails to start on Apple Silicon Macs"
-```
+#### For Bug Fixes:
+Just ask directly: **"I have this issue: [description]. Can you help me debug this systematically?"**
+
+Examples:
+- "FastAPI validation endpoint returns 500 for valid netlists"
+- "Circuit simulation hangs on large netlists with >1000 components"  
+- "Docker container fails to start on Apple Silicon Macs"
 
 **Workflow:**
 1. Create debugging PRD → Document issue with reproduction steps
@@ -677,23 +675,23 @@ The project uses a streamlined Claude Code setup focused on speed and essential 
 - ~~test-engineer~~ → Direct testing (faster)
 - ~~report-builder~~ → Direct reporting (faster)
 
-**Key Commands (Manual workflow)**:
-- **`/develop-feature [description]`**: Manual PRD → break into parts → TDD
-- **`/debug-issue [description]`**: Manual debugging PRD → investigate → fix
+**Direct Communication Approach**:
+- **New features**: "I want to add [description]" → Manual PRD → break into parts → TDD
+- **Bug fixes**: "I have this issue: [description]" → Manual debugging PRD → investigate → fix
 
 **Settings**: claude-sonnet-4-20250514 as default model with minimal hooks
 
 ### Streamlined Workflow Usage
 
-#### Primary Development Commands:
-```bash
-# Feature Development (Manual PRD approach)
-/develop-feature "Add circuit validation endpoint to FastAPI service"
-/develop-feature "Implement AC frequency analysis for circuits"
+#### Direct Communication (No fake commands):
+```
+# Feature Development - just ask directly:
+"I want to add circuit validation endpoint to FastAPI service"
+"I want to implement AC frequency analysis for circuits"
 
-# Bug Fixing (Manual debugging approach)
-/debug-issue "FastAPI returns 500 for valid netlists"
-/debug-issue "Simulation hangs on large circuits"
+# Bug Fixing - describe the problem:
+"FastAPI returns 500 for valid netlists"
+"Simulation hangs on large circuits"
 ```
 
 #### Quality Assurance (Direct approach):
