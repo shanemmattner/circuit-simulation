@@ -14,8 +14,9 @@ Professional circuit simulation with REST API, CLI tools, and AI integration.
 - **📊 Reports**: Interactive Plotly charts, professional HTML reports with power analysis
 - **📥 Smart Import**: Intelligent KiCad netlist parsing with automatic SPICE model assignment
 - **🧠 Model Intelligence**: 90%+ component coverage - transistors, diodes, op-amps, logic gates auto-mapped
+- **🔗 Circuit-Synth Integration**: Seamless integration with circuit-synth for design-to-simulation workflow
 - **📚 Example Library**: 10 complete circuits with comprehensive documentation
-- **🔌 50k+ Components**: Full KiCad-Spice-Library integration with fuzzy matching and behavioral fallbacks
+- **🔌 50k+ Components**: Full KiCad-Spice-Library integration with intelligent component mapping
 - **🐳 Production Ready**: Docker deployment, Redis/Celery backend
 
 ## Quick Start
@@ -114,6 +115,36 @@ print(result.summary())  # Shows what was imported successfully
 
 circuit = result.circuit  # Ready for simulation!
 ```
+
+### Circuit-Synth Integration 🔗
+
+Seamless integration with [circuit-synth](https://github.com/your-repo/circuit-synth) for complete design-to-simulation workflow:
+
+```python
+from circuit_sim.circuit_synth_integration import simulate_from_circuit_synth
+
+# Load circuit-synth JSON output
+with open("amplifier.json", "r") as f:
+    circuit_data = json.load(f)
+
+# Direct simulation with intelligent component mapping
+results = simulate_from_circuit_synth(circuit_data)
+
+# Smart features:
+# ✅ 50,093+ SPICE models from KiCad-Spice-Library
+# ✅ Intelligent component resolution (2N3904, 1N4148, etc.)
+# ✅ Confidence-scored fallback chain (exact → pattern → default)
+# ✅ Professional built-in models for common components
+# ✅ Complete independence - libraries communicate via JSON only
+```
+
+**Supported Components:**
+- **Passive**: R, L, C (direct value mapping)
+- **Active**: BJT transistors (NPN/PNP), MOSFETs (N/P-channel), diodes
+- **Integrated**: Op-amps with multi-unit support (LM358, etc.)
+- **Smart Fallbacks**: Unknown components use intelligent defaults
+
+**Architecture**: Libraries remain completely independent with JSON-only communication, enabling circuit-synth to optionally use circuit-simulation as a simulation backend while maintaining clean separation of concerns.
 
 ### Advanced Visualizations
 ```python

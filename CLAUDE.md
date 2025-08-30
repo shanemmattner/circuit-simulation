@@ -88,6 +88,8 @@ uv run python test_mcp_server.py
 - `src/circuit_sim/`: Main library package
   - `circuit.py`: Circuit definition with fluent API
   - `simulator/`: Simulation engine and results handling
+  - `circuit_synth_integration.py`: Circuit-synth integration layer
+  - `smart_spice_mapper.py`: Intelligent SPICE model mapping (50K+ components)
   - `reports/`: Professional report generation system
     - `generator.py`: Main ReportGenerator orchestration
     - `builders/`: Format-specific builders (HTML, PDF)
