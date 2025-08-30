@@ -284,46 +284,72 @@ class SimulationEngine:
             except ValueError:
                 pass
 
-            # Get complex voltage waveform with proper PySpice unit handling
+            # Get complex voltage waveform using as_ndarray() to preserve complex data
             voltage_waveform = analysis.nodes[node_name]
-            complex_voltage = []
             
-            for v in voltage_waveform:
-                try:
-                    # Convert PySpice unit to complex number safely
-                    if hasattr(v, 'real') and hasattr(v, 'imag'):
-                        # Already complex
-                        complex_voltage.append(complex(v))
-                    elif hasattr(v, '__complex__'):
-                        # Can convert to complex
-                        complex_voltage.append(complex(v))
-                    else:
-                        # Treat as real value
-                        complex_voltage.append(complex(float(v), 0))
-                except:
-                    # Fallback for problematic values
-                    complex_voltage.append(complex(0, 0))
+            try:
+                # Use as_ndarray() to get the actual complex values from PySpice
+                # This preserves both magnitude and phase information
+                complex_voltage = voltage_waveform.as_ndarray()
+                
+                # Ensure it's a numpy array of complex numbers
+                if not np.iscomplexobj(complex_voltage):
+                    # If somehow not complex, convert to complex
+                    complex_voltage = complex_voltage.astype(np.complex128)
                     
-            results.add_voltage(node_id, np.array(complex_voltage))
+            except AttributeError:
+                # Fallback to old method if as_ndarray() doesn't exist
+                complex_voltage = []
+                for v in voltage_waveform:
+                    try:
+                        if hasattr(v, 'real') and hasattr(v, 'imag'):
+                            complex_voltage.append(complex(v))
+                        elif hasattr(v, '__complex__'):
+                            complex_voltage.append(complex(v))
+                        else:
+                            complex_voltage.append(complex(float(v), 0))
+                    except:
+                        complex_voltage.append(complex(0, 0))
+                complex_voltage = np.array(complex_voltage)
+            except Exception as e:
+                # If extraction fails completely, create zeros
+                freq_len = len(safe_frequencies)
+                complex_voltage = np.zeros(freq_len, dtype=np.complex128)
+                    
+            results.add_voltage(node_id, complex_voltage)
 
-        # Get complex branch currents (if available) with safe handling
+        # Get complex branch currents using as_ndarray() to preserve complex data
         for branch_name in analysis.branches.keys():
             current_waveform = analysis.branches[branch_name]
-            complex_current = []
             
-            for i in current_waveform:
-                try:
-                    # Convert PySpice unit to complex number safely
-                    if hasattr(i, 'real') and hasattr(i, 'imag'):
-                        complex_current.append(complex(i))
-                    elif hasattr(i, '__complex__'):
-                        complex_current.append(complex(i))
-                    else:
-                        complex_current.append(complex(float(i), 0))
-                except:
-                    complex_current.append(complex(0, 0))
+            try:
+                # Use as_ndarray() to get the actual complex values from PySpice
+                complex_current = current_waveform.as_ndarray()
+                
+                # Ensure it's a numpy array of complex numbers
+                if not np.iscomplexobj(complex_current):
+                    complex_current = complex_current.astype(np.complex128)
                     
-            results.add_current(branch_name, np.array(complex_current))
+            except AttributeError:
+                # Fallback to old method if as_ndarray() doesn't exist
+                complex_current = []
+                for i in current_waveform:
+                    try:
+                        if hasattr(i, 'real') and hasattr(i, 'imag'):
+                            complex_current.append(complex(i))
+                        elif hasattr(i, '__complex__'):
+                            complex_current.append(complex(i))
+                        else:
+                            complex_current.append(complex(float(i), 0))
+                    except:
+                        complex_current.append(complex(0, 0))
+                complex_current = np.array(complex_current)
+            except Exception as e:
+                # If extraction fails completely, create zeros
+                freq_len = len(safe_frequencies)
+                complex_current = np.zeros(freq_len, dtype=np.complex128)
+                    
+            results.add_current(branch_name, complex_current)
 
         # Add metadata
         results.add_metadata("start_frequency", start_frequency)
