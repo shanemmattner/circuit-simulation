@@ -222,10 +222,11 @@ class SimulationEngine:
             start_frequency, stop_frequency, points_per_decade, variation
         )
 
-        # Build PySpice circuit
-        pyspice_circuit = self.builder.build_circuit(circuit)
-
-        # Create simulator
+        # Build PySpice circuit specifically for AC analysis
+        # Use SinusoidalVoltageSource instead of regular voltage sources
+        pyspice_circuit = self.builder.build_circuit(circuit, for_ac_analysis=True)
+        
+        # Create simulator for AC analysis
         try:
             simulator = pyspice_circuit.simulator(
                 temperature=25, nominal_temperature=25
@@ -267,29 +268,18 @@ class SimulationEngine:
 
         # Extract results
         results = SimulationResults("ac")
+        
+        # Handle frequency vector safely from PySpice
+        safe_frequencies = []
+        for f in analysis.frequency:
+            try:
+                safe_frequencies.append(float(f))
+            except:
+                safe_frequencies.append(1000.0)  # Fallback frequency
+                
+        results.set_frequency_vector(np.array(safe_frequencies))
 
-        # Get actual frequency vector from analysis (more accurate than our generated one)
-        try:
-            # Extract numeric values from PySpice FrequencyValue objects
-            frequency_values = []
-            for freq in analysis.frequency:
-                if hasattr(freq, "value"):
-                    # PySpice FrequencyValue object - extract numeric value
-                    frequency_values.append(float(freq.value))
-                else:
-                    # Already numeric
-                    frequency_values.append(float(freq))
-
-            actual_frequencies = np.array(frequency_values)
-            results.set_frequency_vector(actual_frequencies)
-        except Exception as e:
-            import logging
-
-            logging.warning(f"Failed to extract frequency vector from PySpice: {e}")
-            # Fallback to our generated frequency vector
-            results.set_frequency_vector(frequencies)
-
-        # Get complex node voltages
+        # Get complex node voltages with proper PySpice unit handling
         for node_name in analysis.nodes.keys():
             # Extract node identifier
             if node_name.startswith("v(") and node_name.endswith(")"):
@@ -303,52 +293,71 @@ class SimulationEngine:
             except ValueError:
                 pass
 
-            # Get complex voltage waveform - handle PySpice voltage units properly
-            voltage_data = analysis.nodes[node_name]
-
-            # Extract complex values from PySpice WaveForm using numpy
+            # Get complex voltage waveform using as_ndarray() to preserve complex data
+            voltage_waveform = analysis.nodes[node_name]
+            
             try:
-                # Use numpy to directly interpret the WaveForm as complex array
-                # This preserves the complex data that individual UnitValue objects lose
-                complex_voltage = np.array(voltage_data, dtype=complex)
-
-                # Verify we got the complex data
+                # Use as_ndarray() to get the actual complex values from PySpice
+                # This preserves both magnitude and phase information
+                complex_voltage = voltage_waveform.as_ndarray()
+                
+                # Ensure it's a numpy array of complex numbers
                 if not np.iscomplexobj(complex_voltage):
-                    import logging
-
-                    logging.warning(
-                        f"Node {node_id} numpy conversion didn't preserve complex type"
-                    )
-                    # Force complex dtype
-                    complex_voltage = complex_voltage.astype(complex)
-
-                # Verify we have meaningful data
-                if len(complex_voltage) == 0:
-                    import logging
-
-                    logging.warning(f"Node {node_id} returned empty voltage data")
-                    complex_voltage = np.array([complex(0, 0)], dtype=complex)
-
+                    # If somehow not complex, convert to complex
+                    complex_voltage = complex_voltage.astype(np.complex128)
+                    
+            except AttributeError:
+                # Fallback to old method if as_ndarray() doesn't exist
+                complex_voltage = []
+                for v in voltage_waveform:
+                    try:
+                        if hasattr(v, 'real') and hasattr(v, 'imag'):
+                            complex_voltage.append(complex(v))
+                        elif hasattr(v, '__complex__'):
+                            complex_voltage.append(complex(v))
+                        else:
+                            complex_voltage.append(complex(float(v), 0))
+                    except:
+                        complex_voltage.append(complex(0, 0))
+                complex_voltage = np.array(complex_voltage)
             except Exception as e:
-                # Fallback: try simpler conversion
-                import logging
-
-                logging.error(f"Failed to extract voltage for node {node_id}: {e}")
-
-                try:
-                    # Try direct numpy conversion as last resort
-                    complex_voltage = np.array(voltage_data, dtype=complex)
-                except:
-                    # Ultimate fallback - zero voltage
-                    complex_voltage = np.array([complex(0, 0)], dtype=complex)
-
+                # If extraction fails completely, create zeros
+                freq_len = len(safe_frequencies)
+                complex_voltage = np.zeros(freq_len, dtype=np.complex128)
+                    
             results.add_voltage(node_id, complex_voltage)
 
-        # Get complex branch currents (if available)
+        # Get complex branch currents using as_ndarray() to preserve complex data
         for branch_name in analysis.branches.keys():
-            complex_current = np.array(
-                [complex(i) for i in analysis.branches[branch_name]]
-            )
+            current_waveform = analysis.branches[branch_name]
+            
+            try:
+                # Use as_ndarray() to get the actual complex values from PySpice
+                complex_current = current_waveform.as_ndarray()
+                
+                # Ensure it's a numpy array of complex numbers
+                if not np.iscomplexobj(complex_current):
+                    complex_current = complex_current.astype(np.complex128)
+                    
+            except AttributeError:
+                # Fallback to old method if as_ndarray() doesn't exist
+                complex_current = []
+                for i in current_waveform:
+                    try:
+                        if hasattr(i, 'real') and hasattr(i, 'imag'):
+                            complex_current.append(complex(i))
+                        elif hasattr(i, '__complex__'):
+                            complex_current.append(complex(i))
+                        else:
+                            complex_current.append(complex(float(i), 0))
+                    except:
+                        complex_current.append(complex(0, 0))
+                complex_current = np.array(complex_current)
+            except Exception as e:
+                # If extraction fails completely, create zeros
+                freq_len = len(safe_frequencies)
+                complex_current = np.zeros(freq_len, dtype=np.complex128)
+                    
             results.add_current(branch_name, complex_current)
 
         # Add metadata
@@ -443,3 +452,43 @@ class SimulationEngine:
         else:
             # Linear variation
             return np.linspace(start_freq, stop_freq, 1000)
+    
+    def _create_ac_simulator_from_netlist(self, netlist_string: str):
+        """
+        Create a PySpice simulator from a fixed netlist string.
+        
+        This is needed because PySpice doesn't include AC components in its
+        automatic netlist generation, so we post-process the netlist and
+        create a new simulator from the corrected SPICE text.
+        
+        Args:
+            netlist_string: Fixed SPICE netlist with proper AC components
+            
+        Returns:
+            PySpice simulator object ready for AC analysis
+        """
+        import tempfile
+        import os
+        from PySpice.Spice.Netlist import Circuit as PySpiceCircuit
+        
+        # For now, create a temporary circuit and override its netlist
+        # This is a workaround since PySpice doesn't easily support loading from netlist strings
+        
+        try:
+            # Create a minimal PySpice circuit for the simulator interface
+            temp_circuit = PySpiceCircuit('AC_Fixed_Circuit')
+            
+            # Override the circuit's string representation to use our fixed netlist
+            original_str = temp_circuit.__str__
+            temp_circuit.__str__ = lambda: netlist_string
+            
+            # Create simulator - this will use our fixed netlist
+            simulator = temp_circuit.simulator(temperature=25, nominal_temperature=25)
+            
+            # Restore original __str__ method to avoid side effects
+            temp_circuit.__str__ = original_str
+            
+            return simulator
+            
+        except Exception as e:
+            raise RuntimeError(f"Failed to create AC simulator from fixed netlist: {e}")

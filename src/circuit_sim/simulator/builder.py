@@ -28,12 +28,13 @@ class PySpiceBuilder:
         except (ImportError, ValueError):
             return False
 
-    def build_circuit(self, circuit: Circuit) -> Any:
+    def build_circuit(self, circuit: Circuit, for_ac_analysis: bool = False) -> Any:
         """
         Convert our Circuit to a PySpice Circuit.
 
         Args:
             circuit: Our Circuit representation
+            for_ac_analysis: If True, use SinusoidalVoltageSource for AC analysis
 
         Returns:
             PySpice Circuit object
@@ -60,7 +61,7 @@ class PySpiceBuilder:
             comp_type = comp["type"]
 
             if comp_type == "voltage_source":
-                self._add_voltage_source(pyspice_circuit, comp, component_counts)
+                self._add_voltage_source(pyspice_circuit, comp, component_counts, for_ac_analysis)
             elif comp_type == "current_source":
                 self._add_current_source(pyspice_circuit, comp, component_counts)
             elif comp_type == "resistor":
@@ -113,9 +114,7 @@ class PySpiceBuilder:
             return pyspice_circuit.gnd
         return node
 
-    def _add_voltage_source(
-        self, pyspice_circuit: Any, comp: Dict, counts: Dict[str, int]
-    ):
+    def _add_voltage_source(self, pyspice_circuit: Any, comp: Dict, counts: Dict[str, int], for_ac_analysis: bool = False):
         """Add voltage source to PySpice circuit."""
 
         name = self._get_component_id(comp, counts)
@@ -129,13 +128,22 @@ class PySpiceBuilder:
         if name.upper().startswith("V"):
             name = name[1:]  # Remove V prefix
 
-        # Use PySpice with proper AC source configuration
-        # For AC analysis, we need to specify both DC and AC values
-        # Use SPICE syntax: "DC <dc_value> AC <ac_magnitude>"
-        dc_value = float(voltage)
+        from PySpice.Unit import u_V
 
-        # Create voltage source with explicit DC and AC values for proper frequency analysis
-        pyspice_circuit.V(name, node1, node2, f"DC {dc_value} AC 1")
+        if for_ac_analysis:
+            # For AC analysis, use SinusoidalVoltageSource which properly generates AC netlist
+            voltage_source = pyspice_circuit.SinusoidalVoltageSource(
+                name, node1, node2, 
+                amplitude=1 @ u_V  # 1V AC amplitude for small-signal analysis
+            )
+            
+            # Track AC sources for identification
+            if not hasattr(pyspice_circuit, '_ac_sources'):
+                pyspice_circuit._ac_sources = []
+            pyspice_circuit._ac_sources.append(voltage_source)
+        else:
+            # For DC and transient analysis, use regular voltage source
+            voltage_source = pyspice_circuit.V(name, node1, node2, voltage @ u_V)
 
     def _add_current_source(
         self, pyspice_circuit: Any, comp: Dict, counts: Dict[str, int]
@@ -210,3 +218,63 @@ class PySpiceBuilder:
 
         # Use PySpice units correctly
         pyspice_circuit.L(name, node1, node2, inductance @ u_H)
+    
+    def fix_ac_netlist(self, pyspice_circuit: Any) -> str:
+        """
+        Fix PySpice netlist to include AC components for voltage sources.
+        
+        PySpice doesn't automatically include AC components in netlist generation,
+        so we post-process the netlist to add them manually.
+        
+        Args:
+            pyspice_circuit: PySpice Circuit object
+            
+        Returns:
+            Fixed SPICE netlist string with proper AC components
+        """
+        # Get original netlist
+        original_netlist = str(pyspice_circuit)
+        
+        # Check if there are AC sources to fix
+        if not hasattr(pyspice_circuit, '_ac_sources') or not pyspice_circuit._ac_sources:
+            return original_netlist
+            
+        # Split into lines for processing
+        lines = original_netlist.split('\n')
+        fixed_lines = []
+        
+        # Create mapping of voltage source names to AC values
+        ac_source_map = {}
+        for v_source in pyspice_circuit._ac_sources:
+            if hasattr(v_source, 'ac') and hasattr(v_source, 'name'):
+                # Extract AC magnitude (handle both unit and numeric values)
+                ac_value = v_source.ac
+                if hasattr(ac_value, '__float__'):
+                    ac_magnitude = float(ac_value)
+                else:
+                    ac_magnitude = 1.0  # Default fallback
+                    
+                ac_source_map[v_source.name] = ac_magnitude
+        
+        # Process each line
+        for line in lines:
+            stripped = line.strip()
+            if stripped.startswith('V'):
+                # This is a voltage source line - check if it needs AC component
+                parts = stripped.split()
+                if len(parts) >= 4:  # Vname node1 node2 dc_value
+                    # The SPICE line format is "V1 1 0 1.0V", so parts[0] is the full name "V1"
+                    v_full_name = parts[0]  # Keep the full name including V prefix
+                    
+                    # Check if this voltage source is in our AC source map
+                    if v_full_name in ac_source_map:
+                        ac_magnitude = ac_source_map[v_full_name]
+                        # Convert: "V1 1 0 1.0V" -> "V1 1 0 DC 1.0V AC 1.0"
+                        fixed_line = f"{parts[0]} {parts[1]} {parts[2]} DC {parts[3]} AC {ac_magnitude}"
+                        fixed_lines.append(fixed_line)
+                        continue
+                        
+            # Keep original line if no AC fix needed
+            fixed_lines.append(line)
+            
+        return '\n'.join(fixed_lines)
