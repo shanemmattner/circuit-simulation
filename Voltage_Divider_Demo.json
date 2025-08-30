@@ -1,0 +1,83 @@
+{
+  "name": "Voltage_Divider_Demo",
+  "description": "Simple voltage divider circuit for circuit-synth integration demo",
+  "components": {
+    "V1": {
+      "symbol": "Device:V",
+      "ref": "V1",
+      "value": "12V",
+      "footprint": "TestPoint:TestPoint_THTPad_D2.0mm_Drill1.0mm",
+      "description": "12V DC power supply"
+    },
+    "R1": {
+      "symbol": "Device:R",
+      "ref": "R1",
+      "value": "1k",
+      "footprint": "Resistor_SMD:R_0603_1608Metric",
+      "description": "1k\u03a9 resistor"
+    },
+    "R2": {
+      "symbol": "Device:R",
+      "ref": "R2",
+      "value": "2k",
+      "footprint": "Resistor_SMD:R_0603_1608Metric",
+      "description": "2k\u03a9 resistor"
+    }
+  },
+  "nets": {
+    "VIN": [
+      {
+        "component": "V1",
+        "pin": {
+          "number": "1",
+          "name": "+",
+          "type": "passive"
+        }
+      },
+      {
+        "component": "R1",
+        "pin": {
+          "number": "1",
+          "name": "~",
+          "type": "passive"
+        }
+      }
+    ],
+    "VOUT": [
+      {
+        "component": "R1",
+        "pin": {
+          "number": "2",
+          "name": "~",
+          "type": "passive"
+        }
+      },
+      {
+        "component": "R2",
+        "pin": {
+          "number": "1",
+          "name": "~",
+          "type": "passive"
+        }
+      }
+    ],
+    "GND": [
+      {
+        "component": "V1",
+        "pin": {
+          "number": "2",
+          "name": "-",
+          "type": "passive"
+        }
+      },
+      {
+        "component": "R2",
+        "pin": {
+          "number": "2",
+          "name": "~",
+          "type": "passive"
+        }
+      }
+    ]
+  }
+}

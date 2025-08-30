@@ -7,18 +7,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "echo \"## Session: $(date) - Branch: $(git branch --show-current 2>/dev/null || echo 'unknown') - Dir: $(basename $(pwd))\" >> memory-bank/development-log.md"
-          }
-        ]
-      }
-    ],
-    "PreToolUse": [
-      {
-        "matcher": "Task",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "if [[ ! -f 'memory-bank/activeContext.md' ]]; then echo '⚠️  Memory-bank not found. Consider using memory-bank-agent first for optimal context.'; fi"
+            "command": "echo \"🚀 Circuit-Synth Professional Environment Loading...\\nℹ️  General development environment (not circuit-synth project)\""
           }
         ]
       }
