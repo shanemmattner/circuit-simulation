@@ -193,9 +193,7 @@ def run_dc_analysis(n_clicks, circuit_id):
         elif status == "completed":
             return html.Div(
                 [
-                    html.P(
-                        "✅ DC Analysis Complete", className="text-success fw-bold"
-                    ),
+                    html.P("✅ DC Analysis Complete", className="text-success fw-bold"),
                     html.P(f"Job ID: {job_id}"),
                     html.P("Results ready for display", className="text-info"),
                 ]
