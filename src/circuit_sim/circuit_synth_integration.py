@@ -12,6 +12,11 @@ from circuit_sim.circuit import Circuit
 from circuit_sim.simulator.engine import SimulationEngine
 from circuit_sim.simulator.results import SimulationResults
 from circuit_sim.smart_spice_mapper import SmartSpiceMapper, ComponentMapping
+# Import SpiceParser with correct absolute path
+import sys
+import os
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+from io.parsers.spice_parser import SpiceParser
 
 logger = logging.getLogger(__name__)
 
@@ -114,6 +119,91 @@ def simulate_from_circuit_synth(
         }
         raise CircuitSynthError(
             f"Circuit-synth simulation failed: {str(e)}", error_details
+        )
+
+
+def simulate_from_spice(spice_netlist: str, analysis_type: str = "dc") -> SimulationResults:
+    """
+    Simulate a circuit from SPICE netlist string.
+    
+    This provides direct SPICE simulation capability for circuit-synth integration.
+    Circuit-synth can export SPICE netlists and simulate them directly.
+    
+    Args:
+        spice_netlist: Complete SPICE netlist as string
+        analysis_type: Type of analysis ("dc", "ac", "transient")
+    
+    Returns:
+        SimulationResults: Results from the simulation
+        
+    Raises:
+        CircuitSynthError: If the SPICE netlist is invalid or simulation fails
+    
+    Example:
+        >>> spice_netlist = '''
+        ... * Power Regulation Test
+        ... .title Power_Regulation_Test
+        ... XU1 VBUS 0 VCC_3V3 AMS1117_3V3
+        ... CC1 VBUS VCC_3V3 10uF
+        ... CC2 VBUS VCC_3V3 22uF
+        ... RR1 VBUS VCC_3V3 16.5
+        ... VIN VBUS 0 DC 5V
+        ... .DC VIN 3 6 0.1
+        ... .END
+        ... '''
+        >>> results = simulate_from_spice(spice_netlist)
+    """
+    try:
+        # Create a temporary file for the SPICE netlist
+        import tempfile
+        import os
+        
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.cir', delete=False) as f:
+            f.write(spice_netlist)
+            spice_file_path = f.name
+        
+        try:
+            # Parse the SPICE netlist
+            parser = SpiceParser()
+            circuit = parser.parse_file(spice_file_path)
+            
+            # Run simulation based on analysis type
+            engine = SimulationEngine()
+            
+            if analysis_type == "dc":
+                results = engine.simulate_dc(circuit)
+            elif analysis_type == "ac":
+                results = engine.simulate_ac(
+                    circuit, 
+                    start_frequency=1.0,      # 1 Hz
+                    stop_frequency=1e6,       # 1 MHz  
+                    points_per_decade=20,     # High resolution
+                    variation="dec"
+                )
+            elif analysis_type == "transient":
+                results = engine.simulate_transient(
+                    circuit,
+                    stop_time=1e-3,          # 1 ms
+                    step_time=1e-6           # 1 μs
+                )
+            else:
+                raise ValueError(f"Unsupported analysis type: {analysis_type}")
+
+            return results
+            
+        finally:
+            # Clean up temporary file
+            if os.path.exists(spice_file_path):
+                os.unlink(spice_file_path)
+                
+    except Exception as e:
+        error_details = {
+            "error_type": type(e).__name__,
+            "analysis_type": analysis_type,
+            "spice_preview": spice_netlist[:500] + "..." if len(spice_netlist) > 500 else spice_netlist
+        }
+        raise CircuitSynthError(
+            f"SPICE simulation failed: {str(e)}", error_details
         )
 
 
