@@ -450,6 +450,71 @@ class Circuit:
                 f"Unknown analysis type: {analysis}. Use 'dc', 'transient', or 'ac'"
             )
 
+    @classmethod
+    def from_spice(cls, spice_content: str, name: str = "Circuit") -> "Circuit":
+        """
+        Create a Circuit from SPICE netlist content (simplified version).
+        
+        This is a basic implementation for circuit-synth integration.
+        For full SPICE parsing, use the dedicated SPICE parser.
+        
+        Args:
+            spice_content: SPICE netlist as string
+            name: Circuit name
+            
+        Returns:
+            Circuit object with basic component information
+        """
+        circuit = cls(name)
+        
+        # Basic SPICE parsing - extract title and count components
+        lines = spice_content.split('\n')
+        component_count = 0
+        
+        for line in lines:
+            line = line.strip()
+            if not line or line.startswith('*') or line.startswith('.'):
+                continue
+                
+            # This is likely a component line
+            if line and not line.startswith('*'):
+                component_count += 1
+                
+                # Extract component type and reference from first character
+                if line[0].upper() in 'RLC':  # Basic passive components
+                    parts = line.split()
+                    if len(parts) >= 4:
+                        comp_ref = parts[0]
+                        try:
+                            node1 = int(parts[1]) if parts[1].isdigit() else parts[1]
+                            node2 = int(parts[2]) if parts[2].isdigit() else parts[2]
+                            value = parts[3]
+                            
+                            if line[0].upper() == 'R':
+                                circuit.add_resistor(comp_ref, node1, node2, value)
+                            elif line[0].upper() == 'C':
+                                circuit.add_capacitor(comp_ref, node1, node2, value)
+                            elif line[0].upper() == 'L':
+                                circuit.add_inductor(comp_ref, node1, node2, value)
+                        except (ValueError, IndexError):
+                            # Skip components we can't parse
+                            pass
+                            
+                elif line[0].upper() == 'V':  # Voltage source
+                    parts = line.split()
+                    if len(parts) >= 5:
+                        comp_ref = parts[0]
+                        try:
+                            node1 = int(parts[1]) if parts[1].isdigit() else parts[1]
+                            node2 = int(parts[2]) if parts[2].isdigit() else parts[2]
+                            # Skip DC keyword if present
+                            value = parts[4] if parts[3].upper() == 'DC' else parts[3]
+                            circuit.add_voltage_source(comp_ref, node1, node2, value)
+                        except (ValueError, IndexError):
+                            pass
+        
+        return circuit
+
     def __repr__(self) -> str:
         """String representation of the circuit."""
         return f"Circuit('{self.name}', {len(self.components)} components, {len(self.nodes)} nodes)"

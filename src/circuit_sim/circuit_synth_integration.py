@@ -12,7 +12,7 @@ from circuit_sim.circuit import Circuit
 from circuit_sim.simulator.engine import SimulationEngine
 from circuit_sim.simulator.results import SimulationResults
 from circuit_sim.smart_spice_mapper import SmartSpiceMapper, ComponentMapping
-# Import SpiceParser with correct absolute path
+# Import SpiceParser with correct path
 import sys
 import os
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
