@@ -121,6 +121,33 @@ def calculate_thevenin(
     return {"vth": vth, "rth": rth, "in": in_value}
 
 
+def calculate_norton_from_thevenin(vth: float, rth: float) -> float:
+    """Calculate Norton current from Thevenin voltage and resistance.
+
+    This is a simple utility function that computes the Norton equivalent
+    current (short-circuit current) from the Thevenin equivalent parameters.
+    
+    In = Vth / Rth
+
+    Args:
+        vth: Thevenin voltage in Volts
+        rth: Thevenin resistance in Ohms
+
+    Returns:
+        Norton current in Amps (flowing from positive to negative terminal)
+
+    Raises:
+        ValueError: If rth is zero
+
+    Example:
+        >>> in_current = calculate_norton_from_thevenin(5.0, 1000.0)
+        >>> print(f"In = {in_current*1000:.2f}mA")  # 5.0mA
+    """
+    if rth == 0:
+        raise ValueError("Thevenin resistance (Rth) cannot be zero")
+    return vth / rth
+
+
 def calculate_norton_current(
     circuit: Circuit,
     terminal_pos: Union[int, str],
