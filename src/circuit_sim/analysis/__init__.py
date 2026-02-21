@@ -11,6 +11,11 @@ from .time_domain import (
     calculate_settling_time,
     calculate_overshoot,
 )
+from .resource_prediction import (
+    ResourcePrediction,
+    ResourcePredictor,
+    predict_simulation_resources,
+)
 
 __all__ = [
     "TransferFunction",
@@ -21,4 +26,7 @@ __all__ = [
     "calculate_rise_time",
     "calculate_settling_time",
     "calculate_overshoot",
+    "ResourcePrediction",
+    "ResourcePredictor",
+    "predict_simulation_resources",
 ]

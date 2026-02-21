@@ -1,0 +1,55 @@
+{
+  "subtasks": [
+    {
+      "id": "1",
+      "description": "Define complexity scoring data structures and core algorithm - create header files with ComplexityMetrics struct, scoring constants, and the main CalculateComplexityScore() function",
+      "files": [
+        "include/analysis/complexity_scoring.h",
+        "src/analysis/complexity_scoring.cc"
+      ]
+    },
+    {
+      "id": "2",
+      "description": "Implement component analysis - count nodes, components, classify elements (linear/nonlinear, reactive/active), analyze source types (DC/AC/transient)",
+      "files": [
+        "include/analysis/component_analyzer.h",
+        "src/analysis/component_analyzer.cc"
+      ]
+    },
+    {
+      "id": "3",
+      "description": "Implement topology analysis - analyze circuit connectivity, count independent loops, identify stiff systems, detect convergence-challenging structures",
+      "files": [
+        "include/analysis/topology_analyzer.h",
+        "src/analysis/topology_analyzer.cc"
+      ]
+    },
+    {
+      "id": "4",
+      "description": "Implement simulation time prediction and memory estimation - create prediction models based on complexity metrics, implement memory usage estimation",
+      "files": [
+        "include/analysis/performance_predictor.h",
+        "src/analysis/performance_predictor.cc"
+      ]
+    },
+    {
+      "id": "5",
+      "description": "Implement solver settings suggestion - based on complexity score and circuit characteristics, suggest appropriate solver type, tolerance, and iteration limits",
+      "files": [
+        "include/analysis/solver_advisor.h",
+        "src/analysis/solver_advisor.cc"
+      ]
+    },
+    {
+      "id": "6",
+      "description": "Integrate complexity scoring into the system - add API endpoints, CLI commands, and wire all components together",
+      "files": [
+        "include/circuit_simulator.h",
+        "src/circuit_simulator.cc",
+        "tests/test_complexity_scoring.cc"
+      ]
+    }
+  ],
+  "strategy": "execute",
+  "deferred_work": null
+}
