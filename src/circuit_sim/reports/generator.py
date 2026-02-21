@@ -16,6 +16,7 @@ from circuit_sim.circuit import Circuit
 from circuit_sim.simulator.results import SimulationResults
 
 from .charts.plotly_charts import PlotlyChartGenerator
+from .schematic_generator import SchematicGenerator
 from .utils.formatting import format_time_duration, format_units, format_value
 from .utils.metrics import MetricsCalculator
 
@@ -40,6 +41,7 @@ class ReportGenerator:
         )
 
         self.chart_generator = PlotlyChartGenerator()
+        self.schematic_generator = SchematicGenerator()
         self.metrics_calculator = MetricsCalculator()
 
         # Add custom filters to Jinja2
@@ -134,6 +136,9 @@ class ReportGenerator:
         # Generate charts
         charts = self.chart_generator.create_charts(results, circuit)
 
+        # Generate schematic
+        schematic_svg = self.schematic_generator.generate_schematic(circuit)
+
         # Calculate metrics
         metrics = self.metrics_calculator.calculate_metrics(results, circuit)
 
@@ -145,6 +150,7 @@ class ReportGenerator:
             "circuit": circuit_analysis,
             "results": processed_results,
             "charts": charts,
+            "schematic": schematic_svg,
             "metrics": metrics,
             "summary": summary,
             "raw_circuit": circuit,
