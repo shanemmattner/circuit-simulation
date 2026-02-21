@@ -12,6 +12,7 @@ from circuit_sim.circuit import Circuit
 from circuit_sim.simulator.engine import SimulationEngine
 from circuit_sim.simulator.results import SimulationResults
 from circuit_sim.smart_spice_mapper import SmartSpiceMapper, ComponentMapping
+from circuit_sim.analysis.complexity import CalculateComplexityScore
 # Import SpiceParser with correct path
 import sys
 import os
@@ -84,6 +85,15 @@ def simulate_from_circuit_synth(
         # Convert circuit-synth JSON to circuit-simulation format
         circuit = _convert_to_circuit(json_data)
 
+        # Calculate complexity metrics before simulation
+        complexity = _calculate_complexity_metrics(circuit)
+        logger.info(
+            f"Circuit complexity: {complexity.get('overall_score', 'N/A')} "
+            f"({complexity.get('difficulty_level', 'unknown')}) - "
+            f"{complexity.get('component_count', 0)} components, "
+            f"{complexity.get('node_count', 0)} nodes"
+        )
+
         # Run simulation based on analysis type
         engine = SimulationEngine()
         
@@ -107,6 +117,9 @@ def simulate_from_circuit_synth(
             )
         else:
             raise ValueError(f"Unsupported analysis type: {analysis_type}")
+
+        # Add complexity metrics to results
+        results.add_metadata("complexity", complexity)
 
         return results
 
@@ -167,6 +180,15 @@ def simulate_from_spice(spice_netlist: str, analysis_type: str = "dc") -> Simula
             parser = SpiceParser()
             circuit = parser.parse_file(spice_file_path)
             
+            # Calculate complexity metrics before simulation
+            complexity = _calculate_complexity_metrics(circuit)
+            logger.info(
+                f"Circuit complexity: {complexity.get('overall_score', 'N/A')} "
+                f"({complexity.get('difficulty_level', 'unknown')}) - "
+                f"{complexity.get('component_count', 0)} components, "
+                f"{complexity.get('node_count', 0)} nodes"
+            )
+            
             # Run simulation based on analysis type
             engine = SimulationEngine()
             
@@ -188,6 +210,9 @@ def simulate_from_spice(spice_netlist: str, analysis_type: str = "dc") -> Simula
                 )
             else:
                 raise ValueError(f"Unsupported analysis type: {analysis_type}")
+
+            # Add complexity metrics to results
+            results.add_metadata("complexity", complexity)
 
             return results
             
@@ -413,3 +438,56 @@ def _get_validation_errors(json_data: Dict[str, Any]) -> list:
         errors.append(str(e))
 
     return errors
+
+
+def _calculate_complexity_metrics(circuit: Circuit) -> Dict[str, Any]:
+    """
+    Calculate complexity metrics for a circuit before simulation.
+
+    This function analyzes the circuit to determine its complexity score,
+    which can be used to guide simulation settings and predict resource needs.
+
+    Args:
+        circuit: Circuit object to analyze
+
+    Returns:
+        Dict containing complexity metrics
+    """
+    try:
+        metrics = CalculateComplexityScore(circuit)
+        return {
+            "overall_score": metrics.overall_score.score if metrics.overall_score else None,
+            "difficulty_level": metrics.difficulty_level,
+            "component_count": metrics.component_counts.total_components,
+            "node_count": metrics.topology.node_count,
+            "reactive_count": metrics.topology.reactive_element_count,
+            "nonlinear_count": metrics.topology.nonlinear_count,
+        }
+    except Exception as e:
+        logger.warning(f"Complexity analysis failed: {e}")
+        return {
+            "overall_score": None,
+            "difficulty_level": "unknown",
+            "component_count": 0,
+            "node_count": 0,
+            "reactive_count": 0,
+            "nonlinear_count": 0,
+        }
+
+
+def _add_complexity_to_results(
+    results: SimulationResults, circuit: Circuit
+) -> SimulationResults:
+    """
+    Add complexity metrics to simulation results.
+
+    Args:
+        results: SimulationResults to enhance
+        circuit: Circuit that was simulated
+
+    Returns:
+        SimulationResults with complexity metrics added to metadata
+    """
+    complexity = _calculate_complexity_metrics(circuit)
+    results.add_metadata("complexity", complexity)
+    return results
