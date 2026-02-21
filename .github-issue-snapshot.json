@@ -1,0 +1,35 @@
+{
+  "assignees": [],
+  "body": "## Description\nDetect invalid configurations where current sources are connected in series, which violates Kirchhoff's current law.\n\n## Problem\nCurrent sources in series must all have the same current value, otherwise the circuit is invalid. This is a common mistake that leads to simulation errors.\n\n## Acceptance Criteria\n- [ ] Detect series-connected current sources\n- [ ] Check if current values match (for valid series connection)\n- [ ] Provide clear error messages\n- [ ] Identify the specific sources and nodes involved\n- [ ] Integrate with validation system\n\n## Technical Approach\n- Identify current sources in the circuit\n- Check for series connections (single path between sources)\n- Validate current values match if in series\n\n## Priority\nMedium - Less common than voltage shorts but still important",
+  "comments": [
+    {
+      "id": "IC_kwDOPk3kOM7qwZVy",
+      "author": {
+        "login": "shanemmattner"
+      },
+      "authorAssociation": "MEMBER",
+      "body": "### Pipeline progress\n\nPR https://github.com/personal-assistant-system/circuit-simulation/pull/31 addresses part of this issue.\n\n**Remaining work:**\nAfter exploring the codebase, define specific implementation subtasks for: (1) detecting series-connected current sources in the circuit, (2) validating that current values match for valid series connections, (3) generating clear error messages with source/node identification, (4) integrating with the existing validation system. This will require identifying exact files to modify and code patterns to follow.\n\n_The next pipeline run on this issue will pick up where this left off._",
+      "createdAt": "2026-02-21T10:13:40Z",
+      "includesCreatedEdit": false,
+      "isMinimized": false,
+      "minimizedReason": "",
+      "reactionGroups": [],
+      "url": "https://github.com/personal-assistant-system/circuit-simulation/issues/22#issuecomment-3938555250",
+      "viewerDidAuthor": true
+    }
+  ],
+  "createdAt": "2025-08-27T05:54:41Z",
+  "labels": [
+    {
+      "id": "LA_kwDOPk3kOM8AAAACIv2IZQ",
+      "name": "enhancement",
+      "description": "New feature or request",
+      "color": "a2eeef"
+    }
+  ],
+  "number": 22,
+  "title": "Feature: Current Loop Detection",
+  "updatedAt": "2026-02-21T10:13:40Z",
+  "url": "https://github.com/personal-assistant-system/circuit-simulation/issues/22",
+  "fetched_at": "2026-02-21T10:26:46.046745+00:00"
+}
