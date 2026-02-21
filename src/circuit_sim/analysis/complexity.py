@@ -491,13 +491,6 @@ class ComplexityScore:
             Integer from 1-10 representing complexity category
         """
         return int(round(self.final_score))
-            return "simple"
-        elif self.weighted_score < 25:
-            return "moderate"
-        elif self.weighted_score < 50:
-            return "complex"
-        else:
-            return "very_complex"
 
     def __str__(self) -> str:
         """String representation of complexity score."""
@@ -507,7 +500,7 @@ class ComplexityScore:
             f"  Nodes: {self.node_count}\n"
             f"  Components: {self.component_count}\n"
             f"  Reactive Elements: {self.reactive_element_count}\n"
-            f"  Weighted Score: {self.weighted_score:.1f}\n"
+            f"  Final Score: {self.final_score:.1f}\n"
             f"  Complexity Level: {level}"
         )
 
@@ -544,7 +537,7 @@ class CircuitComplexityMetrics:
     def overall_complexity_score(self) -> float:
         """Get the overall complexity score."""
         if self.overall_score:
-            return self.overall_score.weighted_score
+            return self.overall_score.final_score
         return 0.0
 
     @property
