@@ -1,0 +1,31 @@
+{
+  "subtasks": [
+    {
+      "id": "1",
+      "description": "Explore codebase to understand circuit data model (current source representation) and existing validation system patterns",
+      "files": []
+    },
+    {
+      "id": "2",
+      "description": "Implement current loop detection algorithm to identify series-connected current sources",
+      "files": []
+    },
+    {
+      "id": "3",
+      "description": "Add validation logic to check that current values match for valid series connections",
+      "files": []
+    },
+    {
+      "id": "4",
+      "description": "Create error messages with source and node identification for invalid configurations",
+      "files": []
+    },
+    {
+      "id": "5",
+      "description": "Integrate current loop detection with existing validation system",
+      "files": []
+    }
+  ],
+  "strategy": "execute",
+  "deferred_work": ""
+}
