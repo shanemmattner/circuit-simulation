@@ -277,40 +277,149 @@ section h4 {
 
 /* Print styles */
 @media print {
+    /* Page setup */
+    @page {
+        size: letter;
+        margin: 0.75in;
+    }
+    
+    html, body {
+        font-size: 11pt;
+        line-height: 1.3;
+    }
+    
     body {
         background-color: white;
-        font-size: 12pt;
-        line-height: 1.4;
+        color: black;
     }
     
     .report-container {
         box-shadow: none;
         max-width: none;
+        padding: 0;
     }
     
+    /* Header print optimization */
     .report-header {
         border-bottom-color: #000;
         page-break-after: avoid;
     }
     
-    section {
-        page-break-inside: avoid;
-        margin-bottom: 20pt;
+    .report-header h1 {
+        font-size: 20pt;
     }
     
-    .chart-container {
+    /* Section page break control */
+    section {
         page-break-inside: avoid;
+        margin-bottom: 15pt;
+    }
+    
+    section h2 {
+        page-break-after: avoid;
+        font-size: 14pt;
+    }
+    
+    /* Headings should not break inside */
+    h2, h3, h4, h5, h6 {
+        page-break-after: avoid;
+    }
+    
+    /* Prevent page breaks inside these elements */
+    .chart-container,
+    .metric-card,
+    .executive-summary,
+    .summary-grid,
+    .metrics-grid,
+    .conclusions {
+        page-break-inside: avoid;
+    }
+    
+    /* Tables need special handling */
+    .component-table,
+    .data-table {
+        page-break-inside: avoid;
+        box-shadow: none;
         border: 1pt solid #000;
     }
     
-    .metric-card {
+    .component-table th,
+    .data-table th {
+        background: #f0f0f0;
+        color: black;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+    
+    .component-table tbody tr:hover,
+    .data-table tbody tr:hover {
+        background-color: transparent;
+    }
+    
+    /* List items should not break */
+    .findings-list li,
+    .recommendations-list li {
         page-break-inside: avoid;
+        box-shadow: none;
         border: 1pt solid #ccc;
     }
     
+    /* Metric cards for print */
+    .metric-card {
+        border: 1pt solid #ccc;
+        box-shadow: none;
+    }
+    
+    .metric {
+        box-shadow: none;
+        border: 1pt solid #eee;
+    }
+    
     /* Hide interactive elements */
-    button, .no-print {
-        display: none;
+    button,
+    .no-print,
+    .notes-toggle,
+    #notes-sidebar {
+        display: none !important;
+    }
+    
+    /* Links - show URL in print */
+    a[href^="http"]:after {
+        content: " (" attr(href) ")";
+        font-size: 8pt;
+        color: #666;
+    }
+    
+    a[href^="http"]:empty:after {
+        content: "";
+    }
+    
+    /* Ensure proper page breaking for grid items */
+    .summary-grid,
+    .metrics-grid {
+        page-break-inside: avoid;
+    }
+    
+    /* Images for print */
+    img {
+        max-width: 100% !important;
+        page-break-inside: avoid;
+    }
+    
+    /* First page header/footer could be added here if needed */
+    @page :first {
+        margin-top: 1in;
+    }
+    
+    /* Left and right pages (for duplex printing) */
+    @page :left {
+        margin-left: 1in;
+        margin-right: 0.5in;
+    }
+    
+    @page :right {
+        margin-left: 0.5in;
+        margin-right: 1in;
     }
 }
 

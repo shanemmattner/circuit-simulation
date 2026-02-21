@@ -371,3 +371,138 @@ class TestReportGenerator:
             # File should be reasonable size (not excessive)
             file_size = os.path.getsize(result_path)
             assert file_size < 5 * 1024 * 1024  # Less than 5MB
+
+    def test_generate_pdf_report_detailed(self):
+        """Test generating detailed PDF report."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            output_path = os.path.join(tmpdir, "test_report.pdf")
+
+            result_path = self.generator.generate_report(
+                circuit=self.circuit,
+                results=self.dc_results,
+                report_type="detailed",
+                output_format="pdf",
+                output_path=output_path,
+            )
+
+            assert result_path == output_path
+            assert os.path.exists(output_path)
+
+            # Verify it's a valid PDF (check magic bytes)
+            with open(output_path, "rb") as f:
+                header = f.read(5)
+            assert header == b"%PDF-"
+
+    def test_generate_pdf_report_quick(self):
+        """Test generating quick PDF report."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            output_path = os.path.join(tmpdir, "quick_report.pdf")
+
+            result_path = self.generator.generate_report(
+                circuit=self.circuit,
+                results=self.dc_results,
+                report_type="quick",
+                output_format="pdf",
+                output_path=output_path,
+            )
+
+            assert os.path.exists(result_path)
+            assert result_path.endswith(".pdf")
+
+            # Verify PDF format
+            with open(result_path, "rb") as f:
+                header = f.read(5)
+            assert header == b"%PDF-"
+
+    def test_generate_pdf_report_executive(self):
+        """Test generating executive PDF report."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            output_path = os.path.join(tmpdir, "exec_report.pdf")
+
+            result_path = self.generator.generate_report(
+                circuit=self.circuit,
+                results=self.dc_results,
+                report_type="executive",
+                output_format="pdf",
+                output_path=output_path,
+            )
+
+            assert os.path.exists(result_path)
+
+            with open(result_path, "rb") as f:
+                header = f.read(5)
+            assert header == b"%PDF-"
+
+    def test_generate_pdf_report_with_transient_data(self):
+        """Test PDF report generation with transient analysis data."""
+        # Create transient results
+        time = np.linspace(0, 0.01, 100)
+        voltage = 5 * (1 - np.exp(-time / 0.001))
+
+        transient_results = SimulationResults("transient")
+        transient_results.set_time_vector(time)
+        transient_results.add_voltage(1, voltage)
+        transient_results.add_current("R1", voltage / 1000)
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            output_path = os.path.join(tmpdir, "transient_report.pdf")
+
+            result_path = self.generator.generate_report(
+                circuit=self.circuit,
+                results=transient_results,
+                report_type="detailed",
+                output_format="pdf",
+                output_path=output_path,
+            )
+
+            assert os.path.exists(result_path)
+
+            with open(result_path, "rb") as f:
+                header = f.read(5)
+            assert header == b"%PDF-"
+
+    def test_output_format_selection(self):
+        """Test format selection between HTML and PDF."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            # Test HTML
+            html_path = os.path.join(tmpdir, "test_report.html")
+            result_html = self.generator.generate_report(
+                circuit=self.circuit,
+                results=self.dc_results,
+                report_type="quick",
+                output_format="html",
+                output_path=html_path,
+            )
+            assert html_path == result_html
+
+            # Test PDF
+            pdf_path = os.path.join(tmpdir, "test_report.pdf")
+            result_pdf = self.generator.generate_report(
+                circuit=self.circuit,
+                results=self.dc_results,
+                report_type="quick",
+                output_format="pdf",
+                output_path=pdf_path,
+            )
+            assert pdf_path == result_pdf
+
+    def test_generate_pdf_auto_path(self):
+        """Test PDF report generation with automatic path generation."""
+        result_path = self.generator.generate_report(
+            circuit=self.circuit,
+            results=self.dc_results,
+            report_type="quick",
+            output_format="pdf",
+        )
+
+        try:
+            assert os.path.exists(result_path)
+            assert result_path.endswith(".pdf")
+
+            with open(result_path, "rb") as f:
+                header = f.read(5)
+            assert header == b"%PDF-"
+
+        finally:
+            if os.path.exists(result_path):
+                os.unlink(result_path)

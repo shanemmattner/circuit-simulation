@@ -79,7 +79,7 @@ class ReportGenerator:
         if report_type not in valid_types:
             raise ValueError(f"report_type must be one of {valid_types}")
 
-        valid_formats = ["html"]  # Start with HTML only, expand later
+        valid_formats = ["html", "pdf"]  # Supported output formats
         if output_format not in valid_formats:
             raise ValueError(f"output_format must be one of {valid_formats}")
 
@@ -95,6 +95,8 @@ class ReportGenerator:
         # Generate report based on format
         if output_format == "html":
             return self._generate_html(report_data, report_type, output_path)
+        elif output_format == "pdf":
+            return self._generate_pdf(report_data, report_type, output_path)
 
     def _prepare_report_data(
         self, circuit: Circuit, results: SimulationResults, report_type: str, **kwargs
@@ -393,4 +395,13 @@ class ReportGenerator:
         from .builders.html_builder import HTMLBuilder
 
         builder = HTMLBuilder(self.env)
+        return builder.build(data, report_type, output_path)
+
+    def _generate_pdf(
+        self, data: Dict[str, Any], report_type: str, output_path: str
+    ) -> str:
+        """Generate PDF report."""
+        from .builders.pdf_builder import PDFBuilder
+
+        builder = PDFBuilder()
         return builder.build(data, report_type, output_path)
