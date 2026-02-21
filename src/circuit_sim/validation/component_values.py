@@ -8,8 +8,9 @@ Validates electronic component values against specified ranges:
 """
 
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, List, Optional, Tuple, Any
+from typing import TYPE_CHECKING, Any, List, Optional, Tuple
 
+from ..parser import parse_value
 from .base import Severity, ValidationIssue, ValidationResult, ValidationRule
 
 if TYPE_CHECKING:
@@ -23,6 +24,15 @@ CAPACITANCE_MIN = 0.000000000001  # 1pF
 CAPACITANCE_MAX = 0.01  # 10000µF
 INDUCTANCE_MIN = 0.000000001  # 1nH
 INDUCTANCE_MAX = 10  # 10H
+
+# Practical (recommended) ranges for extreme value warnings
+# Values outside these but within absolute min/max will generate warnings
+RESISTANCE_PRACTICAL_MIN = 10  # 10Ω - below this is extreme low
+RESISTANCE_PRACTICAL_MAX = 100_000_000  # 100MΩ - above this is extreme high
+CAPACITANCE_PRACTICAL_MIN = 0.00000000001  # 10pF - below this is extreme low
+CAPACITANCE_PRACTICAL_MAX = 0.001  # 1000µF - above this is extreme high
+INDUCTANCE_PRACTICAL_MIN = 0.00000001  # 10nH - below this is extreme low
+INDUCTANCE_PRACTICAL_MAX = 1  # 1H - above this is extreme high
 
 
 @dataclass
@@ -44,6 +54,9 @@ class ComponentValueValidator(ValidationRule):
         resistance_range: Tuple[float, float] = (RESISTANCE_MIN, RESISTANCE_MAX),
         capacitance_range: Tuple[float, float] = (CAPACITANCE_MIN, CAPACITANCE_MAX),
         inductance_range: Tuple[float, float] = (INDUCTANCE_MIN, INDUCTANCE_MAX),
+        resistance_practical_range: Tuple[float, float] = (RESISTANCE_PRACTICAL_MIN, RESISTANCE_PRACTICAL_MAX),
+        capacitance_practical_range: Tuple[float, float] = (CAPACITANCE_PRACTICAL_MIN, CAPACITANCE_PRACTICAL_MAX),
+        inductance_practical_range: Tuple[float, float] = (INDUCTANCE_PRACTICAL_MIN, INDUCTANCE_PRACTICAL_MAX),
         name: Optional[str] = None,
     ):
         """
@@ -53,12 +66,18 @@ class ComponentValueValidator(ValidationRule):
             resistance_range: Min/max resistance in ohms
             capacitance_range: Min/max capacitance in farads
             inductance_range: Min/max inductance in henries
+            resistance_practical_range: Practical min/max resistance for extreme warnings
+            capacitance_practical_range: Practical min/max capacitance for extreme warnings
+            inductance_practical_range: Practical min/max inductance for extreme warnings
             name: Optional custom name for this rule
         """
         super().__init__(name or "ComponentValueValidator")
         self.resistance_range = resistance_range
         self.capacitance_range = capacitance_range
         self.inductance_range = inductance_range
+        self.resistance_practical_range = resistance_practical_range
+        self.capacitance_practical_range = capacitance_practical_range
+        self.inductance_practical_range = inductance_practical_range
 
     def validate(self, circuit: "Circuit") -> ValidationResult:
         """
@@ -71,17 +90,54 @@ class ComponentValueValidator(ValidationRule):
             ValidationResult with any invalid component values
         """
         issues = []
+        warnings = []
 
         for component in circuit.components:
-            issue = self._validate_component(component)
-            if issue:
-                issues.append(issue)
+            result = self._validate_component(component)
+            if result:
+                if result.severity == Severity.ERROR:
+                    issues.append(result)
+                elif result.severity == Severity.WARNING:
+                    warnings.append(result)
 
         # Determine overall validity
-        errors = [issue for issue in issues if issue.severity == Severity.ERROR]
-        is_valid = len(errors) == 0
+        is_valid = len(issues) == 0
 
-        return self._create_result(is_valid=is_valid, issues=issues)
+        return self._create_result_with_warnings(
+            is_valid=is_valid,
+            issues=issues,
+            warnings=warnings,
+        )
+
+    def _create_result_with_warnings(
+        self,
+        is_valid: bool = True,
+        issues: Optional[List[ValidationIssue]] = None,
+        warnings: Optional[List[ValidationIssue]] = None,
+        metadata: Optional[dict] = None,
+    ) -> ValidationResult:
+        """Helper to create validation result with warnings."""
+        issues = issues or []
+        warnings = warnings or []
+        suggestions = []
+
+        # Extract suggestions from issues
+        for issue in issues:
+            if issue.suggestion:
+                suggestions.append(issue.suggestion)
+        for warning in warnings:
+            if warning.suggestion:
+                suggestions.append(warning.suggestion)
+
+        return ValidationResult(
+            rule_name=self.name,
+            is_valid=is_valid,
+            issues=issues,
+            warnings=warnings,
+            info=[],
+            suggestions=suggestions,
+            metadata=metadata,
+        )
 
     def _validate_component(self, component) -> Optional[ValidationIssue]:
         """
@@ -113,16 +169,16 @@ class ComponentValueValidator(ValidationRule):
         if resistance is None:
             return None
 
-        # Parse resistance value
+        # Parse resistance value (handles strings like "1k", "10M")
         try:
-            value = float(resistance)
+            value = parse_value(str(resistance))
         except (ValueError, TypeError):
             return self._create_issue(
                 issue_type="invalid_resistance",
                 severity=Severity.ERROR,
                 message=f"Resistor '{name}' has invalid resistance value: {resistance}",
                 components=[name],
-                suggestion="Provide a numeric resistance value",
+                suggestion="Provide a numeric resistance value (e.g., '1k', '10M')",
             )
 
         min_val, max_val = self.resistance_range
@@ -156,16 +212,16 @@ class ComponentValueValidator(ValidationRule):
         if capacitance is None:
             return None
 
-        # Parse capacitance value
+        # Parse capacitance value (handles strings like "1u", "10n")
         try:
-            value = float(capacitance)
+            value = parse_value(str(capacitance))
         except (ValueError, TypeError):
             return self._create_issue(
                 issue_type="invalid_capacitance",
                 severity=Severity.ERROR,
                 message=f"Capacitor '{name}' has invalid capacitance value: {capacitance}",
                 components=[name],
-                suggestion="Provide a numeric capacitance value in farads",
+                suggestion="Provide a numeric capacitance value in farads (e.g., '1u', '10n')",
             )
 
         min_val, max_val = self.capacitance_range
@@ -199,16 +255,16 @@ class ComponentValueValidator(ValidationRule):
         if inductance is None:
             return None
 
-        # Parse inductance value
+        # Parse inductance value (handles strings like "1m", "10u")
         try:
-            value = float(inductance)
+            value = parse_value(str(inductance))
         except (ValueError, TypeError):
             return self._create_issue(
                 issue_type="invalid_inductance",
                 severity=Severity.ERROR,
                 message=f"Inductor '{name}' has invalid inductance value: {inductance}",
                 components=[name],
-                suggestion="Provide a numeric inductance value in henries",
+                suggestion="Provide a numeric inductance value in henries (e.g., '1m', '10u')",
             )
 
         min_val, max_val = self.inductance_range
