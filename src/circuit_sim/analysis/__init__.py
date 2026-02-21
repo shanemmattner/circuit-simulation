@@ -11,6 +11,7 @@ from .time_domain import (
     calculate_settling_time,
     calculate_overshoot,
 )
+from .graph import CircuitConnectivityAnalyzer
 
 __all__ = [
     "TransferFunction",
@@ -21,4 +22,5 @@ __all__ = [
     "calculate_rise_time",
     "calculate_settling_time",
     "calculate_overshoot",
+    "CircuitConnectivityAnalyzer",
 ]

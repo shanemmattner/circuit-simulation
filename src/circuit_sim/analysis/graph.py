@@ -286,6 +286,100 @@ class CircuitConnectivityAnalyzer:
             "ground_reachable": list(self.find_nodes_reachable_from_ground())
         }
 
+    def export_for_visualization(self, format: str = "json") -> Dict[str, Any]:
+        """
+        Export circuit graph data for external visualization tools.
+        
+        Args:
+            format: Output format - "json", "dot", or "cytoscape"
+            
+        Returns:
+            Formatted data for visualization
+            
+        Example:
+            >>> data = analyzer.export_for_visualization("dot")
+            >>> # Use with GraphViz: dot -Tpng graph.dot > graph.png
+            >>> data = analyzer.export_for_visualization("cytoscape")
+            >>> # Use with Cytoscape.js for web visualization
+        """
+        viz_data = self.visualize_isolated_sections()
+        
+        if format == "json":
+            return viz_data
+        
+        elif format == "dot":
+            # GraphViz DOT format
+            lines = ["graph circuit {"]
+            lines.append("  // Nodes")
+            for node in self.circuit.nodes:
+                is_isolated = node in viz_data["isolated_nodes"]
+                is_ground = node == 0
+                attrs = []
+                if is_ground:
+                    attrs.append('label="GND"')
+                    attrs.append('style="filled"')
+                    attrs.append('fillcolor="green"')
+                elif is_isolated:
+                    attrs.append('style="filled"')
+                    attrs.append('fillcolor="red"')
+                attr_str = ", ".join(attrs) if attrs else ""
+                lines.append(f"  {node} [{attr_str}];")
+            
+            lines.append("")
+            lines.append("  // Edges")
+            for node, neighbors in self.graph.items():
+                for neighbor in neighbors:
+                    if node < neighbor:  # Avoid duplicates
+                        lines.append(f"  {node} -- {neighbor};")
+            
+            lines.append("}")
+            return {"dot": "\n".join(lines)}
+        
+        elif format == "cytoscape":
+            # Cytoscape.js JSON format
+            elements = {"nodes": [], "edges": []}
+            
+            # Add nodes
+            for node in self.circuit.nodes:
+                is_isolated = node in viz_data["isolated_nodes"]
+                is_ground = node == 0
+                
+                node_data = {
+                    "data": {
+                        "id": str(node),
+                        "label": "GND" if is_ground else str(node)
+                    }
+                }
+                
+                if is_ground:
+                    node_data["data"]["color"] = "green"
+                elif is_isolated:
+                    node_data["data"]["color"] = "red"
+                else:
+                    node_data["data"]["color"] = "blue"
+                
+                elements["nodes"].append(node_data)
+            
+            # Add edges
+            added_edges = set()
+            for node, neighbors in self.graph.items():
+                for neighbor in neighbors:
+                    edge_id = f"{min(node, neighbor)}-{max(node, neighbor)}"
+                    if edge_id not in added_edges:
+                        added_edges.add(edge_id)
+                        elements["edges"].append({
+                            "data": {
+                                "id": edge_id,
+                                "source": str(node),
+                                "target": str(neighbor)
+                            }
+                        })
+            
+            return elements
+        
+        else:
+            raise ValueError(f"Unsupported format: {format}. Use 'json', 'dot', or 'cytoscape'")
+
     def suggest_connection_points(self) -> List[Dict[str, Any]]:
         """
         Suggest potential connection points for isolated sections.
@@ -315,10 +409,11 @@ class CircuitConnectivityAnalyzer:
         
         for subcircuit in isolated_subcircuits:
             isolated_nodes = subcircuit["nodes"]
+            
+            # Find the nearest reachable node for each isolated node
             best_connection = None
             best_distance = float('inf')
             
-            # Find the nearest reachable node for each isolated node
             for iso_node in isolated_nodes:
                 # BFS to find nearest reachable node
                 distance = self._find_nearest_reachable(iso_node, reachable)
@@ -327,11 +422,28 @@ class CircuitConnectivityAnalyzer:
                     best_connection = iso_node
             
             if best_connection is not None:
+                if best_distance == float('inf'):
+                    # No path exists - suggest connecting to ground directly
+                    suggestions.append({
+                        "isolated_nodes": isolated_nodes,
+                        "suggested_connection": 0,
+                        "distance": None,
+                        "reason": "No existing path to ground - connect one of these nodes directly to ground"
+                    })
+                else:
+                    suggestions.append({
+                        "isolated_nodes": isolated_nodes,
+                        "suggested_connection": best_connection,
+                        "distance": best_distance,
+                        "reason": f"Nearest ground-reachable node at distance {best_distance}"
+                    })
+            else:
+                # Fallback: suggest ground
                 suggestions.append({
                     "isolated_nodes": isolated_nodes,
-                    "suggested_connection": best_connection,
-                    "distance": best_distance,
-                    "reason": f"Nearest ground-reachable node at distance {best_distance}"
+                    "suggested_connection": 0,
+                    "distance": None,
+                    "reason": "No existing path to ground - connect one of these nodes directly to ground"
                 })
         
         return suggestions
