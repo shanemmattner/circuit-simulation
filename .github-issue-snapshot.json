@@ -1,0 +1,35 @@
+{
+  "assignees": [],
+  "body": "## Summary\nAdd visual circuit schematic diagrams to the generated HTML reports to complement the data analysis.\n\n## Problem\nCurrently, the HTML reports contain excellent interactive charts and analysis data, but lack visual representation of the actual circuit topology. Users need to see the circuit schematic to better understand the analysis results.\n\n## Proposed Solution\nAdd circuit schematic graphics to reports showing:\n- **Circuit topology** - Visual representation of components and connections\n- **Component labeling** - Clear component identifiers (R1, C1, etc.)\n- **Node identification** - Visual node numbers/names\n- **Power/ground highlighting** - Special formatting for power nets\n\n## Implementation Options\n\n### Option 1: SVG Generation (Recommended)\n- Generate clean SVG schematics programmatically\n- Responsive and scalable for web reports\n- Can be styled with CSS\n- Interactive elements possible (hover, click)\n\n### Option 2: Integration with Circuit Visualization Libraries\n- Use existing Python libraries (schemdraw, lcapy, etc.)\n- Generate PNG/SVG from circuit definitions\n- Embed in HTML reports\n\n### Option 3: ASCII Art Diagrams\n- Simple text-based circuit diagrams\n- Quick to implement\n- Works in all contexts\n- Limited visual appeal\n\n## User Stories\n**As an engineer reviewing a circuit analysis report**, I want to see the circuit schematic so I can:\n- Understand component relationships visually\n- Correlate analysis results with physical topology  \n- Share reports that are self-contained with circuit documentation\n- Review circuits without needing separate schematic files\n\n**As a student learning circuit analysis**, I want to see circuit diagrams so I can:\n- Connect theoretical analysis with visual circuit representation\n- Better understand component roles and interactions\n- Learn circuit patterns through visual examples\n\n## Acceptance Criteria\n- [ ] Circuit schematics appear in all report types (detailed, quick, executive)\n- [ ] Graphics are responsive and scale properly in web browsers\n- [ ] Component labels match those used in analysis data\n- [ ] Power and ground connections are clearly indicated\n- [ ] Graphics load quickly (<1 second for typical circuits)\n- [ ] Support for basic components: R, L, C, voltage sources, current sources\n\n## Technical Requirements\n- Integrate with existing report generation system\n- Maintain fast report generation times\n- Support circuits with 1-100 components initially\n- Generate web-friendly formats (SVG preferred)\n- Responsive design for mobile viewing\n\n## Priority: Medium-High\nThis feature would significantly improve report usability and self-documentation.",
+  "comments": [
+    {
+      "id": "IC_kwDOPk3kOM7qwowJ",
+      "author": {
+        "login": "shanemmattner"
+      },
+      "authorAssociation": "MEMBER",
+      "body": "### Pipeline progress\n\nPR https://github.com/personal-assistant-system/circuit-simulation/pull/36 addresses part of this issue.\n\n**Remaining work:**\nFull implementation of circuit schematic graphics feature depends on completing the exploration subtasks to understand the existing codebase structure, report generation patterns, and where to integrate the new functionality. Once the codebase is explored and understood, tasks 3-5 can be executed with specific file paths and implementation details.\n\n_The next pipeline run on this issue will pick up where this left off._",
+      "createdAt": "2026-02-21T11:09:20Z",
+      "includesCreatedEdit": false,
+      "isMinimized": false,
+      "minimizedReason": "",
+      "reactionGroups": [],
+      "url": "https://github.com/personal-assistant-system/circuit-simulation/issues/30#issuecomment-3938618377",
+      "viewerDidAuthor": true
+    }
+  ],
+  "createdAt": "2025-08-27T17:05:42Z",
+  "labels": [
+    {
+      "id": "LA_kwDOPk3kOM8AAAACIv2IZQ",
+      "name": "enhancement",
+      "description": "New feature or request",
+      "color": "a2eeef"
+    }
+  ],
+  "number": 30,
+  "title": "Feature: Add Circuit Schematic Graphics to HTML Reports",
+  "updatedAt": "2026-02-21T11:09:20Z",
+  "url": "https://github.com/personal-assistant-system/circuit-simulation/issues/30",
+  "fetched_at": "2026-02-21T11:22:18.189500+00:00"
+}
