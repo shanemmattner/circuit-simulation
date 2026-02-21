@@ -1,0 +1,19 @@
+{
+  "assignees": [],
+  "body": "## Description\nCalculate Thevenin and Norton equivalent circuits for two-terminal networks.\n\n## Features\n- Calculate Thevenin voltage (Vth)\n- Calculate Thevenin/Norton resistance (Rth)\n- Calculate Norton current (In = Vth/Rth)\n- Support for dependent sources\n- Visualize equivalent circuits\n\n## Acceptance Criteria\n- [ ] Identify two-terminal networks\n- [ ] Calculate open-circuit voltage\n- [ ] Calculate short-circuit current\n- [ ] Compute equivalent resistance\n- [ ] Generate equivalent circuit description\n- [ ] Add visualization support\n\n## Use Cases\n- Circuit simplification\n- Load analysis\n- Maximum power transfer calculations\n- Educational demonstrations\n\n## Priority\nLow - Advanced feature for specific use cases",
+  "comments": [],
+  "createdAt": "2025-08-27T05:55:38Z",
+  "labels": [
+    {
+      "id": "LA_kwDOPk3kOM8AAAACIv2IZQ",
+      "name": "enhancement",
+      "description": "New feature or request",
+      "color": "a2eeef"
+    }
+  ],
+  "number": 28,
+  "title": "Feature: Thevenin/Norton Equivalent Calculation",
+  "updatedAt": "2025-08-27T05:55:38Z",
+  "url": "https://github.com/personal-assistant-system/circuit-simulation/issues/28",
+  "fetched_at": "2026-02-21T10:37:46.271846+00:00"
+}
