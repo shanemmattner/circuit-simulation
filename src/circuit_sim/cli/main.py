@@ -23,6 +23,7 @@ def register_commands():
     from circuit_sim.cli.commands.list_circuits import circuit_info, list_circuits
     from circuit_sim.cli.commands.project import info, init
     from circuit_sim.cli.commands.simulate import simulate
+    from circuit_sim.cli.commands.complexity import analyze, from_netlist
 
     cli.add_command(init)
     cli.add_command(info)
@@ -30,6 +31,8 @@ def register_commands():
     cli.add_command(simulate)
     cli.add_command(list_circuits, name="list")
     cli.add_command(circuit_info, name="show")
+    cli.add_command(analyze, name="analyze")
+    cli.add_command(from_netlist, name="analyze-netlist")
 
 
 @click.group(invoke_without_command=True)

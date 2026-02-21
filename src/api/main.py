@@ -10,7 +10,7 @@ import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from .routes import circuits, simulations, websocket
+from .routes import circuits, simulations, websocket, complexity
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -38,6 +38,7 @@ app.add_middleware(
 app.include_router(circuits.router)
 app.include_router(simulations.router)
 app.include_router(websocket.router)
+app.include_router(complexity.router)
 
 
 @app.get("/")
