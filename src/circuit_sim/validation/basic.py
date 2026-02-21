@@ -2,9 +2,11 @@
 Basic circuit validation rules.
 """
 
-from typing import List
+from typing import TYPE_CHECKING, List
 
-from ..circuit import Circuit
+if TYPE_CHECKING:
+    from ..circuit import Circuit
+
 from .base import Severity, ValidationResult, ValidationRule
 
 

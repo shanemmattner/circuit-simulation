@@ -4,9 +4,11 @@ Electrical validation rules for circuits.
 
 import logging
 from collections import defaultdict
-from typing import Dict, List, Optional, Tuple
+from typing import TYPE_CHECKING, Dict, List, Optional, Tuple
 
-from ..circuit import Circuit
+if TYPE_CHECKING:
+    from ..circuit import Circuit
+
 from .base import Severity, ValidationIssue, ValidationResult, ValidationRule
 
 logger = logging.getLogger(__name__)

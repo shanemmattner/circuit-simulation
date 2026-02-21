@@ -88,7 +88,19 @@ class Circuit:
 
         Returns:
             self for method chaining
+
+        Raises:
+            ValueError: If resistance value is invalid
         """
+        # Validate resistance value (lazy import to avoid circular imports)
+        from .validation.component_values import validate_resistance
+
+        validation_result = validate_resistance(resistance)
+        if not validation_result.is_valid:
+            raise ValueError(
+                f"Invalid resistance for {name}: {validation_result.error_message}"
+            )
+
         # Convert "gnd" to 0
         if node1 == "gnd":
             node1 = 0
@@ -128,7 +140,19 @@ class Circuit:
 
         Returns:
             self for method chaining
+
+        Raises:
+            ValueError: If capacitance value is invalid
         """
+        # Validate capacitance value (lazy import to avoid circular imports)
+        from .validation.component_values import validate_capacitance
+
+        validation_result = validate_capacitance(capacitance)
+        if not validation_result.is_valid:
+            raise ValueError(
+                f"Invalid capacitance for {name}: {validation_result.error_message}"
+            )
+
         # Convert "gnd" to 0
         if node1 == "gnd":
             node1 = 0
@@ -164,7 +188,19 @@ class Circuit:
 
         Returns:
             self for method chaining
+
+        Raises:
+            ValueError: If inductance value is invalid
         """
+        # Validate inductance value (lazy import to avoid circular imports)
+        from .validation.component_values import validate_inductance
+
+        validation_result = validate_inductance(inductance)
+        if not validation_result.is_valid:
+            raise ValueError(
+                f"Invalid inductance for {name}: {validation_result.error_message}"
+            )
+
         # Convert "gnd" to 0
         if node1 == "gnd":
             node1 = 0

@@ -159,6 +159,7 @@ class ComponentValueValidationResult:
     is_valid: bool
     value: Optional[float] = None
     error_message: Optional[str] = None
+    warning_message: Optional[str] = None
 
 
 class ComponentValueValidator(ValidationRule):
@@ -612,11 +613,30 @@ def validate_resistance(value: Union[str, float]) -> ComponentValueValidationRes
             error_message=f"Resistance ({format_resistance(value)}) is above maximum ({format_resistance(max_val)})",
         )
 
+    # Check for unusual but valid values (outside practical range but within absolute range)
+    practical_min = RESISTANCE_PRACTICAL_MIN
+    practical_max = RESISTANCE_PRACTICAL_MAX
+    warning_message = None
+
+    if value < practical_min:
+        warning_message = (
+            f"Resistance ({format_resistance(value)}) is extremely low "
+            f"(recommended: >{format_resistance(practical_min)}). "
+            f"While valid, this is unusual for most circuits."
+        )
+    elif value > practical_max:
+        warning_message = (
+            f"Resistance ({format_resistance(value)}) is extremely high "
+            f"(recommended: <{format_resistance(practical_max)}). "
+            f"While valid, this is unusual for most circuits."
+        )
+
     return ComponentValueValidationResult(
         component_name="",
         component_type="resistor",
         is_valid=True,
         value=value,
+        warning_message=warning_message,
     )
 
 
@@ -682,11 +702,30 @@ def validate_capacitance(value: Union[str, float]) -> ComponentValueValidationRe
             error_message=f"Capacitance ({format_capacitance(value)}) is above maximum ({format_capacitance(max_val)})",
         )
 
+    # Check for unusual but valid values (outside practical range but within absolute range)
+    practical_min = CAPACITANCE_PRACTICAL_MIN
+    practical_max = CAPACITANCE_PRACTICAL_MAX
+    warning_message = None
+
+    if value < practical_min:
+        warning_message = (
+            f"Capacitance ({format_capacitance(value)}) is extremely low "
+            f"(recommended: >{format_capacitance(practical_min)}). "
+            f"While valid, this is unusual for most circuits."
+        )
+    elif value > practical_max:
+        warning_message = (
+            f"Capacitance ({format_capacitance(value)}) is extremely high "
+            f"(recommended: <{format_capacitance(practical_max)}). "
+            f"While valid, this is unusual for most circuits."
+        )
+
     return ComponentValueValidationResult(
         component_name="",
         component_type="capacitor",
         is_valid=True,
         value=value,
+        warning_message=warning_message,
     )
 
 
@@ -752,9 +791,28 @@ def validate_inductance(value: Union[str, float]) -> ComponentValueValidationRes
             error_message=f"Inductance ({format_inductance(value)}) is above maximum ({format_inductance(max_val)})",
         )
 
+    # Check for unusual but valid values (outside practical range but within absolute range)
+    practical_min = INDUCTANCE_PRACTICAL_MIN
+    practical_max = INDUCTANCE_PRACTICAL_MAX
+    warning_message = None
+
+    if value < practical_min:
+        warning_message = (
+            f"Inductance ({format_inductance(value)}) is extremely low "
+            f"(recommended: >{format_inductance(practical_min)}). "
+            f"While valid, this is unusual for most circuits."
+        )
+    elif value > practical_max:
+        warning_message = (
+            f"Inductance ({format_inductance(value)}) is extremely high "
+            f"(recommended: <{format_inductance(practical_max)}). "
+            f"While valid, this is unusual for most circuits."
+        )
+
     return ComponentValueValidationResult(
         component_name="",
         component_type="inductor",
         is_valid=True,
         value=value,
+        warning_message=warning_message,
     )

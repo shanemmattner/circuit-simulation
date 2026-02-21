@@ -2,9 +2,11 @@
 Main circuit validator that orchestrates multiple validation rules.
 """
 
-from typing import Dict, List, Optional
+from typing import TYPE_CHECKING, Dict, List, Optional
 
-from ..circuit import Circuit
+if TYPE_CHECKING:
+    from ..circuit import Circuit
+
 from .base import ValidationResult, ValidationRule
 
 

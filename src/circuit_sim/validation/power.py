@@ -3,10 +3,12 @@ Power dissipation analysis for circuits.
 """
 
 from dataclasses import dataclass
-from typing import Dict, Optional, List
+from typing import TYPE_CHECKING, Dict, Optional, List
 import logging
 
-from ..circuit import Circuit
+if TYPE_CHECKING:
+    from ..circuit import Circuit
+
 from ..simulator.results import SimulationResults
 from .base import ValidationRule, ValidationResult, ValidationIssue, Severity
 
