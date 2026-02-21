@@ -69,8 +69,8 @@ def calculate_open_circuit_voltage(
 
     # Open-circuit voltage is the difference
     # Get the last value (DC value) from the voltage array
-    v_pos = float(voltage_pos[-1]) if len(voltage_pos) > 0 else float(voltage_pos[0])
-    v_neg = float(voltage_neg[-1]) if len(voltage_neg) > 0 else float(voltage_neg[0])
+    v_pos = float(voltage_pos[-1]) if len(voltage_pos) > 0 else 0.0
+    v_neg = float(voltage_neg[-1]) if len(voltage_neg) > 0 else 0.0
 
     return v_pos - v_neg
 
@@ -136,8 +136,8 @@ def calculate_thevenin_resistance(
         raise RuntimeError(f"Could not get voltage at terminal {terminal_neg}")
 
     # Calculate voltage difference
-    v_pos = float(voltage_pos[-1]) if len(voltage_pos) > 0 else float(voltage_pos[0])
-    v_neg = float(voltage_neg[-1]) if len(voltage_neg) > 0 else float(voltage_neg[0])
+    v_pos = float(voltage_pos[-1]) if len(voltage_pos) > 0 else 0.0
+    v_neg = float(voltage_neg[-1]) if len(voltage_neg) > 0 else 0.0
     voltage_diff = v_pos - v_neg
 
     # Inject a test current and measure the voltage response
@@ -152,8 +152,8 @@ def calculate_thevenin_resistance(
     if test_voltage_pos is None or test_voltage_neg is None:
         raise RuntimeError("Failed to get test voltage for Rth calculation")
 
-    t_v_pos = float(test_voltage_pos[-1]) if len(test_voltage_pos) > 0 else float(test_voltage_pos[0])
-    t_v_neg = float(test_voltage_neg[-1]) if len(test_voltage_neg) > 0 else float(test_voltage_neg[0])
+    t_v_pos = float(test_voltage_pos[-1]) if len(test_voltage_pos) > 0 else 0.0
+    t_v_neg = float(test_voltage_neg[-1]) if len(test_voltage_neg) > 0 else 0.0
     test_voltage_diff = t_v_pos - t_v_neg
 
     # The change in voltage divided by the test current gives Rth
@@ -238,7 +238,24 @@ def _zero_sources(circuit: Circuit) -> Circuit:
                 emitter=comp["emitter"],
                 model=comp.get("model", "2N3904"),
             )
-        # Add other component types as needed
+        elif comp_type == "opamp":
+            # For Thevenin analysis, opamps are treated as open circuits
+            new_circuit.add_resistor(
+                name=f"open_{comp['name']}",
+                node1=comp["node1"],
+                node2=comp["node2"],
+                resistance="1G",
+            )
+        elif comp_type == "mosfet":
+            # For Thevenin analysis, MOSFETs are treated as open circuits at DC
+            new_circuit.add_resistor(
+                name=f"open_{comp['name']}",
+                node1=comp["drain"],
+                node2=comp["source"],
+                resistance="1G",
+            )
+        else:
+            raise ValueError(f"Unsupported component type: {comp_type}")
 
     return new_circuit
 
@@ -311,6 +328,24 @@ def _inject_test_current(
                 emitter=comp["emitter"],
                 model=comp.get("model", "2N3904"),
             )
+        elif comp_type == "opamp":
+            # For Thevenin analysis, opamps are treated as open circuits
+            new_circuit.add_resistor(
+                name=f"open_{comp['name']}",
+                node1=comp["node1"],
+                node2=comp["node2"],
+                resistance="1G",
+            )
+        elif comp_type == "mosfet":
+            # For Thevenin analysis, MOSFETs are treated as open circuits at DC
+            new_circuit.add_resistor(
+                name=f"open_{comp['name']}",
+                node1=comp["drain"],
+                node2=comp["source"],
+                resistance="1G",
+            )
+        else:
+            raise ValueError(f"Unsupported component type: {comp_type}")
 
     # Add a 1A test current source from terminal_neg to terminal_pos
     # (flowing from negative to positive terminal)

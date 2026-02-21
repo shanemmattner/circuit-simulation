@@ -1,0 +1,45 @@
+## PR Review: #34
+
+**Verdict**: NITS (with MEDIUM issues that should be fixed before merge)
+
+### Summary
+This PR implements Thevenin and Norton equivalent circuit calculation for the circuit simulation system. It adds a complete feature set including core calculation functions, API endpoints, and unit tests. However, there are a few issues that need to be addressed before merging.
+
+### Acceptance Criteria
+- [x] Identify two-terminal networks — implemented via terminal_pos/terminal_neg parameters
+- [x] Calculate open-circuit voltage — calculate_open_circuit_voltage in network.py
+- [x] Calculate short-circuit current — calculate_norton_current in thevenin.py
+- [x] Compute equivalent resistance — calculate_thevenin_resistance in network.py, calculate_rth in thevenin.py
+- [x] Generate equivalent circuit description — TheveninResult dataclass, API response models
+- [ ] Add visualization support — NOT IMPLEMENTED (was optional feature, priority was Low)
+
+### Issues Found
+
+| Severity | File:Line | Issue | Required Fix |
+|----------|-----------|-------|--------------|
+| MEDIUM | network.py:72,139,155 | Bug in voltage array access: `float(voltage_pos[-1]) if len(voltage_pos) > 0 else float(voltage_pos[0])` - when array is empty, the else branch tries to access index 0 which would raise IndexError. Should use a default value like `else 0.0`. | Change to: `float(voltage_pos[-1]) if len(voltage_pos) > 0 else 0.0` |
+| MEDIUM | network.py:196-245,275-315 | Missing component type handling: _zero_sources and _inject_test_current don't handle opamp or mosfet components. They are silently dropped, which could cause incorrect calculations or runtime errors. | Add handling for "opamp" and "mosfet" component types, or add an else clause that raises a ValueError for unsupported component types. |
+| MEDIUM | network.py, thevenin.py | No dependent source support: Original feature request mentioned "Support for dependent sources" but this is not implemented. Thevenin/Norton with dependent sources requires different analysis (test source method). | Either implement test source method for dependent sources, or document this limitation clearly. |
+| LOW | tests/analysis/test_thevenin.py | Tests only cover pure calculation functions (calculate_norton_from_thevenin, TheveninResult) but not the core simulation-based functions (calculate_thevenin, calculate_rth, calculate_norton_current). | Add integration tests that create actual circuits and verify calculations, or document that simulation-based tests require PySpice/ngspice. |
+
+### Additional Observations
+
+1. **Positive**: The implementation follows existing codebase patterns (Pydantic models for API, dataclasses for results, service layer pattern).
+
+2. **Positive**: The code is well-documented with docstrings and examples.
+
+3. **Positive**: The API properly handles errors with appropriate HTTP status codes (404 for not found, 422 for validation errors, 500 for runtime errors).
+
+4. **Concern**: The unit tests only cover 11 test cases for pure calculation functions. The core simulation-based functions (which are the main functionality) are not tested because they require PySpice/ngspice. This is a significant testing gap.
+
+5. **Note**: The .github-issue-snapshot.json file appears to be a metadata file (issue snapshot) that was accidentally included. It should probably be in .gitignore.
+
+### Verdict Rationale
+
+The issues found are:
+- 3 MEDIUM severity issues (array access bug, missing component handling, dependent sources not implemented)
+- 1 LOW severity issue (limited test coverage)
+
+Since there are MEDIUM issues that could cause runtime errors or incorrect calculations, the verdict is **NITS** rather than APPROVE. The issues should be fixed before merging to ensure the implementation is robust and correct.
+
+However, none of these issues are blockers that would cause data loss or security issues - they are correctness issues that should be addressed but don't prevent the feature from being usable in basic scenarios.
