@@ -1,0 +1,35 @@
+{
+  "assignees": [],
+  "body": "## Description\nDetect disconnected or isolated sections of a circuit that aren't connected to the main circuit or ground.\n\n## Problem\nIsolated subcircuits can't be properly simulated and often indicate wiring mistakes or incomplete designs.\n\n## Acceptance Criteria\n- [ ] Identify disconnected circuit sections\n- [ ] Find nodes/components not reachable from ground\n- [ ] Detect floating subcircuits (no ground connection)\n- [ ] Provide visualization of isolated sections\n- [ ] Suggest connection points\n\n## Technical Approach\n- Graph connectivity analysis\n- Connected components algorithm\n- Path finding from ground node\n\n## Priority\nHigh - Helps users identify wiring mistakes quickly",
+  "comments": [
+    {
+      "id": "IC_kwDOPk3kOM7qwcOi",
+      "author": {
+        "login": "shanemmattner"
+      },
+      "authorAssociation": "MEMBER",
+      "body": "### Pipeline progress\n\nPR https://github.com/personal-assistant-system/circuit-simulation/pull/33 addresses part of this issue.\n\n**Remaining work:**\nAfter understanding the codebase structure, implement the core connectivity algorithms, visualization, and suggestion features across the remaining subtasks.\n\n_The next pipeline run on this issue will pick up where this left off._",
+      "createdAt": "2026-02-21T10:24:21Z",
+      "includesCreatedEdit": false,
+      "isMinimized": false,
+      "minimizedReason": "",
+      "reactionGroups": [],
+      "url": "https://github.com/personal-assistant-system/circuit-simulation/issues/23#issuecomment-3938567074",
+      "viewerDidAuthor": true
+    }
+  ],
+  "createdAt": "2025-08-27T05:54:43Z",
+  "labels": [
+    {
+      "id": "LA_kwDOPk3kOM8AAAACIv2IZQ",
+      "name": "enhancement",
+      "description": "New feature or request",
+      "color": "a2eeef"
+    }
+  ],
+  "number": 23,
+  "title": "Feature: Isolated Subcircuit Detection",
+  "updatedAt": "2026-02-21T10:24:21Z",
+  "url": "https://github.com/personal-assistant-system/circuit-simulation/issues/23",
+  "fetched_at": "2026-02-21T10:26:46.111387+00:00"
+}

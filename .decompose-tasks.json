@@ -1,0 +1,36 @@
+{
+  "subtasks": [
+    {
+      "id": "1",
+      "description": "Research existing code: Examine PR #33 implementation, understand codebase structure, and review current connectivity analysis capabilities",
+      "files": []
+    },
+    {
+      "id": "2",
+      "description": "Implement core connectivity algorithm: Build graph-based connectivity analysis to identify disconnected circuit sections using connected components algorithms (BFS/DFS)",
+      "files": []
+    },
+    {
+      "id": "3",
+      "description": "Implement ground path finding: Create path-finding algorithm to identify nodes and components reachable from ground reference point",
+      "files": []
+    },
+    {
+      "id": "4",
+      "description": "Implement floating subcircuit detection: Detect subcircuits that have no electrical path to ground, identifying completely isolated circuit sections",
+      "files": []
+    },
+    {
+      "id": "5",
+      "description": "Implement visualization: Create visual representation of isolated sections in the circuit schematic view, highlighting disconnected regions",
+      "files": []
+    },
+    {
+      "id": "6",
+      "description": "Implement connection suggestions: Analyze isolated subcircuits and suggest potential valid connection points to integrate them with the main circuit",
+      "files": []
+    }
+  ],
+  "strategy": "execute",
+  "deferred_work": ""
+}

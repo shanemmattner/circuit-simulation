@@ -1,0 +1,82 @@
+# PR Review: #33
+
+**Verdict**: REJECT
+
+### Summary
+This PR implements graph connectivity analysis for detecting isolated subcircuits in a circuit simulation tool. While the core connectivity algorithms are well-implemented, there are two significant issues: (1) two critical acceptance criteria are not addressed, and (2) a bug exists where opamp power supply connections (vcc/vee) are not captured in the graph analysis.
+
+### Acceptance Criteria
+- [x] Identify disconnected circuit sections — implemented via `find_connected_components()` and `get_component_size()`
+- [x] Find nodes/components not reachable from ground — implemented via `find_nodes_reachable_from_ground()` and `find_isolated_nodes()`
+- [x] Detect floating subcircuits (no ground connection) — implemented via `find_isolated_subcircuits()`
+- [ ] **Provide visualization of isolated sections** — NOT IMPLEMENTED
+- [ ] **Suggest connection points** — NOT IMPLEMENTED
+
+### Issues Found
+
+| Severity | File:Line | Issue | Required Fix |
+|----------|-----------|-------|--------------|
+| HIGH | graph.py:~85 | **Missing acceptance criteria**: Visualization of isolated sections is not implemented. This is a required feature per the issue. | Add visualization capability (e.g., function to highlight isolated nodes/subcircuits, or export data for visualization) |
+| HIGH | graph.py:~85 | **Missing acceptance criteria**: Suggesting connection points is not implemented. This is a required feature per the issue. | Add logic to identify potential connection points (e.g., suggest connecting isolated nodes to nearest ground-reachable node) |
+| MEDIUM | graph.py:~68-85 | **Bug**: `_get_component_nodes()` handles `vin` for opamps but Circuit.add_opamp() uses `vcc` and `vee`. The opamp power supply terminals are not captured, causing incorrect connectivity analysis for opamp circuits. | Add handling for `vcc` and `vee` keys in `_get_component_nodes()` |
+| LOW | graph.py:~240, ~360 | **Code duplication**: `find_nodes_reachable_from_ground` (BFS) and `find_ground_reachable_nodes_dfs` (DFS) do the same thing. Also `find_ground_reachable_nodes` exists. | Remove redundant functions or consolidate into one with a clear purpose |
+
+---
+
+## Detailed Analysis
+
+### 1. Acceptance Criteria Gap (HIGH)
+
+The issue explicitly requires:
+- "Provide visualization of isolated sections"
+- "Suggest connection points"
+
+These are completely absent from the implementation. While the connectivity analysis is solid, these are core requirements that define the feature's value to users.
+
+### 2. Opamp Connectivity Bug (MEDIUM)
+
+The `_get_component_nodes()` function in `graph.py` looks for `vin`:
+```python
+if "vin" in component and "vin" not in terminals:
+    terminals.append(component["vin"])
+```
+
+But the `Circuit.add_opamp()` method creates components with `vcc` and `vee`:
+```python
+{
+    "type": "opamp",
+    "name": name,
+    "vplus": vplus,
+    "vminus": vminus,
+    "vout": vout,
+    "vcc": vcc,   # <-- Not handled in _get_component_nodes
+    "vee": vee,   # <-- Not handled in _get_component_nodes
+    "model": model,
+}
+```
+
+This means opamp power pins won't be connected in the graph, leading to incorrect isolation detection for circuits using opamps.
+
+### 3. Redundant Code (LOW)
+
+Three functions do essentially the same thing:
+- `find_nodes_reachable_from_ground()` - uses BFS
+- `find_ground_reachable_nodes()` - uses BFS (line ~360)  
+- `find_ground_reachable_nodes_dfs()` - uses DFS (line ~240)
+
+This adds confusion about which to use and creates maintenance burden.
+
+### Positive Aspects
+
+1. **Well-documented code** - Good docstrings with examples
+2. **Comprehensive tests** - Tests cover many scenarios including edge cases
+3. **Correct BFS/DFS algorithms** - The core connectivity logic is sound
+4. **Good API design** - `get_isolation_report()` provides a convenient summary
+
+### Recommendation
+
+This PR needs revision to address:
+1. The missing acceptance criteria (HIGH priority)
+2. The opamp vcc/vee bug (MEDIUM priority)
+
+The redundant functions can be addressed as a nit (LOW priority).
