@@ -8,7 +8,7 @@ from typing import Any, Dict
 
 from fastapi import APIRouter, HTTPException, Query, Body
 
-from src.api.models.circuit import CircuitCreate, CircuitResponse
+from src.api.models.circuit import CircuitCreate, CircuitResponse, CircuitValidationResponse
 from src.api.services.circuit_service import CircuitService
 from src.io.parsers.circuit_synth_parser import CircuitSynthParser
 
@@ -56,6 +56,29 @@ async def get_circuit(circuit_id: str) -> CircuitResponse:
     if not circuit:
         raise HTTPException(status_code=404, detail="Circuit not found")
     return circuit
+
+
+@router.get("/{circuit_id}/validate", response_model=CircuitValidationResponse)
+async def validate_circuit(circuit_id: str) -> CircuitValidationResponse:
+    """
+    Validate a circuit by ID.
+
+    Runs all validation rules on the circuit including basic circuit checks
+    and component value validation.
+
+    Args:
+        circuit_id: Unique circuit identifier
+
+    Returns:
+        CircuitValidationResponse with validation results
+
+    Raises:
+        HTTPException: 404 if circuit not found
+    """
+    validation_result = circuit_service.validate_circuit(circuit_id)
+    if validation_result is None:
+        raise HTTPException(status_code=404, detail="Circuit not found")
+    return validation_result
 
 
 @router.get("", response_model=Dict)

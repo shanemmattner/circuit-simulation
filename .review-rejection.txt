@@ -1,0 +1,41 @@
+## PR Review: #32
+
+**Verdict**: NITS
+
+### Summary
+This PR implements component value validation for the circuit simulation system. It adds validation for resistance, capacitance, and inductance values against specified ranges, with error detection for negative/zero values and warnings for extreme values. The implementation is functionally correct but has a semantic issue with error counting.
+
+### Acceptance Criteria
+
+| Requirement | Status |
+|-------------|--------|
+| Check for negative resistance values | ✅ Implemented in `validate_resistance()` (line 586-591 in component_values.py) |
+| Warn about extreme values (very large/small) | ✅ Implemented in `ComponentValueValidator._validate_component()` with practical ranges |
+| Detect zero-value components | ✅ Explicit checks for `value == 0` in all three validation functions |
+| Check for realistic ranges based on component type | ✅ Different ranges: R (1mΩ-1GΩ), C (1pF-10000µF), L (1nH-10H) |
+| Provide suggestions for typical values | ✅ `get_typical_*_suggestion()` functions provide E24 and common value suggestions |
+
+### Issues Found
+
+| Severity | File:Line | Issue | Required Fix |
+|----------|-----------|-------|--------------|
+| MEDIUM | `src/api/services/circuit_service.py:159-160` | Error counting is semantically incorrect: `total_errors += len(issues) + len(warnings)` counts warnings as errors. The `total_errors` field includes both issues AND warnings, but the field name and description suggest it should only count actual errors. This makes `is_valid = total_errors == 0` return False even when there are only warnings (no actual errors). | Rename to clarify or separate counts: either (a) rename `total_errors` to something like `total_issues` or `problem_count`, or (b) change to `total_errors += len(issues)` only and let warnings not affect validity. |
+| LOW | `src/api/routes/circuits.py` | Missing API endpoint for circuit validation. The `validate_circuit()` method was added to `CircuitService` but there's no route to expose it. | Add a validation endpoint like `@router.get("/{circuit_id}/validate")` that calls `circuit_service.validate_circuit(circuit_id)`. |
+
+### Notes
+
+1. **Pre-existing bug (NOT from this PR)**: The `basic.py` validation file uses `if TYPE_CHECKING:` to import `Circuit` but doesn't handle runtime type resolution, causing a `NameError` when running tests. This was introduced in commit `920221d` (not in this PR) and blocks test execution. To fix: add `from __future__ import annotations` at the top of `basic.py`, or import `Circuit` directly instead of under `TYPE_CHECKING`.
+
+2. **Validation is integrated**: Component validation happens at circuit creation time via the `Circuit.add_resistor()`, `add_capacitor()`, and `add_inductor()` methods, which call the validation functions. Invalid values raise `ValueError` before the circuit is stored.
+
+3. **Test coverage**: Tests exist in `tests/test_component_value_validation.py` covering resistance, capacitance, and inductance validation, plus the validator class. However, they cannot run due to the pre-existing import bug.
+
+### Verification
+
+```bash
+# Tests fail due to pre-existing bug in basic.py
+python3 -m pytest tests/test_component_value_validation.py -v
+# Error: NameError: name 'Circuit' is not defined
+```
+
+The implementation correctly addresses all acceptance criteria from the original issue. The MEDIUM issue about error counting is a semantic/naming concern that affects API response accuracy.

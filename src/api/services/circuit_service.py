@@ -148,7 +148,7 @@ class CircuitService:
                 )
             )
 
-            total_errors += len(issues) + len(warnings)
+            total_errors += len(issues)
             total_warnings += len(warnings)
 
         return CircuitValidationResponse(
