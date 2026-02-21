@@ -1,0 +1,19 @@
+{
+  "assignees": [],
+  "body": "## Description\nValidate component values for sanity and warn about unusual or problematic values.\n\n## Problem\nUsers may enter invalid values (negative resistance), extreme values (1T\u03a9 resistor), or values that could cause numerical issues.\n\n## Acceptance Criteria\n- [ ] Check for negative resistance values\n- [ ] Warn about extreme values (very large/small)\n- [ ] Detect zero-value components that might cause issues\n- [ ] Check for realistic ranges based on component type\n- [ ] Provide suggestions for typical values\n\n## Validation Rules\n- Resistance: 1m\u03a9 to 1G\u03a9 typical\n- Capacitance: 1pF to 10,000\u00b5F typical  \n- Inductance: 1nH to 10H typical\n- Zero or negative values for R, L, C are errors\n\n## Priority\nMedium - Helps catch input errors and numerical issues",
+  "comments": [],
+  "createdAt": "2025-08-27T05:54:45Z",
+  "labels": [
+    {
+      "id": "LA_kwDOPk3kOM8AAAACIv2IZQ",
+      "name": "enhancement",
+      "description": "New feature or request",
+      "color": "a2eeef"
+    }
+  ],
+  "number": 24,
+  "title": "Feature: Component Value Validation",
+  "updatedAt": "2025-08-27T05:54:45Z",
+  "url": "https://github.com/personal-assistant-system/circuit-simulation/issues/24",
+  "fetched_at": "2026-02-21T10:19:15.674390+00:00"
+}
