@@ -6,10 +6,22 @@ Handles circuit creation, validation, storage, and retrieval.
 
 import uuid
 from datetime import datetime
-from typing import Dict, Optional
+from typing import Dict, List, Optional
 
-from src.api.models.circuit import CircuitCreate, CircuitResponse
+from src.api.models.circuit import (
+    CircuitCreate,
+    CircuitResponse,
+    CircuitUpdate,
+    CircuitValidationResponse,
+    ValidationIssueResponse,
+    ValidationResultResponse,
+)
 from src.circuit_sim.circuit import Circuit
+from src.circuit_sim.validation import (
+    BasicCircuitValidator,
+    CircuitValidator,
+    ComponentValueValidator,
+)
 
 
 class CircuitService:
@@ -18,6 +30,133 @@ class CircuitService:
     def __init__(self):
         """Initialize circuit service with in-memory storage."""
         self._circuits: Dict[str, dict] = {}
+
+    def _build_circuit_object(self, name: str, components: List[dict]) -> Circuit:
+        """
+        Build a Circuit object from component data.
+
+        Args:
+            name: Circuit name
+            components: List of component dictionaries
+
+        Returns:
+            Circuit object
+        """
+        circuit = Circuit(name)
+
+        for comp in components:
+            comp_type = comp.get("type")
+            comp_name = comp.get("name")
+            pos_node = comp.get("positive_node")
+            neg_node = comp.get("negative_node")
+            value = comp.get("value")
+
+            if comp_type == "voltage_source":
+                circuit.add_voltage_source(comp_name, pos_node, neg_node, value)
+            elif comp_type == "resistor":
+                circuit.add_resistor(comp_name, pos_node, neg_node, value)
+            elif comp_type == "capacitor":
+                circuit.add_capacitor(comp_name, pos_node, neg_node, value)
+            elif comp_type == "inductor":
+                circuit.add_inductor(comp_name, pos_node, neg_node, value)
+            elif comp_type == "current_source":
+                circuit.add_current_source(comp_name, pos_node, neg_node, value)
+
+        return circuit
+
+    def validate_circuit(self, circuit_id: str) -> Optional[CircuitValidationResponse]:
+        """
+        Validate a circuit using the validation framework.
+
+        Args:
+            circuit_id: Circuit identifier
+
+        Returns:
+            CircuitValidationResponse if circuit found, None otherwise
+        """
+        circuit_record = self._circuits.get(circuit_id)
+        if not circuit_record:
+            return None
+
+        # Build circuit object from stored components
+        circuit = self._build_circuit_object(
+            circuit_record["name"], circuit_record["components"]
+        )
+
+        # Set up validator with all validation rules
+        validator = CircuitValidator()
+        validator.add_rule(BasicCircuitValidator())
+        validator.add_rule(ComponentValueValidator())
+
+        # Run validation
+        results = validator.validate(circuit)
+
+        # Convert results to response format
+        validation_results = []
+        total_errors = 0
+        total_warnings = 0
+
+        for rule_name, result in results.items():
+            issues = []
+            warnings = []
+            info = []
+
+            for issue in result.issues:
+                issues.append(
+                    ValidationIssueResponse(
+                        type=issue.type,
+                        severity="error",
+                        message=issue.message,
+                        components=issue.components,
+                        nodes=issue.nodes,
+                        suggestion=issue.suggestion,
+                    )
+                )
+
+            for warning in result.warnings:
+                warnings.append(
+                    ValidationIssueResponse(
+                        type=warning.type,
+                        severity="warning",
+                        message=warning.message,
+                        components=warning.components,
+                        nodes=warning.nodes,
+                        suggestion=warning.suggestion,
+                    )
+                )
+
+            for info_item in result.info:
+                info.append(
+                    ValidationIssueResponse(
+                        type=info_item.type,
+                        severity="info",
+                        message=info_item.message,
+                        components=info_item.components,
+                        nodes=info_item.nodes,
+                        suggestion=info_item.suggestion,
+                    )
+                )
+
+            validation_results.append(
+                ValidationResultResponse(
+                    rule_name=rule_name,
+                    is_valid=result.is_valid,
+                    issues=issues,
+                    warnings=warnings,
+                    info=info,
+                    suggestions=result.suggestions,
+                )
+            )
+
+            total_errors += len(issues) + len(warnings)
+            total_warnings += len(warnings)
+
+        return CircuitValidationResponse(
+            is_valid=total_errors == 0,
+            total_errors=total_errors,
+            total_warnings=total_warnings,
+            results=validation_results,
+        )
 
     def create_circuit(self, circuit_data: CircuitCreate) -> CircuitResponse:
         """

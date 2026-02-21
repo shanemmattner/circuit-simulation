@@ -8,7 +8,7 @@ Validates electronic component values against specified ranges:
 """
 
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, List, Optional, Tuple
+from typing import TYPE_CHECKING, List, Optional, Tuple, Union
 
 from ..parser import parse_value
 from .base import Severity, ValidationIssue, ValidationResult, ValidationRule
@@ -33,6 +33,121 @@ CAPACITANCE_PRACTICAL_MIN = 0.00000000001  # 10pF - below this is extreme low
 CAPACITANCE_PRACTICAL_MAX = 0.001  # 1000µF - above this is extreme high
 INDUCTANCE_PRACTICAL_MIN = 0.00000001  # 10nH - below this is extreme low
 INDUCTANCE_PRACTICAL_MAX = 1  # 1H - above this is extreme high
+
+
+# Standard component value series for suggestions
+
+# E24 resistor series (ohms) - most common
+E24_RESISTOR_VALUES = [
+    1.0, 1.1, 1.2, 1.3, 1.5, 1.6, 1.8, 2.0, 2.2, 2.4, 2.7, 3.0,
+    3.3, 3.6, 3.9, 4.3, 4.7, 5.1, 5.6, 6.2, 6.8, 7.5, 8.2, 9.1,
+]
+
+# Multipliers for E24 series (to get full range)
+RESISTOR_MULTIPLIERS = [1, 10, 100, 1000, 10000, 100000, 1000000, 100000000]
+
+# Common capacitor values (farads)
+COMMON_CAPACITOR_VALUES = [
+    1e-12, 2.2e-12, 4.7e-12, 10e-12, 22e-12, 47e-12, 100e-12, 220e-12, 470e-12,
+    1e-9, 2.2e-9, 4.7e-9, 10e-9, 22e-9, 47e-9, 100e-9, 220e-9, 470e-9,
+    1e-6, 2.2e-6, 4.7e-6, 10e-6, 22e-6, 47e-6, 100e-6, 220e-6, 470e-6,
+    1000e-6, 2200e-6, 4700e-6,
+]
+
+# Common inductor values (henries)
+COMMON_INDUCTOR_VALUES = [
+    1e-9, 2.2e-9, 4.7e-9, 10e-9, 22e-9, 47e-9, 100e-9, 220e-9, 470e-9,
+    1e-6, 2.2e-6, 4.7e-6, 10e-6, 22e-6, 47e-6, 100e-6, 220e-6, 470e-6,
+    1e-3, 2.2e-3, 4.7e-3, 10e-3, 22e-3, 47e-3, 100e-3,
+]
+
+
+def format_resistance(value: float) -> str:
+    """Format resistance value with appropriate SI prefix."""
+    if value == 0:
+        return "0 Ω"
+    
+    abs_value = abs(value)
+    
+    # Handle different ranges with appropriate formatting
+    if abs_value >= 1e9:
+        return f"{value / 1e9:.0f} GΩ"
+    elif abs_value >= 1e6:
+        return f"{value / 1e6:.0f} MΩ"
+    elif abs_value >= 1e3:
+        return f"{value / 1e3:.0f} kΩ"
+    elif abs_value >= 1:
+        return f"{value:.0f} Ω"
+    elif abs_value >= 1e-3:
+        # Milliohms - format as mΩ with 3 decimal places
+        return f"{value / 1e-3:.0f} mΩ"
+    elif abs_value >= 1e-6:
+        # Microohms - format as µΩ
+        return f"{value / 1e-6:.0f} µΩ"
+    else:
+        return f"{value:.3e} Ω"
+
+
+def format_capacitance(value: float) -> str:
+    """Format capacitance value with appropriate SI prefix."""
+    if value == 0:
+        return "0 F"
+    
+    abs_value = abs(value)
+    
+    if abs_value >= 1e-3:
+        return f"{value / 1e-3:.0f} mF"
+    elif abs_value >= 1e-6:
+        return f"{value / 1e-6:.0f} µF"
+    elif abs_value >= 1e-9:
+        return f"{value / 1e-9:.0f} nF"
+    elif abs_value >= 1e-12:
+        return f"{value / 1e-12:.0f} pF"
+    else:
+        return f"{value:.3e} F"
+
+
+def format_inductance(value: float) -> str:
+    """Format inductance value with appropriate SI prefix."""
+    if value == 0:
+        return "0 H"
+    
+    abs_value = abs(value)
+    
+    if abs_value >= 1:
+        return f"{value:.0f} H"
+    elif abs_value >= 1e-3:
+        return f"{value / 1e-3:.0f} mH"
+    elif abs_value >= 1e-6:
+        return f"{value / 1e-6:.0f} µH"
+    elif abs_value >= 1e-9:
+        return f"{value / 1e-9:.0f} nH"
+    else:
+        return f"{value:.3e} H"
+
+
+def get_typical_resistance_suggestion(is_too_low: bool) -> str:
+    """Get a suggestion for typical resistor values."""
+    if is_too_low:
+        return "Consider using standard E24 values like: 10 Ω, 100 Ω, 1 kΩ, 10 kΩ"
+    else:
+        return "Consider using standard E24 values like: 100 kΩ, 1 MΩ, 10 MΩ, 100 MΩ"
+
+
+def get_typical_capacitance_suggestion(is_too_low: bool) -> str:
+    """Get a suggestion for typical capacitor values."""
+    if is_too_low:
+        return "Consider using common values like: 10 pF, 100 pF, 1 nF, 10 nF"
+    else:
+        return "Consider using common values like: 1 µF, 10 µF, 100 µF, 1000 µF"
+
+
+def get_typical_inductance_suggestion(is_too_low: bool) -> str:
+    """Get a suggestion for typical inductor values."""
+    if is_too_low:
+        return "Consider using common values like: 10 µH, 100 µH, 1 mH, 10 mH"
+    else:
+        return "Consider using common values like: 1 mH, 10 mH, 100 mH, 1 H"
 
 
 @dataclass
@@ -182,25 +297,73 @@ class ComponentValueValidator(ValidationRule):
             )
 
         min_val, max_val = self.resistance_range
+        practical_min, practical_max = self.resistance_practical_range
 
-        if value < min_val:
+        # Check for negative values (ERROR)
+        if value < 0:
             return self._create_issue(
-                issue_type="resistance_too_low",
+                issue_type="resistance_negative",
                 severity=Severity.ERROR,
-                message=f"Resistor '{name}' resistance ({value}Ω) is below minimum "
-                        f"({min_val}Ω = 1mΩ)",
+                message=f"Resistor '{name}' resistance cannot be negative ({format_resistance(value)})",
                 components=[name],
-                suggestion=f"Use a resistance of at least {min_val}Ω",
+                suggestion="Use a positive resistance value greater than 0",
             )
-        elif value > max_val:
+
+        # Check for zero values (ERROR)
+        if value == 0:
             return self._create_issue(
-                issue_type="resistance_too_high",
+                issue_type="resistance_zero",
                 severity=Severity.ERROR,
-                message=f"Resistor '{name}' resistance ({value}Ω) is above maximum "
-                        f"({max_val}Ω = 1GΩ)",
+                message=f"Resistor '{name}' resistance cannot be zero",
                 components=[name],
-                suggestion=f"Use a resistance of at most {max_val}Ω",
+                suggestion="Use a positive resistance value greater than 0",
             )
+
+        # Check for extreme low values (WARNING) - between practical_min and min_val
+        if value < practical_min:
+            if value < min_val:
+                # Already out of absolute range - this is an ERROR
+                return self._create_issue(
+                    issue_type="resistance_too_low",
+                    severity=Severity.ERROR,
+                    message=f"Resistor '{name}' resistance ({format_resistance(value)}) is below minimum "
+                            f"({format_resistance(min_val)} = 1mΩ)",
+                    components=[name],
+                    suggestion=get_typical_resistance_suggestion(is_too_low=True),
+                )
+            else:
+                # Within absolute range but below practical minimum - WARNING
+                return self._create_issue(
+                    issue_type="resistance_extreme_low",
+                    severity=Severity.WARNING,
+                    message=f"Resistor '{name}' resistance ({format_resistance(value)}) is extremely low "
+                            f"(recommended: >{format_resistance(practical_min)})",
+                    components=[name],
+                    suggestion=f"Consider using a resistance of at least {format_resistance(practical_min)} for practical circuits",
+                )
+
+        # Check for extreme high values (WARNING) - between practical_max and max_val
+        if value > practical_max:
+            if value > max_val:
+                # Already out of absolute range - this is an ERROR
+                return self._create_issue(
+                    issue_type="resistance_too_high",
+                    severity=Severity.ERROR,
+                    message=f"Resistor '{name}' resistance ({format_resistance(value)}) is above maximum "
+                            f"({format_resistance(max_val)} = 1GΩ)",
+                    components=[name],
+                    suggestion=get_typical_resistance_suggestion(is_too_low=False),
+                )
+            else:
+                # Within absolute range but above practical maximum - WARNING
+                return self._create_issue(
+                    issue_type="resistance_extreme_high",
+                    severity=Severity.WARNING,
+                    message=f"Resistor '{name}' resistance ({format_resistance(value)}) is extremely high "
+                            f"(recommended: <{format_resistance(practical_max)})",
+                    components=[name],
+                    suggestion=f"Consider using a resistance of at most {format_resistance(practical_max)} for practical circuits",
+                )
 
         return None
 
@@ -225,25 +388,73 @@ class ComponentValueValidator(ValidationRule):
             )
 
         min_val, max_val = self.capacitance_range
+        practical_min, practical_max = self.capacitance_practical_range
 
-        if value < min_val:
+        # Check for negative values (ERROR)
+        if value < 0:
             return self._create_issue(
-                issue_type="capacitance_too_low",
+                issue_type="capacitance_negative",
                 severity=Severity.ERROR,
-                message=f"Capacitor '{name}' capacitance ({value}F) is below minimum "
-                        f"({min_val}F = 1pF)",
+                message=f"Capacitor '{name}' capacitance cannot be negative ({format_capacitance(value)})",
                 components=[name],
-                suggestion=f"Use a capacitance of at least {min_val}F",
+                suggestion="Use a positive capacitance value greater than 0",
             )
-        elif value > max_val:
+
+        # Check for zero values (ERROR)
+        if value == 0:
             return self._create_issue(
-                issue_type="capacitance_too_high",
+                issue_type="capacitance_zero",
                 severity=Severity.ERROR,
-                message=f"Capacitor '{name}' capacitance ({value}F) is above maximum "
-                        f"({max_val}F = 10000µF)",
+                message=f"Capacitor '{name}' capacitance cannot be zero",
                 components=[name],
-                suggestion=f"Use a capacitance of at most {max_val}F",
+                suggestion="Use a positive capacitance value greater than 0",
             )
+
+        # Check for extreme low values (WARNING) - between practical_min and min_val
+        if value < practical_min:
+            if value < min_val:
+                # Already out of absolute range - this is an ERROR
+                return self._create_issue(
+                    issue_type="capacitance_too_low",
+                    severity=Severity.ERROR,
+                    message=f"Capacitor '{name}' capacitance ({format_capacitance(value)}) is below minimum "
+                            f"({format_capacitance(min_val)})",
+                    components=[name],
+                    suggestion=get_typical_capacitance_suggestion(is_too_low=True),
+                )
+            else:
+                # Within absolute range but below practical minimum - WARNING
+                return self._create_issue(
+                    issue_type="capacitance_extreme_low",
+                    severity=Severity.WARNING,
+                    message=f"Capacitor '{name}' capacitance ({format_capacitance(value)}) is extremely low "
+                            f"(recommended: >{format_capacitance(practical_min)})",
+                    components=[name],
+                    suggestion=f"Consider using a capacitance of at least {format_capacitance(practical_min)} for practical circuits",
+                )
+
+        # Check for extreme high values (WARNING) - between practical_max and max_val
+        if value > practical_max:
+            if value > max_val:
+                # Already out of absolute range - this is an ERROR
+                return self._create_issue(
+                    issue_type="capacitance_too_high",
+                    severity=Severity.ERROR,
+                    message=f"Capacitor '{name}' capacitance ({format_capacitance(value)}) is above maximum "
+                            f"({format_capacitance(max_val)})",
+                    components=[name],
+                    suggestion=get_typical_capacitance_suggestion(is_too_low=False),
+                )
+            else:
+                # Within absolute range but above practical maximum - WARNING
+                return self._create_issue(
+                    issue_type="capacitance_extreme_high",
+                    severity=Severity.WARNING,
+                    message=f"Capacitor '{name}' capacitance ({format_capacitance(value)}) is extremely high "
+                            f"(recommended: <{format_capacitance(practical_max)})",
+                    components=[name],
+                    suggestion=f"Consider using a capacitance of at most {format_capacitance(practical_max)} for practical circuits",
+                )
 
         return None
 
@@ -268,40 +479,121 @@ class ComponentValueValidator(ValidationRule):
             )
 
         min_val, max_val = self.inductance_range
+        practical_min, practical_max = self.inductance_practical_range
 
-        if value < min_val:
+        # Check for negative values (ERROR)
+        if value < 0:
             return self._create_issue(
-                issue_type="inductance_too_low",
+                issue_type="inductance_negative",
                 severity=Severity.ERROR,
-                message=f"Inductor '{name}' inductance ({value}H) is below minimum "
-                        f"({min_val}H = 1nH)",
+                message=f"Inductor '{name}' inductance cannot be negative ({format_inductance(value)})",
                 components=[name],
-                suggestion=f"Use an inductance of at least {min_val}H",
+                suggestion="Use a positive inductance value greater than 0",
             )
-        elif value > max_val:
+
+        # Check for zero values (ERROR)
+        if value == 0:
             return self._create_issue(
-                issue_type="inductance_too_high",
+                issue_type="inductance_zero",
                 severity=Severity.ERROR,
-                message=f"Inductor '{name}' inductance ({value}H) is above maximum "
-                        f"({max_val}H = 10H)",
+                message=f"Inductor '{name}' inductance cannot be zero",
                 components=[name],
-                suggestion=f"Use an inductance of at most {max_val}H",
+                suggestion="Use a positive inductance value greater than 0",
             )
+
+        # Check for extreme low values (WARNING) - between practical_min and min_val
+        if value < practical_min:
+            if value < min_val:
+                # Already out of absolute range - this is an ERROR
+                return self._create_issue(
+                    issue_type="inductance_too_low",
+                    severity=Severity.ERROR,
+                    message=f"Inductor '{name}' inductance ({format_inductance(value)}) is below minimum "
+                            f"({format_inductance(min_val)})",
+                    components=[name],
+                    suggestion=get_typical_inductance_suggestion(is_too_low=True),
+                )
+            else:
+                # Within absolute range but below practical minimum - WARNING
+                return self._create_issue(
+                    issue_type="inductance_extreme_low",
+                    severity=Severity.WARNING,
+                    message=f"Inductor '{name}' inductance ({format_inductance(value)}) is extremely low "
+                            f"(recommended: >{format_inductance(practical_min)})",
+                    components=[name],
+                    suggestion=f"Consider using an inductance of at least {format_inductance(practical_min)} for practical circuits",
+                )
+
+        # Check for extreme high values (WARNING) - between practical_max and max_val
+        if value > practical_max:
+            if value > max_val:
+                # Already out of absolute range - this is an ERROR
+                return self._create_issue(
+                    issue_type="inductance_too_high",
+                    severity=Severity.ERROR,
+                    message=f"Inductor '{name}' inductance ({format_inductance(value)}) is above maximum "
+                            f"({format_inductance(max_val)})",
+                    components=[name],
+                    suggestion=get_typical_inductance_suggestion(is_too_low=False),
+                )
+            else:
+                # Within absolute range but above practical maximum - WARNING
+                return self._create_issue(
+                    issue_type="inductance_extreme_high",
+                    severity=Severity.WARNING,
+                    message=f"Inductor '{name}' inductance ({format_inductance(value)}) is extremely high "
+                            f"(recommended: <{format_inductance(practical_max)})",
+                    components=[name],
+                    suggestion=f"Consider using an inductance of at most {format_inductance(practical_max)} for practical circuits",
+                )
 
         return None
 
 
-def validate_resistance(value: float) -> ComponentValueValidationResult:
+def validate_resistance(value: Union[str, float]) -> ComponentValueValidationResult:
     """
     Validate a resistance value.
 
     Args:
-        value: Resistance value in ohms
+        value: Resistance value in ohms (accepts string with SI prefixes like "1k", "10M")
 
     Returns:
         ComponentValueValidationResult with validation status
     """
+    # Parse string values (handles strings like "1k", "10M")
+    if isinstance(value, str):
+        try:
+            value = parse_value(value)
+        except (ValueError, TypeError):
+            return ComponentValueValidationResult(
+                component_name="",
+                component_type="resistor",
+                is_valid=False,
+                value=None,
+                error_message=f"Invalid resistance value: {value}. Provide a numeric value (e.g., '1k', '10M')",
+            )
+
     min_val, max_val = RESISTANCE_MIN, RESISTANCE_MAX
+
+    # Explicit checks for zero and negative values
+    if value < 0:
+        return ComponentValueValidationResult(
+            component_name="",
+            component_type="resistor",
+            is_valid=False,
+            value=value,
+            error_message=f"Resistance cannot be negative ({format_resistance(value)}). "
+                           f"Resistance must be a positive value.",
+        )
+    if value == 0:
+        return ComponentValueValidationResult(
+            component_name="",
+            component_type="resistor",
+            is_valid=False,
+            value=value,
+            error_message=f"Resistance cannot be zero. Resistance must be a positive value "
+                           f"greater than {format_resistance(min_val)}.",
+        )
 
     if value < min_val:
         return ComponentValueValidationResult(
@@ -309,7 +601,7 @@ def validate_resistance(value: float) -> ComponentValueValidationResult:
             component_type="resistor",
             is_valid=False,
             value=value,
-            error_message=f"Resistance ({value}Ω) is below minimum ({min_val}Ω = 1mΩ)",
+            error_message=f"Resistance ({format_resistance(value)}) is below minimum ({format_resistance(min_val)})",
         )
     elif value > max_val:
         return ComponentValueValidationResult(
@@ -317,7 +609,7 @@ def validate_resistance(value: float) -> ComponentValueValidationResult:
             component_type="resistor",
             is_valid=False,
             value=value,
-            error_message=f"Resistance ({value}Ω) is above maximum ({max_val}Ω = 1GΩ)",
+            error_message=f"Resistance ({format_resistance(value)}) is above maximum ({format_resistance(max_val)})",
         )
 
     return ComponentValueValidationResult(
@@ -328,17 +620,50 @@ def validate_resistance(value: float) -> ComponentValueValidationResult:
     )
 
 
-def validate_capacitance(value: float) -> ComponentValueValidationResult:
+def validate_capacitance(value: Union[str, float]) -> ComponentValueValidationResult:
     """
     Validate a capacitance value.
 
     Args:
-        value: Capacitance value in farads
+        value: Capacitance value in farads (accepts string with SI prefixes like "1u", "10n")
 
     Returns:
         ComponentValueValidationResult with validation status
     """
+    # Parse string values (handles strings like "1u", "10n")
+    if isinstance(value, str):
+        try:
+            value = parse_value(value)
+        except (ValueError, TypeError):
+            return ComponentValueValidationResult(
+                component_name="",
+                component_type="capacitor",
+                is_valid=False,
+                value=None,
+                error_message=f"Invalid capacitance value: {value}. Provide a numeric value (e.g., '1u', '10n')",
+            )
+
     min_val, max_val = CAPACITANCE_MIN, CAPACITANCE_MAX
+
+    # Explicit checks for zero and negative values
+    if value < 0:
+        return ComponentValueValidationResult(
+            component_name="",
+            component_type="capacitor",
+            is_valid=False,
+            value=value,
+            error_message=f"Capacitance cannot be negative ({format_capacitance(value)}). "
+                           f"Capacitance must be a positive value.",
+        )
+    if value == 0:
+        return ComponentValueValidationResult(
+            component_name="",
+            component_type="capacitor",
+            is_valid=False,
+            value=value,
+            error_message=f"Capacitance cannot be zero. Capacitance must be a positive value "
+                           f"greater than {format_capacitance(min_val)}.",
+        )
 
     if value < min_val:
         return ComponentValueValidationResult(
@@ -346,7 +671,7 @@ def validate_capacitance(value: float) -> ComponentValueValidationResult:
             component_type="capacitor",
             is_valid=False,
             value=value,
-            error_message=f"Capacitance ({value}F) is below minimum ({min_val}F = 1pF)",
+            error_message=f"Capacitance ({format_capacitance(value)}) is below minimum ({format_capacitance(min_val)})",
         )
     elif value > max_val:
         return ComponentValueValidationResult(
@@ -354,7 +679,7 @@ def validate_capacitance(value: float) -> ComponentValueValidationResult:
             component_type="capacitor",
             is_valid=False,
             value=value,
-            error_message=f"Capacitance ({value}F) is above maximum ({max_val}F = 10000µF)",
+            error_message=f"Capacitance ({format_capacitance(value)}) is above maximum ({format_capacitance(max_val)})",
         )
 
     return ComponentValueValidationResult(
@@ -365,17 +690,50 @@ def validate_capacitance(value: float) -> ComponentValueValidationResult:
     )
 
 
-def validate_inductance(value: float) -> ComponentValueValidationResult:
+def validate_inductance(value: Union[str, float]) -> ComponentValueValidationResult:
     """
     Validate an inductance value.
 
     Args:
-        value: Inductance value in henries
+        value: Inductance value in henries (accepts string with SI prefixes like "1m", "10u")
 
     Returns:
         ComponentValueValidationResult with validation status
     """
+    # Parse string values (handles strings like "1m", "10u")
+    if isinstance(value, str):
+        try:
+            value = parse_value(value)
+        except (ValueError, TypeError):
+            return ComponentValueValidationResult(
+                component_name="",
+                component_type="inductor",
+                is_valid=False,
+                value=None,
+                error_message=f"Invalid inductance value: {value}. Provide a numeric value (e.g., '1m', '10u')",
+            )
+
     min_val, max_val = INDUCTANCE_MIN, INDUCTANCE_MAX
+
+    # Explicit checks for zero and negative values
+    if value < 0:
+        return ComponentValueValidationResult(
+            component_name="",
+            component_type="inductor",
+            is_valid=False,
+            value=value,
+            error_message=f"Inductance cannot be negative ({format_inductance(value)}). "
+                           f"Inductance must be a positive value.",
+        )
+    if value == 0:
+        return ComponentValueValidationResult(
+            component_name="",
+            component_type="inductor",
+            is_valid=False,
+            value=value,
+            error_message=f"Inductance cannot be zero. Inductance must be a positive value "
+                           f"greater than {format_inductance(min_val)}.",
+        )
 
     if value < min_val:
         return ComponentValueValidationResult(
@@ -383,7 +741,7 @@ def validate_inductance(value: float) -> ComponentValueValidationResult:
             component_type="inductor",
             is_valid=False,
             value=value,
-            error_message=f"Inductance ({value}H) is below minimum ({min_val}H = 1nH)",
+            error_message=f"Inductance ({format_inductance(value)}) is below minimum ({format_inductance(min_val)})",
         )
     elif value > max_val:
         return ComponentValueValidationResult(
@@ -391,7 +749,7 @@ def validate_inductance(value: float) -> ComponentValueValidationResult:
             component_type="inductor",
             is_valid=False,
             value=value,
-            error_message=f"Inductance ({value}H) is above maximum ({max_val}H = 10H)",
+            error_message=f"Inductance ({format_inductance(value)}) is above maximum ({format_inductance(max_val)})",
         )
 
     return ComponentValueValidationResult(
