@@ -11,6 +11,14 @@ from .time_domain import (
     calculate_settling_time,
     calculate_overshoot,
 )
+from .thevenin import (
+    TheveninResult,
+    calculate_rth,
+    calculate_thevenin,
+    calculate_norton_current,
+    calculate_norton_from_thevenin,
+    TheveninAnalyzer,
+)
 
 __all__ = [
     "TransferFunction",
@@ -21,4 +29,10 @@ __all__ = [
     "calculate_rise_time",
     "calculate_settling_time",
     "calculate_overshoot",
+    "TheveninResult",
+    "calculate_rth",
+    "calculate_thevenin",
+    "calculate_norton_current",
+    "calculate_norton_from_thevenin",
+    "TheveninAnalyzer",
 ]
