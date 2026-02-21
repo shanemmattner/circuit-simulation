@@ -51,9 +51,19 @@ class ComplexityRequest(BaseModel):
             elif comp_type == "diode":
                 circuit.add_diode(name, node1, node2)
             elif comp_type == "mosfet":
-                circuit.addMosfet(name, node1, node2, node1)  # Simplified
+                circuit.add_mosfet(name, node1, node2, node1)  # Simplified
             elif comp_type == "opamp":
-                circuit.add_opamp(name, node1, node2, node1)  # Simplified
+                circuit.add_opamp(name, node1, node2, node1, node1, node1)  # Simplified
+            elif comp_type == "led":
+                circuit.add_led(name, node1, node2)
+            elif comp_type == "zener":
+                circuit.add_zener(name, node1, node2)
+            elif comp_type == "bjt_transistor":
+                circuit.add_bjt_transistor(name, node1, node2, node1)  # Simplified
+            elif comp_type == "transformer":
+                circuit.add_transformer(name, node1, node2, node1, node2)  # Simplified
+            elif comp_type == "switch":
+                circuit.add_switch(name, node1, node2)
         
         return circuit
 

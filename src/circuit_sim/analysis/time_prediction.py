@@ -344,9 +344,9 @@ class SimulationTimePredictor:
         confidence = 0.75
 
         # Adjust confidence based on circuit complexity
-        if score and score.weighted_score > 50:
+        if score and score.final_score > 50:
             confidence = 0.6  # Lower confidence for very complex circuits
-        elif score and score.weighted_score < 10:
+        elif score and score.final_score < 10:
             confidence = 0.9  # Higher confidence for simple circuits
 
         return SimulationTimePrediction(

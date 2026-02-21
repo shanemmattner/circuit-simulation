@@ -1,0 +1,77 @@
+## PR Review: #35
+
+**Verdict**: REJECT
+
+### Summary
+This PR implements a Circuit Complexity Scoring feature that provides complexity analysis, simulation time prediction, memory estimation, and solver settings recommendations. The implementation covers most acceptance criteria but contains several issues that need to be addressed before merging.
+
+### Acceptance Criteria
+- [x] Define scoring algorithm — implemented in `ComplexityScore` class in `complexity.py`
+- [x] Calculate complexity score — implemented via `CalculateComplexityScore()` function
+- [x] Predict simulation time — implemented in `time_prediction.py`
+- [x] Estimate memory requirements — implemented in `resource_prediction.py`
+- [x] Suggest solver settings — implemented in `solver_settings.py`
+
+### Issues Found
+
+| Severity | File:Line | Issue | Required Fix |
+|----------|-----------|-------|--------------|
+| MEDIUM | `src/circuit_sim/analysis/time_prediction.py:347,349` | `score.weighted_score` is referenced but this property doesn't exist in `ComplexityScore`. The property is called `final_score`. | Change `score.weighted_score` to `score.final_score` on lines 347 and 349 |
+| MEDIUM | `src/api/models/complexity.py:44-56` | `ComplexityRequest.to_circuit()` doesn't handle all component types that `CircuitComplexityMetrics.from_circuit()` supports. Missing: led, zener, bjt_transistor, transformer, switch. | Add handling for these component types in the `to_circuit()` method |
+| MEDIUM | `src/api/routes/complexity.py:76-92` | `calculate_and_cache_complexity()` function doesn't handle all component types. It only handles resistor, capacitor, inductor, voltage_source, current_source. Missing: diode, led, zener, mosfet, opamp, bjt_transistor, transformer, switch. | Add handling for all component types in this function |
+| LOW | `src/api/routes/complexity.py:53` | The `get_complexity_score` endpoint doesn't actually retrieve from a stored circuit - it just calls `complexity_service.get_cached()` which is always empty (in-memory cache with no persistence). | Either implement actual circuit storage/retrieval or clarify this is in-memory only |
+
+### Detailed Analysis
+
+#### 1. Bug: Missing `weighted_score` property (MEDIUM)
+
+In `time_prediction.py`, the code references `score.weighted_score`:
+```python
+if score and score.weighted_score > 50:
+    confidence = 0.6  # Lower confidence for very complex circuits
+elif score and score.weighted_score < 10:
+    confidence = 0.9  # Higher confidence for simple circuits
+```
+
+However, the `ComplexityScore` class has no `weighted_score` property. The property that holds the calculated score is called `final_score`. This will cause an `AttributeError` at runtime.
+
+#### 2. Incomplete component type handling in API models (MEDIUM)
+
+The `ComplexityRequest.to_circuit()` method maps incoming API requests to Circuit objects, but only handles a subset of component types:
+- ✅ resistor, capacitor, inductor, voltage_source, current_source, diode, mosfet, opamp
+- ❌ led, zener, bjt_transistor, transformer, switch
+
+This contrasts with `CircuitComplexityMetrics.from_circuit()` which handles all types. This inconsistency means the API cannot accept circuits with LEDs, Zeners, BJTs, transformers, or switches.
+
+#### 3. Incomplete component type handling in API routes (MEDIUM)
+
+Similarly, `calculate_and_cache_complexity()` in `src/api/routes/complexity.py` has even more limited handling - it only handles resistor, capacitor, inductor, voltage_source, current_source.
+
+#### 4. Missing test coverage
+
+The test file `tests/analysis/test_solver_settings.py` only tests solver settings. There are no tests for:
+- Complexity score calculation (`CalculateComplexityScore`)
+- Time prediction (`predict_simulation_time`)
+- Resource prediction (`predict_simulation_resources`)
+
+### What Works Well
+
+1. **Well-structured code organization** - The modular design with separate files for complexity, time prediction, resource prediction, and solver settings is clean and maintainable.
+
+2. **Comprehensive metrics** - The `ComplexityScore` class implements a thoughtful weighted scoring algorithm considering nodes, components, nonlinearity, reactive elements, topology, and sources.
+
+3. **Good API integration** - The FastAPI endpoints follow REST conventions and properly use Pydantic for validation.
+
+4. **CLI integration** - Both `analyze` and `from-netlist` commands provide useful CLI access to the functionality.
+
+5. **Rich CLI output** - The CLI uses `rich` for attractive, readable output with color-coding.
+
+### Recommendations
+
+1. **Fix the `weighted_score` bug** - This is the most critical issue as it will cause runtime failures.
+
+2. **Complete component type handling** - Ensure all component types handled by `from_circuit()` are also handled by `to_circuit()` and the route handlers.
+
+3. **Add tests** - At minimum, add tests for the core `CalculateComplexityScore` function and the prediction modules.
+
+4. **Consider adding a `weighted_score` property** - For API clarity, it might be useful to add a property alias: `weighted_score = final_score` for backward compatibility.

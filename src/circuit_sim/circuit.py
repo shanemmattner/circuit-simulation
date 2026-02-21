@@ -395,6 +395,169 @@ class Circuit:
 
         return self
 
+    def add_led(
+        self,
+        name: str,
+        anode: Union[int, str],
+        cathode: Union[int, str],
+        color: str = "red",
+    ) -> "Circuit":
+        """
+        Add an LED to the circuit.
+
+        Args:
+            name: Component identifier (e.g., "LED1")
+            anode: Anode terminal node
+            cathode: Cathode terminal node
+            color: LED color (e.g., "red", "green", "blue")
+
+        Returns:
+            self for method chaining
+        """
+        # Convert "gnd" to 0
+        if anode == "gnd":
+            anode = 0
+        if cathode == "gnd":
+            cathode = 0
+
+        self.nodes.add(anode)
+        self.nodes.add(cathode)
+
+        self.components.append(
+            {
+                "type": "led",
+                "name": name,
+                "anode": anode,
+                "cathode": cathode,
+                "color": color,
+            }
+        )
+
+        return self
+
+    def add_zener(
+        self,
+        name: str,
+        anode: Union[int, str],
+        cathode: Union[int, str],
+        voltage: str = "5.1V",
+    ) -> "Circuit":
+        """
+        Add a Zener diode to the circuit.
+
+        Args:
+            name: Component identifier (e.g., "DZ1")
+            anode: Anode terminal node
+            cathode: Cathode terminal node
+            voltage: Zener voltage (e.g., "5.1V")
+
+        Returns:
+            self for method chaining
+        """
+        # Convert "gnd" to 0
+        if anode == "gnd":
+            anode = 0
+        if cathode == "gnd":
+            cathode = 0
+
+        self.nodes.add(anode)
+        self.nodes.add(cathode)
+
+        self.components.append(
+            {
+                "type": "zener",
+                "name": name,
+                "anode": anode,
+                "cathode": cathode,
+                "voltage": voltage,
+            }
+        )
+
+        return self
+
+    def add_transformer(
+        self,
+        name: str,
+        primary_positive: Union[int, str],
+        primary_negative: Union[int, str],
+        secondary_positive: Union[int, str],
+        secondary_negative: Union[int, str],
+        turns_ratio: str = "1:1",
+    ) -> "Circuit":
+        """
+        Add a transformer to the circuit.
+
+        Args:
+            name: Component identifier (e.g., "T1")
+            primary_positive: Primary winding positive terminal
+            primary_negative: Primary winding negative terminal
+            secondary_positive: Secondary winding positive terminal
+            secondary_negative: Secondary winding negative terminal
+            turns_ratio: Transformer turns ratio (e.g., "1:10")
+
+        Returns:
+            self for method chaining
+        """
+        # Convert "gnd" to 0
+        for node in [primary_positive, primary_negative, secondary_positive, secondary_negative]:
+            if node == "gnd":
+                node = 0
+            self.nodes.add(node)
+
+        self.components.append(
+            {
+                "type": "transformer",
+                "name": name,
+                "primary_positive": primary_positive,
+                "primary_negative": primary_negative,
+                "secondary_positive": secondary_positive,
+                "secondary_negative": secondary_negative,
+                "turns_ratio": turns_ratio,
+            }
+        )
+
+        return self
+
+    def add_switch(
+        self,
+        name: str,
+        node1: Union[int, str],
+        node2: Union[int, str],
+        initial_state: str = "open",
+    ) -> "Circuit":
+        """
+        Add a switch to the circuit.
+
+        Args:
+            name: Component identifier (e.g., "S1")
+            node1: First switch terminal
+            node2: Second switch terminal
+            initial_state: Initial switch state ("open" or "closed")
+
+        Returns:
+            self for method chaining
+        """
+        # Convert "gnd" to 0
+        if node1 == "gnd":
+            node1 = 0
+        if node2 == "gnd":
+            node2 = 0
+
+        self.nodes.add(node1)
+        self.nodes.add(node2)
+
+        self.components.append(
+            {
+                "type": "switch",
+                "name": name,
+                "node1": node1,
+                "node2": node2,
+                "initial_state": initial_state,
+            }
+        )
+
+        return self
+
     def simulate(self, analysis: str = "dc", **kwargs) -> "SimulationResults":
         """
         Run circuit simulation.
