@@ -266,7 +266,120 @@ class ShortCircuitDetector(ValidationRule):
                             distances[neighbor] = new_dist
                             heapq.heappush(pq, (new_dist, neighbor))
 
-        return None  # No path found
+        return None
+
+
+class FloatingSubcircuitDetector(ValidationRule):
+    """Detects floating subcircuits (sections with no ground connection)."""
+
+    def __init__(
+        self,
+        name: Optional[str] = None,
+    ):
+        """
+        Initialize floating subcircuit detector.
+
+        Args:
+            name: Optional custom name for this rule
+        """
+        super().__init__(name or "FloatingSubcircuitDetector")
+
+    def validate(self, circuit: Circuit) -> ValidationResult:
+        """
+        Detect floating subcircuits (sections with no ground connection).
+
+        A floating subcircuit is a group of components that are connected
+        together but have no electrical path to ground (node 0). These
+        can cause simulation errors or indicate design issues.
+
+        Args:
+            circuit: Circuit to validate
+
+        Returns:
+            ValidationResult with any floating subcircuits found
+        """
+        from ..analysis.graph import CircuitConnectivityAnalyzer
+
+        analyzer = CircuitConnectivityAnalyzer(circuit)
+        isolated_subcircuits = analyzer.find_isolated_subcircuits()
+
+        issues = []
+        
+        for subcircuit in isolated_subcircuits:
+            nodes = sorted(subcircuit["nodes"])
+            components = subcircuit["components"]
+            size = subcircuit["size"]
+            
+            # Determine severity based on size
+            # Larger floating sections are more concerning
+            if size > 5:
+                severity = Severity.ERROR
+            elif size > 2:
+                severity = Severity.WARNING
+            else:
+                severity = Severity.WARNING
+            
+            # Check if there's a voltage source in the floating section
+            has_voltage_source = any(
+                self._is_voltage_source(circuit, comp) 
+                for comp in components
+            )
+            has_current_source = any(
+                self._is_current_source(circuit, comp)
+                for comp in components
+            )
+            
+            if has_voltage_source:
+                severity = Severity.ERROR
+                message = (
+                    f"Floating subcircuit with {size} nodes has no ground connection. "
+                    f"Contains voltage source(s): {', '.join(components)}. "
+                    f"Nodes: {nodes}"
+                )
+            elif has_current_source:
+                message = (
+                    f"Floating subcircuit with {size} nodes has no ground connection. "
+                    f"Contains current source(s): {', '.join(components)}. "
+                    f"Nodes: {nodes}"
+                )
+            else:
+                message = (
+                    f"Floating subcircuit with {size} nodes has no ground connection. "
+                    f"Components: {', '.join(components)}. "
+                    f"Nodes: {nodes}"
+                )
+            
+            issue = self._create_issue(
+                issue_type="floating_subcircuit",
+                severity=severity,
+                message=message,
+                components=components,
+                nodes=nodes,
+                suggestion="Connect this subcircuit to ground through a resistor or other component",
+            )
+            issues.append(issue)
+
+        # Determine overall validity
+        # Floating subcircuits with voltage sources are errors
+        # Others are warnings
+        errors = [issue for issue in issues if issue.severity == Severity.ERROR]
+        is_valid = len(errors) == 0
+
+        return self._create_result(is_valid=is_valid, issues=issues)
+
+    def _is_voltage_source(self, circuit: Circuit, component_name: str) -> bool:
+        """Check if a component is a voltage source."""
+        for comp in circuit.components:
+            if comp.get("name") == component_name:
+                return comp.get("type") == "voltage_source"
+        return False
+
+    def _is_current_source(self, circuit: Circuit, component_name: str) -> bool:
+        """Check if a component is a current source."""
+        for comp in circuit.components:
+            if comp.get("name") == component_name:
+                return comp.get("type") == "current_source"
+        return False  # No path found
 
     def _check_voltage_source_connection(
         self, source1: Dict, source2: Dict, resistance: float

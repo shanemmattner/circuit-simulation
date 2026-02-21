@@ -212,29 +212,104 @@ class CircuitConnectivityAnalyzer:
         """
         Find subcircuits that have no ground connection.
         
+        This method identifies connected subcircuits (groups of components
+        connected together) that have no electrical path to ground (node 0).
+        These floating subcircuits can cause simulation errors or indicate
+        design issues.
+        
         Returns:
-            List of isolated subcircuit descriptions
+            List of isolated subcircuit descriptions, each containing:
+                - nodes: Set of node IDs in the subcircuit
+                - components: List of component names in the subcircuit
+                - size: Number of nodes in the subcircuit
             
         Example:
+            >>> circuit = Circuit("Test")
+            >>> circuit.add_voltage_source("V1", 1, 0, "5V")
+            >>> circuit.add_resistor("R1", 2, 3, "1k")  # No ground connection
+            >>> analyzer = CircuitConnectivityAnalyzer(circuit)
             >>> subcircuits = analyzer.find_isolated_subcircuits()
-            >>> for sub in subcircuits:
-            ...     print(f"Isolated: {sub['nodes']}")
+            >>> print(f"Found {len(subcircuits)} floating subcircuits")
         """
-        components = self.find_connected_components()
-        ground_component = None
-        isolated = []
+        # Find all connected components
+        all_components = self.find_connected_components()
         
-        for component in components:
-            if 0 in component:
-                ground_component = component
-            elif len(component) > 0:
-                isolated.append({
-                    "nodes": list(component),
-                    "size": len(component),
-                    "node_list": sorted(component)
+        # Get nodes reachable from ground
+        ground_reachable = self.find_nodes_reachable_from_ground()
+        
+        # Find isolated subcircuits
+        isolated_subcircuits = []
+        
+        for component_nodes in all_components:
+            # Check if this component has any node connected to ground
+            has_ground_connection = bool(component_nodes & ground_reachable)
+            
+            if not has_ground_connection and component_nodes:
+                # This is a floating subcircuit - find components in it
+                components_in_subcircuit = self._find_components_in_nodes(
+                    component_nodes
+                )
+                
+                isolated_subcircuits.append({
+                    "nodes": component_nodes,
+                    "components": components_in_subcircuit,
+                    "size": len(component_nodes),
                 })
         
-        return isolated
+        return isolated_subcircuits
+
+    def _find_components_in_nodes(self, nodes: Set[int]) -> List[str]:
+        """
+        Find all component names connected to a set of nodes.
+        
+        Args:
+            nodes: Set of node IDs
+            
+        Returns:
+            List of component names connected to these nodes
+        """
+        component_names = []
+        nodes_set = set(nodes)
+        
+        for component in self.circuit.components:
+            component_node_set = set(self._get_component_nodes(component))
+            if component_node_set & nodes_set:  # Any intersection
+                name = component.get("name", "unnamed")
+                if name not in component_names:
+                    component_names.append(name)
+        
+        return component_names
+
+    def get_subcircuit_summary(self) -> Dict[str, Any]:
+        """
+        Get a summary of the circuit's connectivity.
+        
+        Returns:
+            Dictionary containing:
+                - total_components: Number of connected subcircuits
+                - grounded_components: Number connected to ground
+                - floating_components: Number of floating subcircuits
+                - floating_nodes: Total number of floating nodes
+        """
+        isolated_subcircuits = self.find_isolated_subcircuits()
+        all_components = self.find_connected_components()
+        ground_reachable = self.find_nodes_reachable_from_ground()
+        
+        grounded_count = 0
+        for comp in all_components:
+            if comp & ground_reachable:
+                grounded_count += 1
+        
+        total_floating_nodes = sum(len(sc["nodes"]) for sc in isolated_subcircuits)
+        
+        return {
+            "total_subcircuits": len(all_components),
+            "grounded_subcircuits": grounded_count,
+            "floating_subcircuits": len(isolated_subcircuits),
+            "floating_nodes": total_floating_nodes,
+            "grounded_nodes": len(ground_reachable),
+            "total_nodes": len(self.circuit.nodes),
+        }
 
     def visualize_isolated_sections(self) -> Dict[str, Any]:
         """
