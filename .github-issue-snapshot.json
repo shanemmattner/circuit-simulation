@@ -1,0 +1,19 @@
+{
+  "assignees": [],
+  "body": "# Feature: PDF Export for Circuit Analysis Reports\n\n## \ud83c\udfaf Objective\nAdd PDF export functionality to the existing advanced report generator system, enabling print-ready professional reports suitable for documentation and presentations.\n\n## \ud83d\udccb Background\nThe advanced report generator (Issue #7) successfully implemented interactive HTML reports with professional styling. PDF export was identified as a critical feature but deferred to maintain focus on core HTML functionality.\n\n## \ud83d\udee0\ufe0f Technical Requirements\n\n### Dependencies to Add\n```toml\nweasyprint>=60.0    # HTML to PDF conversion\npython-docx>=1.1.0  # Word documents (future)\n```\n\n### Implementation Tasks\n- [ ] Add WeasyPrint integration to HTMLBuilder\n- [ ] Create PDFBuilder class with proper CSS handling\n- [ ] Optimize CSS for print media (page breaks, sizing)\n- [ ] Add PDF export option to ReportGenerator.generate_report()\n- [ ] Handle chart rendering for PDF (static images)\n- [ ] Add comprehensive tests for PDF generation\n- [ ] Update documentation and examples\n\n### File Structure\n```\nsrc/circuit_sim/reports/builders/\n\u251c\u2500\u2500 html_builder.py     # Existing\n\u251c\u2500\u2500 pdf_builder.py      # New - PDF generation\n\u2514\u2500\u2500 base_builder.py     # New - shared functionality\n```\n\n## \ud83d\udcca Success Criteria\n- [ ] Generate PDF reports from existing HTML templates\n- [ ] Maintain professional layout and formatting in PDF\n- [ ] Charts render as static images in PDF\n- [ ] Page breaks handled intelligently\n- [ ] File size reasonable (<5MB for complex reports)\n- [ ] Works across all report types (detailed, quick, executive)\n\n## \ud83d\udd17 Dependencies\n- **Depends on**: Completed Issue #7 (Advanced Report Generator)\n- **Blocks**: Complete report generation feature set\n\n## \ud83d\udcda Resources\n- [WeasyPrint Documentation](https://weasyprint.org/)\n- [CSS Print Media Guide](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_media_queries/Using_media_queries)\n- [Plotly Static Image Export](https://plotly.com/python/static-image-export/)\n\n## \u23f1\ufe0f Estimated Effort\n**Time**: 4-6 hours  \n**Complexity**: Medium  \n**Priority**: High (completes core feature set)\n\n## \ud83d\udca1 Implementation Notes\n- Leverage existing HTML templates and CSS\n- Use print media queries for PDF-specific styling\n- Convert interactive Plotly charts to static images\n- Handle multi-page layouts gracefully\n- Ensure consistent typography and spacing\n\n## \ud83c\udff7\ufe0f Labels\n`enhancement` `priority-high`",
+  "comments": [],
+  "createdAt": "2025-08-27T04:38:48Z",
+  "labels": [
+    {
+      "id": "LA_kwDOPk3kOM8AAAACIv2IZQ",
+      "name": "enhancement",
+      "description": "New feature or request",
+      "color": "a2eeef"
+    }
+  ],
+  "number": 19,
+  "title": "Feature: PDF Export for Circuit Analysis Reports",
+  "updatedAt": "2025-08-27T04:38:48Z",
+  "url": "https://github.com/personal-assistant-system/circuit-simulation/issues/19",
+  "fetched_at": "2026-02-21T11:11:07.112622+00:00"
+}
