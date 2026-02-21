@@ -1,0 +1,19 @@
+{
+  "assignees": [],
+  "body": "## Description\nDetect disconnected or isolated sections of a circuit that aren't connected to the main circuit or ground.\n\n## Problem\nIsolated subcircuits can't be properly simulated and often indicate wiring mistakes or incomplete designs.\n\n## Acceptance Criteria\n- [ ] Identify disconnected circuit sections\n- [ ] Find nodes/components not reachable from ground\n- [ ] Detect floating subcircuits (no ground connection)\n- [ ] Provide visualization of isolated sections\n- [ ] Suggest connection points\n\n## Technical Approach\n- Graph connectivity analysis\n- Connected components algorithm\n- Path finding from ground node\n\n## Priority\nHigh - Helps users identify wiring mistakes quickly",
+  "comments": [],
+  "createdAt": "2025-08-27T05:54:43Z",
+  "labels": [
+    {
+      "id": "LA_kwDOPk3kOM8AAAACIv2IZQ",
+      "name": "enhancement",
+      "description": "New feature or request",
+      "color": "a2eeef"
+    }
+  ],
+  "number": 23,
+  "title": "Feature: Isolated Subcircuit Detection",
+  "updatedAt": "2025-08-27T05:54:43Z",
+  "url": "https://github.com/personal-assistant-system/circuit-simulation/issues/23",
+  "fetched_at": "2026-02-21T10:18:54.272042+00:00"
+}
