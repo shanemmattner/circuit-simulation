@@ -205,3 +205,287 @@ def get_component_size(circuit: Any) -> int:
         >>> get_component_size(circuit)  # Returns number of components
     """
     return len(find_connected_components(circuit))
+
+
+def find_nodes_reachable_from_ground(circuit: Any) -> Set[Any]:
+    """
+    Find all nodes reachable from ground (node 0) using BFS.
+
+    Performs a breadth-first search starting from ground (node 0)
+    to find all nodes electrically connected to the ground reference.
+
+    Args:
+        circuit: Circuit object with components and nodes attributes
+
+    Returns:
+        Set of node IDs that are reachable from ground
+
+    Example:
+        >>> circuit = Circuit("Test Circuit")
+        >>> circuit.add_voltage_source("V1", positive=1, negative=0, dc_value="5V")
+        >>> circuit.add_resistor("R1", node1=1, node2=2, resistance="1k")
+        >>> circuit.add_resistor("R2", node1=3, node2=4, resistance="1k")
+        >>> reachable = find_nodes_reachable_from_ground(circuit)
+        >>> # Returns: {0, 1, 2} (nodes 3, 4 are not reachable from ground)
+    """
+    graph = build_adjacency_graph(circuit)
+
+    if 0 not in graph:
+        return set()
+
+    visited: Set[Any] = set()
+    queue = [0]
+
+    while queue:
+        current = queue.pop(0)
+        if current in visited:
+            continue
+
+        visited.add(current)
+
+        for neighbor in graph.get(current, []):
+            if neighbor not in visited:
+                queue.append(neighbor)
+
+    return visited
+
+
+def find_isolated_nodes(circuit: Any) -> Set[Any]:
+    """
+    Find all nodes NOT reachable from ground (isolated nodes).
+
+    These are nodes that have no electrical path to ground (node 0),
+    meaning they are part of isolated or floating sections of the circuit.
+
+    Args:
+        circuit: Circuit object with components and nodes attributes
+
+    Returns:
+        Set of node IDs that are not reachable from ground
+
+    Example:
+        >>> circuit = Circuit("Test Circuit")
+        >>> circuit.add_voltage_source("V1", positive=1, negative=0, dc_value="5V")
+        >>> circuit.add_resistor("R1", node1=1, node2=2, resistance="1k")
+        >>> circuit.add_resistor("R2", node1=3, node2=4, resistance="1k")
+        >>> isolated = find_isolated_nodes(circuit)
+        >>> # Returns: {3, 4} (these nodes are not connected to ground)
+    """
+    reachable = find_nodes_reachable_from_ground(circuit)
+    all_nodes = set(circuit.nodes)
+
+    return all_nodes - reachable
+
+
+def find_isolated_subcircuits(circuit: Any) -> List[Set[Any]]:
+    """
+    Find isolated subcircuits (connected components not connected to ground).
+
+    An isolated subcircuit is a group of nodes that are electrically
+    connected to each other but have no connection to ground (node 0).
+    These represent floating sections of the circuit that may be
+    intentional (e.g., AC coupling) or unintentional (design errors).
+
+    Args:
+        circuit: Circuit object with components and nodes attributes
+
+    Returns:
+        List of sets, where each set contains the node IDs in that
+        isolated subcircuit. Empty list if no isolated subcircuits exist.
+
+    Example:
+        >>> circuit = Circuit("Test Circuit")
+        >>> circuit.add_voltage_source("V1", positive=1, negative=0, dc_value="5V")
+        >>> circuit.add_resistor("R1", node1=1, node2=2, resistance="1k")
+        >>> circuit.add_resistor("R2", node1=3, node2=4, resistance="1k")  # Isolated
+        >>> circuit.add_capacitor("C1", node1=4, node2=5, capacitance="1u")  # Part of isolated
+        >>> isolated = find_isolated_subcircuits(circuit)
+        >>> # Returns: [{3, 4, 5}] (one isolated subcircuit with nodes 3, 4, 5)
+    """
+    reachable = find_nodes_reachable_from_ground(circuit)
+
+    # Get all connected components
+    all_components = find_connected_components(circuit)
+
+    # Filter to only include components that don't contain ground
+    isolated = []
+    for component in all_components:
+        if 0 not in component:
+            isolated.append(component)
+
+    return isolated
+
+
+def get_isolation_report(circuit: Any) -> Dict[str, Any]:
+    """
+    Generate a comprehensive isolation report for the circuit.
+
+    Provides detailed information about the circuit's connectivity
+    relative to ground, including reachable nodes, isolated nodes,
+    and isolated subcircuits.
+
+    Args:
+        circuit: Circuit object with components and nodes attributes
+
+    Returns:
+        Dictionary containing:
+        - reachable_nodes: Set of nodes reachable from ground
+        - isolated_nodes: Set of nodes not reachable from ground
+        - isolated_subcircuits: List of isolated connected components
+        - is_ground_connected: Whether ground (node 0) exists in the circuit
+        - has_isolated_sections: Whether there are any isolated sections
+
+    Example:
+        >>> circuit = Circuit("Test Circuit")
+        >>> circuit.add_voltage_source("V1", positive=1, negative=0, dc_value="5V")
+        >>> circuit.add_resistor("R1", node1=1, node2=2, resistance="1k")
+        >>> circuit.add_resistor("R2", node1=3, node2=4, resistance="1k")
+        >>> report = get_isolation_report(circuit)
+        >>> # Returns detailed isolation analysis
+    """
+    reachable = find_nodes_reachable_from_ground(circuit)
+    isolated_nodes = find_isolated_nodes(circuit)
+    isolated_subcircuits = find_isolated_subcircuits(circuit)
+
+    return {
+        "reachable_nodes": reachable,
+        "isolated_nodes": isolated_nodes,
+        "isolated_subcircuits": isolated_subcircuits,
+        "is_ground_connected": 0 in circuit.nodes,
+        "has_isolated_sections": len(isolated_subcircuits) > 0,
+    }
+
+
+def find_ground_reachable_nodes(circuit: Any) -> Set[Any]:
+    """
+    Find all nodes reachable from ground (node 0) using BFS.
+
+    This function traverses the circuit graph starting from the ground
+    node (node 0) using breadth-first search to find all electrically
+    connected nodes.
+
+    Args:
+        circuit: Circuit object with components and nodes attributes
+
+    Returns:
+        Set of node IDs that are electrically connected to ground
+
+    Example:
+        >>> circuit = Circuit("Test Circuit")
+        >>> circuit.add_voltage_source("V1", positive=1, negative=0, dc_value="5V")
+        >>> circuit.add_resistor("R1", node1=1, node2=2, resistance="1k")
+        >>> circuit.add_resistor("R2", node1=3, node2=4, resistance="1k")
+        >>> ground_nodes = find_ground_reachable_nodes(circuit)
+        >>> # Returns: {0, 1, 2} (node 3 and 4 are isolated)
+    """
+    graph = build_adjacency_graph(circuit)
+
+    if 0 not in graph:
+        return set()
+
+    visited: Set[Any] = set()
+    queue = [0]
+
+    while queue:
+        current = queue.pop(0)
+        if current in visited:
+            continue
+
+        visited.add(current)
+
+        for neighbor in graph.get(current, []):
+            if neighbor not in visited:
+                queue.append(neighbor)
+
+    return visited
+
+
+def find_ground_reachable_nodes_dfs(circuit: Any) -> Set[Any]:
+    """
+    Find all nodes reachable from ground (node 0) using DFS.
+
+    This function traverses the circuit graph starting from the ground
+    node (node 0) using depth-first search to find all electrically
+    connected nodes.
+
+    Args:
+        circuit: Circuit object with components and nodes attributes
+
+    Returns:
+        Set of node IDs that are electrically connected to ground
+
+    Example:
+        >>> circuit = Circuit("Test Circuit")
+        >>> circuit.add_voltage_source("V1", positive=1, negative=0, dc_value="5V")
+        >>> circuit.add_resistor("R1", node1=1, node2=2, resistance="1k")
+        >>> circuit.add_resistor("R2", node1=3, node2=4, resistance="1k")
+        >>> ground_nodes = find_ground_reachable_nodes_dfs(circuit)
+        >>> # Returns: {0, 1, 2} (node 3 and 4 are isolated)
+    """
+    graph = build_adjacency_graph(circuit)
+
+    if 0 not in graph:
+        return set()
+
+    visited: Set[Any] = set()
+    stack = [0]
+
+    while stack:
+        current = stack.pop()
+        if current in visited:
+            continue
+
+        visited.add(current)
+
+        for neighbor in graph.get(current, []):
+            if neighbor not in visited:
+                stack.append(neighbor)
+
+    return visited
+
+
+def is_grounded(circuit: Any, node: Any) -> bool:
+    """
+    Check if a node is electrically connected to ground.
+
+    Uses BFS to determine if the given node can be reached from
+    the ground node (node 0).
+
+    Args:
+        circuit: Circuit object with components and nodes attributes
+        node: Node ID to check
+
+    Returns:
+        True if node is connected to ground, False otherwise
+
+    Example:
+        >>> circuit = Circuit("Test Circuit")
+        >>> circuit.add_voltage_source("V1", positive=1, negative=0, dc_value="5V")
+        >>> circuit.add_resistor("R1", node1=1, node2=2, resistance="1k")
+        >>> is_grounded(circuit, 2)  # True (connected through R1 to ground)
+        >>> is_grounded(circuit, 3)  # False (isolated node)
+    """
+    if node == 0:
+        return True
+
+    graph = build_adjacency_graph(circuit)
+
+    # BFS from ground to see if we can reach the target node
+    visited: Set[Any] = set()
+    queue = [0]
+
+    while queue:
+        current = queue.pop(0)
+        if current == node:
+            return True
+
+        if current in visited:
+            continue
+
+        visited.add(current)
+
+        for neighbor in graph.get(current, []):
+            if neighbor not in visited:
+                queue.append(neighbor)
+
+    return False
